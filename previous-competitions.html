@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Previous Competitions - Twist & Turn</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="bg-slate-50 text-slate-800 antialiased min-h-screen flex flex-col">
+
+    <nav class="bg-indigo-600 text-white shadow-lg sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16 items-center relative">
+                <div class="flex items-center">
+                    <img src="logo.png.jpeg" alt="Logo" class="h-10 w-auto mr-3 bg-white rounded-full p-1" onerror="this.onerror=null;this.src='https://placehold.co/40x40/white/indigo?text=Logo';">
+                    <span class="font-bold text-2xl tracking-tight cursor-pointer" onclick="goHome()">Twist & Turn</span>
+                </div>
+                <button id="menuBtn" class="md:hidden text-3xl leading-none">☰</button>
+                <div id="navLinks" class="hidden absolute top-full right-0 mt-2 w-full bg-indigo-600 md:static md:mt-0 md:w-auto md:flex md:items-center md:space-x-6 md:bg-transparent text-right md:text-left">
+                    <button onclick="goHome()" class="block w-full px-4 py-3 text-left hover:text-indigo-200 transition md:inline-block md:w-auto md:p-0">Home</button>
+                    <button onclick="goToPage('index.html#upcoming')" class="block w-full px-4 py-3 text-left hover:text-indigo-200 transition md:inline-block md:w-auto md:p-0">Upcoming Competition</button>
+                    <button onclick="goToPage('previous-competitions.html')" class="block w-full px-4 py-3 text-left hover:text-indigo-200 transition md:inline-block md:w-auto md:p-0">Previous Competitions</button>
+                    <button onclick="goToPage('index.html#organizer')" class="block w-full px-4 py-3 text-left hover:text-indigo-200 transition md:inline-block md:w-auto md:p-0">About Organizer</button>
+                    <button onclick="goToPage('index.html#contact')" class="block w-full px-4 py-3 text-left hover:text-indigo-200 transition md:inline-block md:w-auto md:p-0">Contact</button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="flex-grow">
+        <!-- Hero Section -->
+        <section class="bg-gradient-to-r from-indigo-50 to-purple-50 py-16 border-b-2 border-indigo-200">
+            <div class="max-w-7xl mx-auto px-4 text-center">
+                <h1 class="text-4xl md:text-5xl font-extrabold text-gray-900 mb-4">
+                    Previous Competitions
+                </h1>
+                <p class="text-xl text-gray-600 max-w-2xl mx-auto">
+                    Explore the results, records, and highlights from past Twist & Turn events.
+                </p>
+            </div>
+        </section>
+
+        <!-- Competitions List -->
+        <section class="py-20">
+            <div class="max-w-6xl mx-auto px-4">
+                <div class="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+                    <!-- Empty State / Placeholder for Future Competitions -->
+                    <div class="bg-white rounded-2xl shadow-lg border border-dashed border-gray-300 overflow-hidden p-8 flex flex-col items-center justify-center text-center min-h-[400px] md:col-span-2 lg:col-span-3">
+                        <div class="text-6xl mb-4 text-gray-300">📅</div>
+                        <h3 class="text-2xl font-bold text-gray-700 mb-2">No Previous Competitions Yet</h3>
+                        <p class="text-gray-500 mb-4 text-lg">The first competition will be added here once it's completed!</p>
+                        <p class="text-sm text-indigo-600 font-semibold">Check back after the upcoming competition concludes.</p>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-slate-900 text-white py-8 border-t border-slate-800">
+        <div class="max-w-7xl mx-auto px-4 text-center">
+            <p class="text-slate-400">&copy; 2026 Twist & Turn - Premium Speedcubing Arena. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+        // Mobile Menu Toggle
+        const menuBtn = document.getElementById("menuBtn");
+        const navLinks = document.getElementById("navLinks");
+
+        if (menuBtn && navLinks) {
+            menuBtn.addEventListener("click", () => {
+                navLinks.classList.toggle("hidden");
+                if (navLinks.classList.contains("hidden")) {
+                    menuBtn.innerHTML = "☰";
+                } else {
+                    menuBtn.innerHTML = "✖";
+                }
+            });
+        }
+
+        // Navigation Functions
+        function goHome() {
+            window.location.href = 'index.html';
+        }
+
+        function goToPage(page) {
+            window.location.href = page;
+        }
+
+        function viewCompetitionDetails(competitionId) {
+            window.location.href = `competition-details.html?id=${competitionId}`;
+        }
+
+        // Scroll animations
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -100px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.animation = 'fadeInUp 0.8s ease-out';
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.bg-white, section').forEach(el => {
+            observer.observe(el);
+        });
+    </script>
+
+</body>
+</html>
