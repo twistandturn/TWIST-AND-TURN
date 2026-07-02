@@ -64,12 +64,20 @@ const navLinks = document.getElementById("navLinks");
 if (menuBtn && navLinks) {
     menuBtn.addEventListener("click", () => {
         navLinks.classList.toggle("hidden");
-        navLinks.classList.toggle("bg-indigo-600");
         if (navLinks.classList.contains("hidden")) {
             menuBtn.innerHTML = "☰";
         } else {
             menuBtn.innerHTML = "✖";
         }
+    });
+
+    // Close menu when a link is clicked
+    const navButtons = navLinks.querySelectorAll("button");
+    navButtons.forEach(button => {
+        button.addEventListener("click", () => {
+            navLinks.classList.add("hidden");
+            menuBtn.innerHTML = "☰";
+        });
     });
 }
 // ==========================
