@@ -1042,5 +1042,61 @@ width:100%;
 max-width:320px;
 
 }
+.countdown-section {
+  text-align: center;
+  padding: 45px 20px;
+  margin: 30px auto;
+}
+
+.countdown-section h2 {
+  font-size: 32px;
+  margin-bottom: 10px;
+}
+
+.countdown-section p {
+  font-size: 18px;
+  margin-bottom: 25px;
+}
+
+#countdown {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  flex-wrap: wrap;
+}
+
+.time-box {
+  background: linear-gradient(135deg, #111, #333);
+  color: white;
+  width: 100px;
+  padding: 18px 10px;
+  border-radius: 18px;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.25);
+}
+
+.time-box span {
+  display: block;
+  font-size: 38px;
+  font-weight: 800;
+}
+
+.time-box small {
+  font-size: 14px;
+  opacity: 0.8;
+}
+
+@media(max-width:600px){
+  .countdown-section h2{
+    font-size:24px;
+  }
+
+  .time-box{
+    width:75px;
+  }
+
+  .time-box span{
+    font-size:28px;
+  }
+}
 
 }
