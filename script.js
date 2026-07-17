@@ -212,3 +212,4 @@ style.textContent = `
   }
 `;
 document.head.appendChild(style);
+const endDate = new Date("2026-07-31T17:00:00+05:30").getTime();
