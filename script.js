@@ -2,57 +2,31 @@
 // Countdown Timer
 // ==========================
 
-const countdown = document.getElementById("countdown");
+const endDate = new Date("July 31, 2026 17:00:00").getTime();
 
-const targetDate = new Date("2026-07-02T17:00:00+05:30").getTime();
+const countdown = setInterval(function(){
 
-function updateCountdown() {
+  const now = new Date().getTime();
+  const distance = endDate - now;
 
-    if (!countdown) return;
+  if(distance <= 0){
+    clearInterval(countdown);
+    document.getElementById("countdown").innerHTML =
+    "<h2>Registration Closed</h2>";
+    return;
+  }
 
-    const now = new Date().getTime();
-    const distance = targetDate - now;
+  const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+  const hours = Math.floor((distance / (1000 * 60 * 60)) % 24);
+  const minutes = Math.floor((distance / (1000 * 60)) % 60);
+  const seconds = Math.floor((distance / 1000) % 60);
 
-    if (distance <= 0) {
-        countdown.innerHTML = `
-            <div class="col-span-full rounded-3xl bg-red-50 border border-red-200 p-6 text-center">
-                <div class="text-lg font-semibold text-red-700">Registration Closed</div>
-                <p class="mt-2 text-sm text-red-600">The deadline has passed.</p>
-            </div>
-        `;
-        return;
-    }
+  document.getElementById("days").innerHTML = days;
+  document.getElementById("hours").innerHTML = hours;
+  document.getElementById("minutes").innerHTML = minutes;
+  document.getElementById("seconds").innerHTML = seconds;
 
-    const days = Math.floor(distance / (1000 * 60 * 60 * 24));
-    const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-    const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-    const seconds = Math.floor((distance % (1000 * 60)) / 1000);
-
-    countdown.innerHTML = `
-        <div class="rounded-3xl bg-white border border-slate-200 p-4 text-center shadow-sm">
-            <div class="text-3xl font-semibold text-slate-900">${days}</div>
-            <div class="text-xs uppercase tracking-[0.35em] text-slate-500 mt-2">Days</div>
-        </div>
-
-        <div class="rounded-3xl bg-white border border-slate-200 p-4 text-center shadow-sm">
-            <div class="text-3xl font-semibold text-slate-900">${hours}</div>
-            <div class="text-xs uppercase tracking-[0.35em] text-slate-500 mt-2">Hours</div>
-        </div>
-
-        <div class="rounded-3xl bg-white border border-slate-200 p-4 text-center shadow-sm">
-            <div class="text-3xl font-semibold text-slate-900">${minutes}</div>
-            <div class="text-xs uppercase tracking-[0.35em] text-slate-500 mt-2">Minutes</div>
-        </div>
-
-        <div class="rounded-3xl bg-white border border-slate-200 p-4 text-center shadow-sm">
-            <div class="text-3xl font-semibold text-slate-900">${seconds}</div>
-            <div class="text-xs uppercase tracking-[0.35em] text-slate-500 mt-2">Seconds</div>
-        </div>
-    `;
-}
-
-updateCountdown();
-setInterval(updateCountdown, 1000);
+},1000);
 
 // ==========================
 // Mobile Menu
