@@ -213,3 +213,33 @@ style.textContent = `
 `;
 document.head.appendChild(style);
 const endDate = new Date("2026-07-31T17:00:00+05:30").getTime();
+const endDate = new Date("2026-07-31T17:00:00+05:30").getTime();
+
+function updateCountdown(){
+
+const now = new Date().getTime();
+const distance = endDate - now;
+
+if(distance <= 0){
+ document.getElementById("countdown").innerHTML = `
+ <h2>Registration Closed</h2>
+ <p>The deadline has passed.</p>`;
+ return;
+}
+
+document.getElementById("days").innerHTML =
+Math.floor(distance/(1000*60*60*24));
+
+document.getElementById("hours").innerHTML =
+Math.floor((distance/(1000*60*60))%24);
+
+document.getElementById("minutes").innerHTML =
+Math.floor((distance/(1000*60))%60);
+
+document.getElementById("seconds").innerHTML =
+Math.floor((distance/1000)%60);
+
+}
+
+updateCountdown();
+setInterval(updateCountdown,1000);
