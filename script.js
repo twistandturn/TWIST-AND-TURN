@@ -2,7 +2,7 @@
 // Countdown Timer
 // ==========================
 
-const endDate = new Date("2026-07-31T17:00:00+05:30").getTime();
+const endDate = new Date("2026-08-27T17:00:00+05:30").getTime();
 
 function updateCountdown(){
   const now = new Date().getTime();
