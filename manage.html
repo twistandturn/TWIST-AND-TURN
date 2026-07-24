@@ -58,17 +58,39 @@
 
         <div>
           <label class="block text-sm font-mono mb-1" style="color:var(--ink-muted);">Competition Title</label>
-          <input type="text" id="title" class="field w-full rounded-lg px-4 py-3" placeholder="Twist & Turn S2">
+          <input type="text" id="title" class="field w-full rounded-lg px-4 py-3" placeholder="Twist & Turn : Cubing Battle 2026">
         </div>
 
         <div class="grid grid-cols-2 gap-4">
           <div>
             <label class="block text-sm font-mono mb-1" style="color:var(--ink-muted);">Date</label>
-            <input type="text" id="date" class="field w-full rounded-lg px-4 py-3" placeholder="e.g. 15 Aug 2026">
+            <input type="text" id="date" class="field w-full rounded-lg px-4 py-3" placeholder="e.g. 29–30 August 2026">
           </div>
           <div>
             <label class="block text-sm font-mono mb-1" style="color:var(--ink-muted);">Mode</label>
             <input type="text" id="mode" class="field w-full rounded-lg px-4 py-3" placeholder="Online Competition">
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-mono mb-1" style="color:var(--ink-muted);">Event Type</label>
+            <input type="text" id="eventType" class="field w-full rounded-lg px-4 py-3" placeholder="3×3 Cube Only">
+          </div>
+          <div>
+            <label class="block text-sm font-mono mb-1" style="color:var(--ink-muted);">Entry Fee</label>
+            <input type="text" id="entryFee" class="field w-full rounded-lg px-4 py-3" placeholder="₹399">
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-mono mb-1" style="color:var(--ink-muted);">Participants Limit</label>
+            <input type="text" id="participantsLimit" class="field w-full rounded-lg px-4 py-3" placeholder="Only 60">
+          </div>
+          <div>
+            <label class="block text-sm font-mono mb-1" style="color:var(--ink-muted);">Format</label>
+            <input type="text" id="format" class="field w-full rounded-lg px-4 py-3" placeholder="Qualifier → Top 8 → Finals">
           </div>
         </div>
 
@@ -137,6 +159,10 @@
         document.getElementById("title").value = d.title || "";
         document.getElementById("date").value = d.date || "";
         document.getElementById("mode").value = d.mode || "";
+        document.getElementById("eventType").value = d.eventType || "";
+        document.getElementById("entryFee").value = d.entryFee || "";
+        document.getElementById("participantsLimit").value = d.participantsLimit || "";
+        document.getElementById("format").value = d.format || "";
         document.getElementById("reglink").value = d.regLink || "";
         document.getElementById("details").value = d.details || "";
         currentPosterUrl = d.posterUrl || "";
@@ -166,6 +192,10 @@
           title: document.getElementById("title").value,
           date: document.getElementById("date").value,
           mode: document.getElementById("mode").value,
+          eventType: document.getElementById("eventType").value,
+          entryFee: document.getElementById("entryFee").value,
+          participantsLimit: document.getElementById("participantsLimit").value,
+          format: document.getElementById("format").value,
           regLink: document.getElementById("reglink").value,
           details: document.getElementById("details").value,
           posterUrl: posterUrl,
