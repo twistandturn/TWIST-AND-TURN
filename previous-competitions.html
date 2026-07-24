@@ -1,204 +1,192 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Previous Competitions - Twist & Turn</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Previous Competitions - Twist & Turn</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg-base:#101218;
+    --bg-surface:#181B24;
+    --ink:#F2F1ED;
+    --ink-muted:#9297A6;
+    --cube-red:#E8412B;
+    --cube-yellow:#F2B705;
+    --cube-blue:#2F6FE0;
+    --cube-green:#22A35C;
+  }
+  body{ font-family:'Inter', sans-serif; scroll-behavior:smooth; background:var(--bg-base); color:var(--ink); }
+  .font-display{ font-family:'Space Grotesk', sans-serif; }
+  .font-mono{ font-family:'JetBrains Mono', monospace; }
+  .eyebrow{ font-family:'JetBrains Mono', monospace; font-size:0.75rem; letter-spacing:0.2em; text-transform:uppercase; color:var(--ink-muted); }
+  .surface-card{ background:var(--bg-surface); border:1px solid rgba(255,255,255,0.06); }
+  .accent-border-green{ border-left:3px solid var(--cube-green); }
+  .interactive-card{ position:relative; transition:transform .25s ease, box-shadow .25s ease; }
+  .interactive-card:hover{ transform:translateY(-6px); box-shadow:0 18px 35px rgba(0,0,0,0.35); }
+  @media (prefers-reduced-motion: reduce){ .interactive-card:hover{ transform:none; } }
+  .btn-primary{ background:var(--cube-red); color:#fff; font-family:'Space Grotesk',sans-serif; font-weight:600; }
+  .btn-primary:hover{ filter:brightness(1.08); }
+  #hero{ position:relative; overflow:hidden; background:radial-gradient(1000px 400px at 80% -10%, rgba(47,111,224,0.16), transparent 60%), var(--bg-base); border-bottom:1px solid rgba(255,255,255,0.06); }
+</style>
 </head>
-<body class="bg-slate-50 text-slate-800 antialiased min-h-screen flex flex-col">
+<body class="antialiased min-h-screen flex flex-col">
 
-    <nav class="bg-indigo-600 text-white shadow-lg sticky top-0 z-50">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between h-16 items-center relative">
-                <div class="flex items-center">
-                    <img src="logo.png.jpeg" alt="Logo" class="h-10 w-auto mr-3 bg-white rounded-full p-1" onerror="this.onerror=null;this.src='https://placehold.co/40x40/white/indigo?text=Logo';">
-                    <span class="font-bold text-2xl tracking-tight cursor-pointer" onclick="goHome()">Twist & Turn</span>
-                </div>
-                <button id="menuBtn" class="md:hidden text-3xl leading-none">☰</button>
-                <div id="navLinks" class="hidden absolute top-full right-0 mt-2 w-full bg-indigo-600 md:static md:mt-0 md:w-auto md:flex md:items-center md:space-x-6 md:bg-transparent text-right md:text-left">
-                    <button onclick="goHome()" class="block w-full px-4 py-3 text-left hover:text-indigo-200 transition md:inline-block md:w-auto md:p-0">Home</button>
-                    <button onclick="goToPage('index.html#upcoming')" class="block w-full px-4 py-3 text-left hover:text-indigo-200 transition md:inline-block md:w-auto md:p-0">Upcoming Competition</button>
-                    <button onclick="goToPage('previous-competitions.html')" class="block w-full px-4 py-3 text-left hover:text-indigo-200 transition md:inline-block md:w-auto md:p-0">Previous Competitions</button>
-                    <button onclick="goToPage('index.html#organizer')" class="block w-full px-4 py-3 text-left hover:text-indigo-200 transition md:inline-block md:w-auto md:p-0">About Organizer</button>
-                    <button onclick="goToPage('index.html#contact')" class="block w-full px-4 py-3 text-left hover:text-indigo-200 transition md:inline-block md:w-auto md:p-0">Contact</button>
-                </div>
-            </div>
-        </div>
-    </nav>
-    
+<nav class="sticky top-0 z-50 border-b border-white/5" style="background:rgba(16,18,24,0.85); backdrop-filter:blur(10px);">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="flex justify-between h-16 items-center relative">
+      <div class="flex items-center gap-3 cursor-pointer" onclick="goHome()">
+        <img src="logo.png.jpeg" alt="Logo" class="h-9 w-auto rounded-full p-0.5 bg-white/90" onerror="this.onerror=null;this.src='https://placehold.co/40x40/101218/F2B705?text=T%26T';">
+        <span class="font-display font-bold text-xl tracking-tight">Twist &amp; Turn</span>
+      </div>
+      <button id="menuBtn" class="md:hidden text-3xl leading-none text-[var(--ink)]">☰</button>
+      <div id="navLinks" class="hidden absolute top-full right-0 mt-2 w-full md:static md:mt-0 md:w-auto md:flex md:items-center md:space-x-1 text-right md:text-left font-mono text-sm uppercase tracking-wider" style="background:var(--bg-surface);">
+        <button onclick="goHome()" class="block w-full px-4 py-3 text-left hover:text-[var(--cube-yellow)] transition border-b-2 border-transparent hover:border-[var(--cube-yellow)] md:inline-block md:w-auto md:p-2">Home</button>
+        <button onclick="goToPage('index.html#upcoming')" class="block w-full px-4 py-3 text-left hover:text-[var(--cube-blue)] transition border-b-2 border-transparent hover:border-[var(--cube-blue)] md:inline-block md:w-auto md:p-2">Upcoming</button>
+        <button onclick="goToPage('previous-competitions.html')" class="block w-full px-4 py-3 text-left hover:text-[var(--cube-green)] transition border-b-2 border-transparent hover:border-[var(--cube-green)] md:inline-block md:w-auto md:p-2">Previous</button>
+        <button onclick="goToPage('index.html#organizer')" class="block w-full px-4 py-3 text-left hover:text-[var(--cube-blue)] transition border-b-2 border-transparent hover:border-[var(--cube-blue)] md:inline-block md:w-auto md:p-2">Organizer</button>
+        <button onclick="goToPage('index.html#contact')" class="block w-full px-4 py-3 text-left hover:text-[var(--cube-yellow)] transition border-b-2 border-transparent hover:border-[var(--cube-yellow)] md:inline-block md:w-auto md:p-2">Contact</button>
+      </div>
+    </div>
+  </div>
+</nav>
 
-    <main class="flex-grow">
-        <!-- Hero Section -->
-        <section class="bg-gradient-to-r from-indigo-50 to-purple-50 py-16 border-b-2 border-indigo-200">
-            <div class="max-w-7xl mx-auto px-4 text-center">
-                <h1 class="text-4xl md:text-5xl font-extrabold text-gray-900 mb-4">
-                    Previous Competitions
-                </h1>
-                <p class="text-xl text-gray-600 max-w-2xl mx-auto">
-                    Explore the results, records, and highlights from past Twist & Turn events.
-                </p>
-            </div>
-        </section>
+<main class="flex-grow">
 
-        <!-- Competitions List -->
-        <section class="py-16">
-                </div>
-            </div>
-        </section>
+  <section id="hero" class="py-20">
+    <div class="max-w-7xl mx-auto px-4 text-center">
+      <p class="eyebrow mb-3">Archive</p>
+      <h1 class="font-display text-4xl md:text-5xl font-bold mb-4">Previous Competitions</h1>
+      <p class="text-lg md:text-xl max-w-2xl mx-auto" style="color:var(--ink-muted)">
+        Explore the results, records, and highlights from past Twist &amp; Turn events.
+      </p>
+    </div>
+  </section>
 
-    </main>
-<main class="max-w-5xl mx-auto px-4 py-16">
+  <section class="py-16">
+    <div class="max-w-5xl mx-auto px-4">
 
-    <h1 class="text-4xl font-bold text-center mb-12">
-        Previous Competitions
-    </h1>
-
-    <div class="bg-white rounded-3xl shadow-xl overflow-hidden border border-slate-200">
-
-        <img src="poster.jpg.jpeg"
-             alt="Twist & Turn S1"
-             class="w-full h-auto">
-
+      <div class="interactive-card surface-card rounded-3xl shadow-xl overflow-hidden">
+        <img src="poster.jpg.jpeg" alt="Twist & Turn S1" class="w-full h-auto">
         <div class="p-8">
-
-            <span class="bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm font-semibold">
-                ✅ Completed
-            </span>
-
-            <h2 class="text-3xl font-bold mt-4 mb-2">
-                Twist & Turn S1
-            </h2>
-
-            <p class="text-slate-600 mb-6">
-                📅 4–5 July 2026<br>
-                🌐 Online Competition
-            </p>
-
-           <a href="#s1-results"
-   class="inline-block bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-xl font-semibold">
-    🏆 View Results
-</a>
-
+          <span class="font-mono text-sm font-semibold px-3 py-1 rounded-full" style="background:rgba(34,163,92,0.15); color:var(--cube-green);">
+            ✅ Completed
+          </span>
+          <h2 class="font-display text-3xl font-bold mt-4 mb-2">Twist &amp; Turn S1</h2>
+          <p class="mb-6" style="color:var(--ink-muted)">
+            📅 4–5 July 2026<br>
+            🌐 Online Competition
+          </p>
+          <a href="#s1-results" class="btn-primary inline-block px-6 py-3 rounded-xl">
+            🏆 View Results
+          </a>
         </div>
-        <section id="s1-results" class="mt-16">
-    
+      </div>
 
-    
-            <div class="max-w-7xl mx-auto px-4">
-                <h2 class="text-3xl font-bold text-gray-900 mb-8 border-b-2 border-emerald-500 pb-2 inline-block">TWIST & TURN S1 RESULTS</h2>
-                <div class="overflow-x-auto">
-                    <table class="w-full border-collapse bg-white shadow-xl rounded-lg overflow-hidden">
-                        <thead class="bg-emerald-600 text-white">
-                            <tr>
-                                <th class="border border-gray-300 px-6 py-4 text-left font-bold">Event</th>
-                                <th class="border border-gray-300 px-6 py-4 text-left font-bold">1st Place 🥇</th>
-                                <th class="border border-gray-300 px-6 py-4 text-left font-bold">2nd Place 🥈</th>
-                                <th class="border border-gray-300 px-6 py-4 text-left font-bold">3rd Place 🥉</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-gray-200">
-                            <tr class="hover:bg-emerald-50 transition-colors">
-                                <td class="border border-gray-300 px-6 py-4 font-semibold text-gray-900">3x3</td>
-                                <td class="border border-gray-300 px-6 py-4 text-gray-700">MOHITH B</td>
-                                <td class="border border-gray-300 px-6 py-4 text-gray-700">LIM KAI YI</td>
-                                <td class="border border-gray-300 px-6 py-4 text-gray-700">CHIRAG GUPTA</td>
-                            </tr>
-                            <tr class="hover:bg-emerald-50 transition-colors">
-                                <td class="border border-gray-300 px-6 py-4 font-semibold text-gray-900">2x2</td>
-                                <td class="border border-gray-300 px-6 py-4 text-gray-700">MOHITH B</td>
-                                <td class="border border-gray-300 px-6 py-4 text-gray-700">RUTHVIK SHELKE</td>
-                                <td class="border border-gray-300 px-6 py-4 text-gray-700">LIM KAI YI</td>
-                            </tr>
-                            <tr class="hover:bg-emerald-50 transition-colors">
-                                <td class="border border-gray-300 px-6 py-4 font-semibold text-gray-900">3x3 One-Handed</td>
-                                <td class="border border-gray-300 px-6 py-4 text-gray-700">MOHITH B</td>
-                                <td class="border border-gray-300 px-6 py-4 text-gray-700">LIM KAI YI</td>
-                                <td class="border border-gray-300 px-6 py-4 text-gray-700">SYED WAFA ANDRABI</td>
-                            </tr>
-                            <tr class="hover:bg-emerald-50 transition-colors">
-                                <td class="border border-gray-300 px-6 py-4 font-semibold text-gray-900">Clock</td>
-                                <td class="border border-gray-300 px-6 py-4 text-gray-700">JUNAID EKHLAQUE</td>
-                                <td class="border border-gray-300 px-6 py-4 text-gray-700">AARIZ ALI</td>
-                                <td class="border border-gray-300 px-6 py-4 text-gray-700">MOHITH B</td>
-                            </tr>
-                            <tr class="hover:bg-emerald-50 transition-colors">
-                                <td class="border border-gray-300 px-6 py-4 font-semibold text-gray-900">Skewb</td>
-                                <td class="border border-gray-300 px-6 py-4 text-gray-700">LIM KAI YI</td>
-                                <td class="border border-gray-300 px-6 py-4 text-gray-700">MOHITH B</td>
-                                <td class="border border-gray-300 px-6 py-4 text-gray-700">JUNAID EKHLAQUE</td>
-                            </tr>
-                            <tr class="hover:bg-emerald-50 transition-colors">
-                                <td class="border border-gray-300 px-6 py-4 font-semibold text-gray-900">Pyraminx</td>
-                                <td class="border border-gray-300 px-6 py-4 text-gray-700">MOHITH B</td>
-                                <td class="border border-gray-300 px-6 py-4 text-gray-700">LIM KAI YI</td>
-                                <td class="border border-gray-300 px-6 py-4 text-gray-700">SYED WAFA ANDRABI</td>
-                            </tr>
-                        </tbody>
-                    </table>
-          
-</section>
+      <section id="s1-results" class="mt-16">
+        <p class="eyebrow mb-2">Leaderboard</p>
+        <h2 class="font-display text-3xl font-bold mb-8">Twist &amp; Turn S1 Results</h2>
+        <div class="overflow-x-auto rounded-2xl shadow-xl surface-card">
+          <table class="w-full border-collapse font-mono text-sm">
+            <thead style="background:var(--cube-green); color:#0B1A10;">
+              <tr>
+                <th class="px-6 py-4 text-left font-bold">Event</th>
+                <th class="px-6 py-4 text-left font-bold">1st 🥇</th>
+                <th class="px-6 py-4 text-left font-bold">2nd 🥈</th>
+                <th class="px-6 py-4 text-left font-bold">3rd 🥉</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-white/5">
+              <tr class="hover:bg-white/5 transition-colors">
+                <td class="px-6 py-4 font-semibold">3x3</td>
+                <td class="px-6 py-4" style="color:#D6D8DF;">MOHITH B</td>
+                <td class="px-6 py-4" style="color:#D6D8DF;">LIM KAI YI</td>
+                <td class="px-6 py-4" style="color:#D6D8DF;">CHIRAG GUPTA</td>
+              </tr>
+              <tr class="hover:bg-white/5 transition-colors">
+                <td class="px-6 py-4 font-semibold">2x2</td>
+                <td class="px-6 py-4" style="color:#D6D8DF;">MOHITH B</td>
+                <td class="px-6 py-4" style="color:#D6D8DF;">RUTHVIK SHELKE</td>
+                <td class="px-6 py-4" style="color:#D6D8DF;">LIM KAI YI</td>
+              </tr>
+              <tr class="hover:bg-white/5 transition-colors">
+                <td class="px-6 py-4 font-semibold">3x3 One-Handed</td>
+                <td class="px-6 py-4" style="color:#D6D8DF;">MOHITH B</td>
+                <td class="px-6 py-4" style="color:#D6D8DF;">LIM KAI YI</td>
+                <td class="px-6 py-4" style="color:#D6D8DF;">SYED WAFA ANDRABI</td>
+              </tr>
+              <tr class="hover:bg-white/5 transition-colors">
+                <td class="px-6 py-4 font-semibold">Clock</td>
+                <td class="px-6 py-4" style="color:#D6D8DF;">JUNAID EKHLAQUE</td>
+                <td class="px-6 py-4" style="color:#D6D8DF;">AARIZ ALI</td>
+                <td class="px-6 py-4" style="color:#D6D8DF;">MOHITH B</td>
+              </tr>
+              <tr class="hover:bg-white/5 transition-colors">
+                <td class="px-6 py-4 font-semibold">Skewb</td>
+                <td class="px-6 py-4" style="color:#D6D8DF;">LIM KAI YI</td>
+                <td class="px-6 py-4" style="color:#D6D8DF;">MOHITH B</td>
+                <td class="px-6 py-4" style="color:#D6D8DF;">JUNAID EKHLAQUE</td>
+              </tr>
+              <tr class="hover:bg-white/5 transition-colors">
+                <td class="px-6 py-4 font-semibold">Pyraminx</td>
+                <td class="px-6 py-4" style="color:#D6D8DF;">MOHITH B</td>
+                <td class="px-6 py-4" style="color:#D6D8DF;">LIM KAI YI</td>
+                <td class="px-6 py-4" style="color:#D6D8DF;">SYED WAFA ANDRABI</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
 
     </div>
+  </section>
 
 </main>
-    <!-- Footer -->
-    <footer class="bg-slate-900 text-white py-8 border-t border-slate-800">
-        <div class="max-w-7xl mx-auto px-4 text-center">
-            <p class="text-slate-400">&copy; 2026 Twist & Turn - Premium Speedcubing Arena. All rights reserved.</p>
-        </div>
-    </footer>
 
-    <script>
-        // Mobile Menu Toggle
-        const menuBtn = document.getElementById("menuBtn");
-        const navLinks = document.getElementById("navLinks");
+<footer class="py-8 text-center font-mono text-xs" style="color:var(--ink-muted); border-top:1px solid rgba(255,255,255,0.06);">
+  © 2026 Twist &amp; Turn — Premium Speedcubing Arena. All rights reserved.
+</footer>
 
-        if (menuBtn && navLinks) {
-            menuBtn.addEventListener("click", () => {
-                navLinks.classList.toggle("hidden");
-                if (navLinks.classList.contains("hidden")) {
-                    menuBtn.innerHTML = "☰";
-                } else {
-                    menuBtn.innerHTML = "✖";
-                }
-            });
-        }
+<script>
+  // Mobile Menu Toggle
+  const menuBtn = document.getElementById("menuBtn");
+  const navLinks = document.getElementById("navLinks");
 
-        // Navigation Functions
-        function goHome() {
-            window.location.href = 'index.html';
-        }
+  if (menuBtn && navLinks) {
+    menuBtn.addEventListener("click", () => {
+      navLinks.classList.toggle("hidden");
+      menuBtn.innerHTML = navLinks.classList.contains("hidden") ? "☰" : "✖";
+    });
 
-        function goToPage(page) {
-            window.location.href = page;
-        }
+    navLinks.querySelectorAll("button").forEach(button => {
+      button.addEventListener("click", () => {
+        navLinks.classList.add("hidden");
+        menuBtn.innerHTML = "☰";
+      });
+    });
+  }
 
-        function viewCompetitionDetails(competitionId) {
-            window.location.href = `competition-details.html?id=${competitionId}`;
-        }
+  // Navigation Functions
+  function goHome() {
+    window.location.href = 'index.html';
+  }
+  function goToPage(page) {
+    window.location.href = page;
+  }
 
-        // Scroll animations
-        const observerOptions = {
-            threshold: 0.1,
-            rootMargin: '0px 0px -100px 0px'
-        };
+  // Scroll animations
+  const observerOptions = { threshold: 0.1, rootMargin: '0px 0px -100px 0px' };
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('animate-in');
+        observer.unobserve(entry.target);
+      }
+    });
+  }, observerOptions);
 
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    entry.target.style.animation = 'fadeInUp 0.8s ease-out';
-                    observer.unobserve(entry.target);
-                }
-            });
-        }, observerOptions);
-
-        document.querySelectorAll('.bg-white, section').forEach(el => {
-            observer.observe(el);
-        });
-    </script>
-
+  document.querySelectorAll('.interactive-card, section').forEach(el => observer.observe(el));
+</script>
 </body>
 </html>
