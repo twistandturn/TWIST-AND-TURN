@@ -21,7 +21,6 @@
   .font-display{ font-family:'Space Grotesk', sans-serif; }
   .font-mono{ font-family:'JetBrains Mono', monospace; }
 
-  /* ---- Hero scramble marquee (signature element) ---- */
   #home{ position:relative; overflow:hidden; background:radial-gradient(1200px 500px at 80% -10%, rgba(47,111,224,0.18), transparent 60%), var(--bg-base); }
   .scramble-row{ white-space:nowrap; position:absolute; left:0; width:200%; display:flex; opacity:0.14; font-size:1.1rem; letter-spacing:0.15em; color:var(--ink); user-select:none; }
   .scramble-row span{ padding:0 2rem; }
@@ -29,12 +28,9 @@
   .scramble-row.r2{ top:78%; animation:scrollRight 44s linear infinite; }
   @keyframes scrollLeft{ from{ transform:translateX(0); } to{ transform:translateX(-50%); } }
   @keyframes scrollRight{ from{ transform:translateX(-50%); } to{ transform:translateX(0); } }
-  @media (prefers-reduced-motion: reduce){
-    .scramble-row{ animation:none !important; }
-  }
+  @media (prefers-reduced-motion: reduce){ .scramble-row{ animation:none !important; } }
   #home > .hero-content{ position:relative; z-index:1; }
 
-  /* cube-mark: small animated sticker grid used as brand mark */
   .cube-mark{ display:grid; grid-template-columns:repeat(3,1fr); gap:3px; width:26px; height:26px; }
   .cube-mark span{ border-radius:2px; display:block; }
   .cube-mark span:nth-child(1){ background:var(--cube-red); }
@@ -96,30 +92,19 @@
       <div class="flex justify-center mb-6">
         <div class="cube-mark"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
       </div>
-     <h1 class="font-display text-4xl md:text-6xl font-bold tracking-tight mb-6">
-  Twist & Turn : Cubing Battle 2026
-</h1>
+      <h1 class="font-display text-4xl md:text-6xl font-bold tracking-tight mb-6">
+        Twist &amp; Turn : Cubing Battle 2026
+      </h1>
       <p class="text-lg md:text-xl max-w-2xl mx-auto" style="color:var(--ink-muted)">
-  The biggest online 3×3 competition is here.<br><br>
-
-  📅 29–30 August 2026<br>
-  🌐 Online Competition<br>
-  🏆 Qualifier → Top 8 → Grand Finals
-</p>
-<div class="mt-10 flex flex-wrap justify-center gap-4">
-
-  <a href="https://form.jotform.com/261972389202058"
-     class="btn-primary px-8 py-4 rounded-xl shadow-xl">
-    Register Now 🚀
-  </a>
-
-  <a href="#rules"
-     class="px-8 py-4 rounded-xl border border-white/20 hover:bg-white/10">
-    Rules 📖
-  </a>
-
-</div>
-
+        The biggest online 3×3 competition is here.<br><br>
+        📅 29–30 August 2026<br>
+        🌐 Online Competition<br>
+        🏆 Qualifier → Top 8 → Grand Finals
+      </p>
+      <div class="mt-10 flex flex-wrap justify-center gap-4">
+        <a href="https://form.jotform.com/261972389202058" class="btn-primary px-8 py-4 rounded-xl shadow-xl">Register Now 🚀</a>
+        <a href="#rules" class="px-8 py-4 rounded-xl border border-white/20 hover:bg-white/10">Rules 📖</a>
+      </div>
     </div>
   </section>
 
@@ -127,171 +112,102 @@
     <div class="max-w-5xl mx-auto px-4">
       <p class="eyebrow mb-2">Next Event</p>
       <h2 class="font-display text-3xl font-bold mb-8">Upcoming Competition</h2>
-      <div class="interactive-card surface-card accent-border-blue rounded-2xl shadow-2xl overflow-hidden">
-        <div class="p-10 text-center">
-          <h2 class="font-display text-3xl font-bold mb-3">
-🔥 Twist & Turn : Cubing Battle 2026
-</h2>
 
-<p class="text-lg mb-6" style="color:var(--cube-yellow);">
-🟢 Registration Open
-</p>
-
-<div class="grid md:grid-cols-2 gap-4 text-left max-w-3xl mx-auto mb-8">
-
-<div class="surface-card rounded-xl p-4">
-<b>📅 Date</b><br>
-29–30 August 2026
-</div>
-
-<div class="surface-card rounded-xl p-4">
-<b>🌐 Mode</b><br>
-Online
-</div>
-
-<div class="surface-card rounded-xl p-4">
-<b>🧩 Event</b><br>
-3×3 Cube Only
-</div>
-
-<div class="surface-card rounded-xl p-4">
-<b>💰 Entry Fee</b><br>
-₹399
-</div>
-
-<div class="surface-card rounded-xl p-4">
-<b>👥 Participants</b><br>
-Only 60
-</div>
-
-<div class="surface-card rounded-xl p-4">
-<b>🏁 Format</b><br>
-Qualifier → Top 8 → Finals
-</div>
-
-</div>
-
-<a href="https://form.jotform.com/261972389202058"
-class="btn-primary inline-block px-8 py-4 rounded-xl">
-Register Now 🚀
-</a>
-<div class="mt-12">
-  <h3 class="font-display text-2xl font-bold mb-8">
-    🏁 Competition Format
-  </h3>
-
-  <div class="grid md:grid-cols-5 gap-4 items-center">
-
-    <div class="surface-card rounded-xl p-5 text-center">
-      <h4 class="font-bold text-lg">29 August</h4>
-      <p class="mt-2">Qualifier Round</p>
-      <p class="text-sm mt-2" style="color:var(--ink-muted);">
-        All Participants
-      </p>
-    </div>
-
-    <div class="text-center text-3xl font-bold" style="color:var(--cube-yellow);">
-      ➜
-    </div>
-
-    <div class="surface-card rounded-xl p-5 text-center">
-      <h4 class="font-bold text-lg">Top 8</h4>
-      <p class="mt-2">Qualified</p>
-    </div>
-
-    <div class="text-center text-3xl font-bold" style="color:var(--cube-yellow);">
-      ➜
-    </div>
-
-    <div class="surface-card rounded-xl p-5 text-center">
-      <h4 class="font-bold text-lg">30 August</h4>
-      <p class="mt-2">Grand Finals</p>
-      <p class="text-sm mt-2" style="color:var(--ink-muted);">
-        Top 3 Winners
-      </p>
-    </div>
-
-  </div>
-</div>
-<section class="py-16">
-
-  <h2 class="font-display text-3xl font-bold text-center mb-10">
-    🏆 Prize Categories
-  </h2>
-
-  <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-
-    <div class="interactive-card surface-card accent-border-yellow rounded-2xl p-6 text-center">
-      <h3 class="text-2xl">🥇</h3>
-      <h4 class="font-bold mt-3">Top 3 Overall</h4>
-    </div>
-
-    <div class="interactive-card surface-card accent-border-red rounded-2xl p-6 text-center">
-      <h3 class="text-2xl">👩</h3>
-      <h4 class="font-bold mt-3">Fastest Female</h4>
-    </div>
-
-    <div class="interactive-card surface-card accent-border-blue rounded-2xl p-6 text-center">
-      <h3 class="text-2xl">⚡</h3>
-      <h4 class="font-bold mt-3">Fastest Single</h4>
-    </div>
-
-    <div class="interactive-card surface-card accent-border-green rounded-2xl p-6 text-center">
-      <h3 class="text-2xl">👶</h3>
-      <h4 class="font-bold mt-3">Youngest Cuber</h4>
-    </div>
-
-    <div class="interactive-card surface-card accent-border-yellow rounded-2xl p-6 text-center">
-      <h3 class="text-2xl">🧒</h3>
-      <h4 class="font-bold mt-3">U10 Champion</h4>
-    </div>
-
-    <div class="interactive-card surface-card accent-border-blue rounded-2xl p-6 text-center">
-      <h3 class="text-2xl">👦</h3>
-      <h4 class="font-bold mt-3">U14 Champion</h4>
-    </div>
-
-    <div class="interactive-card surface-card accent-border-red rounded-2xl p-6 text-center lg:col-span-3">
-      <h3 class="text-2xl">🧑</h3>
-      <h4 class="font-bold mt-3">U18 Champion</h4>
-    </div>
- <div class="mt-6 interactive-card surface-card accent-border-blue rounded-2xl p-6 shadow-sm">
-
-<h3 class="font-display font-bold text-xl mb-6">
-🏁 Competition Format
-</h3>
-
-<div class="flex flex-col md:flex-row items-center justify-center gap-6 text-center">
-
-<div class="surface-card rounded-xl p-6 w-full md:w-80">
-<h4 class="font-bold text-xl mb-3">👥 All Registered Participants</h4>
-<p style="color:#D6D8DF;">
-All registered participants will compete in the Qualifier Round on <b>29 August 2026</b>.
-</p>
-</div>
-
-<div class="text-4xl font-bold" style="color:var(--cube-yellow);">
-➡️
-</div>
-
-<div class="surface-card rounded-xl p-6 w-full md:w-80">
-<h4 class="font-bold text-xl mb-3">🏆 Top 8 Qualified for Finals</h4>
-<p style="color:#D6D8DF;">
-The fastest <b>Top 8</b> cubers will qualify for the Final Round, where the <b>Top 3 Champions</b> will be decided.
-</p>
-</div>
-
-</div>
-
-</div>
-
-  </div>
-
-</section>
-
+      <div id="upcoming-content" class="interactive-card surface-card accent-border-blue rounded-2xl shadow-2xl overflow-hidden">
+        <div class="p-10 text-center"><p style="color:var(--ink-muted)">Loading...</p></div>
       </div>
+
+      <div class="mt-12">
+        <h3 class="font-display text-2xl font-bold mb-8 text-center">🏁 Competition Format</h3>
+        <div class="grid md:grid-cols-5 gap-4 items-center">
+          <div class="surface-card rounded-xl p-5 text-center">
+            <h4 class="font-bold text-lg">Qualifier Round</h4>
+            <p class="mt-2" style="color:var(--ink-muted);">All Participants</p>
+          </div>
+          <div class="text-center text-3xl font-bold" style="color:var(--cube-yellow);">➜</div>
+          <div class="surface-card rounded-xl p-5 text-center">
+            <h4 class="font-bold text-lg">Top 8</h4>
+            <p class="mt-2" style="color:var(--ink-muted);">Qualified</p>
+          </div>
+          <div class="text-center text-3xl font-bold" style="color:var(--cube-yellow);">➜</div>
+          <div class="surface-card rounded-xl p-5 text-center">
+            <h4 class="font-bold text-lg">Grand Finals</h4>
+            <p class="mt-2" style="color:var(--ink-muted);">Top 3 Winners</p>
+          </div>
+        </div>
+      </div>
+
+      <section class="py-16">
+        <h2 class="font-display text-3xl font-bold text-center mb-10">🏆 Prize Categories</h2>
+        <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div class="interactive-card surface-card accent-border-yellow rounded-2xl p-6 text-center">
+            <h3 class="text-2xl">🥇</h3><h4 class="font-bold mt-3">Top 3 Overall</h4>
+          </div>
+          <div class="interactive-card surface-card accent-border-red rounded-2xl p-6 text-center">
+            <h3 class="text-2xl">👩</h3><h4 class="font-bold mt-3">Fastest Female</h4>
+          </div>
+          <div class="interactive-card surface-card accent-border-blue rounded-2xl p-6 text-center">
+            <h3 class="text-2xl">⚡</h3><h4 class="font-bold mt-3">Fastest Single</h4>
+          </div>
+          <div class="interactive-card surface-card accent-border-green rounded-2xl p-6 text-center">
+            <h3 class="text-2xl">👶</h3><h4 class="font-bold mt-3">Youngest Cuber</h4>
+          </div>
+          <div class="interactive-card surface-card accent-border-yellow rounded-2xl p-6 text-center">
+            <h3 class="text-2xl">🧒</h3><h4 class="font-bold mt-3">U10 Champion</h4>
+          </div>
+          <div class="interactive-card surface-card accent-border-blue rounded-2xl p-6 text-center">
+            <h3 class="text-2xl">👦</h3><h4 class="font-bold mt-3">U14 Champion</h4>
+          </div>
+          <div class="interactive-card surface-card accent-border-red rounded-2xl p-6 text-center lg:col-span-3">
+            <h3 class="text-2xl">🧑</h3><h4 class="font-bold mt-3">U18 Champion</h4>
+          </div>
+        </div>
+      </section>
     </div>
   </section>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    import { firebaseConfig } from "./firebase-config.js";
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const box = document.getElementById("upcoming-content");
+
+    getDoc(doc(db, "site", "upcomingCompetition")).then(snap => {
+      if (!snap.exists() || !snap.data().status || snap.data().status === "none") {
+        box.innerHTML = `
+          <div class="p-10 text-center">
+            <h2 class="font-display text-2xl md:text-3xl font-bold mb-4">No Upcoming Competition</h2>
+            <p class="mb-6" style="color:var(--ink-muted)">There are currently no upcoming competitions.</p>
+            <p class="text-lg font-semibold" style="color:var(--cube-yellow)">Stay tuned for our next event! 🚀</p>
+          </div>`;
+        return;
+      }
+
+      const d = snap.data();
+      const statusLabel = d.status === "open" ? "🟢 Registration Open" : "🔴 Registration Closed";
+      const statusColor = d.status === "open" ? "var(--cube-green)" : "var(--cube-red)";
+
+      box.innerHTML = `
+        ${d.posterUrl ? `<img src="${d.posterUrl}" class="w-full h-auto">` : ""}
+        <div class="p-8 text-center">
+          <h2 class="font-display text-3xl font-bold mb-3">🔥 ${d.title || ""}</h2>
+          <p class="text-lg mb-6" style="color:${statusColor};">${statusLabel}</p>
+          <div class="grid md:grid-cols-2 gap-4 text-left max-w-3xl mx-auto mb-8">
+            <div class="surface-card rounded-xl p-4"><b>📅 Date</b><br>${d.date || "-"}</div>
+            <div class="surface-card rounded-xl p-4"><b>🌐 Mode</b><br>${d.mode || "-"}</div>
+            <div class="surface-card rounded-xl p-4"><b>🧩 Event</b><br>${d.eventType || "-"}</div>
+            <div class="surface-card rounded-xl p-4"><b>💰 Entry Fee</b><br>${d.entryFee || "-"}</div>
+            <div class="surface-card rounded-xl p-4"><b>👥 Participants</b><br>${d.participantsLimit || "-"}</div>
+            <div class="surface-card rounded-xl p-4"><b>🏁 Format</b><br>${d.format || "-"}</div>
+          </div>
+          ${d.details ? `<p class="mb-6" style="color:var(--ink-muted)">${d.details}</p>` : ""}
+          ${d.regLink ? `<a href="${d.regLink}" target="_blank" class="btn-primary inline-block px-8 py-4 rounded-xl">Register Now 🚀</a>` : ""}
+        </div>`;
+    });
+  </script>
 
   <section id="rules" class="py-16">
     <div class="max-w-7xl mx-auto px-4">
