@@ -2,31 +2,35 @@
 // Countdown Timer
 // ==========================
 
-const endDate = new Date("July 31, 2026 17:00:00").getTime();
+const endDate = new Date("2026-07-31T17:00:00+05:30").getTime();
 
-const countdown = setInterval(function(){
-
+function updateCountdown(){
   const now = new Date().getTime();
   const distance = endDate - now;
 
+  const countdownEl = document.getElementById("countdown");
+  if (!countdownEl) return; // no countdown widget on this page, skip safely
+
   if(distance <= 0){
-    clearInterval(countdown);
-    document.getElementById("countdown").innerHTML =
-    "<h2>Registration Closed</h2>";
+    countdownEl.innerHTML = `
+      <h2>Registration Closed</h2>
+      <p>The deadline has passed.</p>`;
     return;
   }
 
-  const days = Math.floor(distance / (1000 * 60 * 60 * 24));
-  const hours = Math.floor((distance / (1000 * 60 * 60)) % 24);
-  const minutes = Math.floor((distance / (1000 * 60)) % 60);
-  const seconds = Math.floor((distance / 1000) % 60);
+  const daysEl = document.getElementById("days");
+  const hoursEl = document.getElementById("hours");
+  const minutesEl = document.getElementById("minutes");
+  const secondsEl = document.getElementById("seconds");
 
-  document.getElementById("days").innerHTML = days;
-  document.getElementById("hours").innerHTML = hours;
-  document.getElementById("minutes").innerHTML = minutes;
-  document.getElementById("seconds").innerHTML = seconds;
+  if (daysEl) daysEl.innerHTML = Math.floor(distance / (1000 * 60 * 60 * 24));
+  if (hoursEl) hoursEl.innerHTML = Math.floor((distance / (1000 * 60 * 60)) % 24);
+  if (minutesEl) minutesEl.innerHTML = Math.floor((distance / (1000 * 60)) % 60);
+  if (secondsEl) secondsEl.innerHTML = Math.floor((distance / 1000) % 60);
+}
 
-},1000);
+updateCountdown();
+setInterval(updateCountdown, 1000);
 
 // ==========================
 // Mobile Menu
@@ -54,25 +58,22 @@ if (menuBtn && navLinks) {
         });
     });
 }
+
 // ==========================
 // Navbar Scroll Effect
 // ==========================
 
-const header = document.querySelector("header");
+const header = document.querySelector("header") || document.querySelector("nav");
 
-window.addEventListener("scroll", () => {
-
-    if(window.scrollY > 40){
-
-        header.classList.add("scrolled");
-
-    }else{
-
-        header.classList.remove("scrolled");
-
-    }
-
-});
+if (header) {
+    window.addEventListener("scroll", () => {
+        if (window.scrollY > 40) {
+            header.classList.add("scrolled");
+        } else {
+            header.classList.remove("scrolled");
+        }
+    });
+}
 
 // ==========================
 // Scroll Animation Observer
@@ -86,35 +87,22 @@ const observerOptions = {
 const observer = new IntersectionObserver((entries) => {
   entries.forEach(entry => {
     if (entry.isIntersecting) {
-      entry.target.style.animation = getComputedStyle(entry.target).animation || 'fadeInUp 0.8s ease-out';
       entry.target.classList.add('animate-in');
       observer.unobserve(entry.target);
     }
   });
 }, observerOptions);
 
-// Observe all sections and cards
-document.querySelectorAll('section, .card, .organizer-card, .time-box').forEach(el => {
+document.querySelectorAll('section, .interactive-card').forEach(el => {
   observer.observe(el);
 });
 
 // ==========================
-// Interactive Hover Effects
+// Interactive Hover Effects (handled via CSS now, JS not needed for .interactive-card)
 // ==========================
 
-// Add glow effect to cards on hover
-document.querySelectorAll('.card, .organizer-card').forEach(card => {
-  card.addEventListener('mouseenter', function() {
-    this.style.transform = 'translateY(-15px) scale(1.02)';
-  });
-  
-  card.addEventListener('mouseleave', function() {
-    this.style.transform = 'translateY(0) scale(1)';
-  });
-});
-
 // ==========================
-// Button Click Animation
+// Button Click Ripple Animation
 // ==========================
 
 document.querySelectorAll('a, button').forEach(btn => {
@@ -124,19 +112,22 @@ document.querySelectorAll('a, button').forEach(btn => {
       const rect = this.getBoundingClientRect();
       const x = e.clientX - rect.left;
       const y = e.clientY - rect.top;
-      
+
       ripple.style.left = x + 'px';
       ripple.style.top = y + 'px';
       ripple.classList.add('ripple');
-      
+
       this.appendChild(ripple);
-      
+
       setTimeout(() => ripple.remove(), 600);
     }
   });
 });
 
+// ==========================
 // Smooth Scroll to Sections
+// ==========================
+
 function scrollToSection(sectionId) {
   const section = document.getElementById(sectionId);
   if (section) {
@@ -154,13 +145,13 @@ window.scrollToSection = scrollToSection;
 window.goToPage = goToPage;
 
 // ==========================
-// Add Scroll Progress Bar
+// Scroll Progress Bar
 // ==========================
 
 window.addEventListener('scroll', () => {
   const scrollHeight = document.documentElement.scrollHeight - document.documentElement.clientHeight;
-  const scrolled = (window.scrollY / scrollHeight) * 100;
-  
+  const scrolled = scrollHeight > 0 ? (window.scrollY / scrollHeight) * 100 : 0;
+
   let progressBar = document.getElementById('scroll-progress');
   if (!progressBar) {
     progressBar = document.createElement('div');
@@ -170,22 +161,22 @@ window.addEventListener('scroll', () => {
       top: 0;
       left: 0;
       height: 3px;
-      background: linear-gradient(90deg, #22d3ee, #0ea5e9);
+      background: linear-gradient(90deg, #E8412B, #F2B705);
       z-index: 9999;
       transition: width 0.1s ease;
     `;
     document.body.appendChild(progressBar);
   }
-  
+
   progressBar.style.width = scrolled + '%';
 });
 
 // ==========================
-// Add Ripple Effect Style
+// Ripple Effect Style Injection
 // ==========================
 
-const style = document.createElement('style');
-style.textContent = `
+const rippleStyle = document.createElement('style');
+rippleStyle.textContent = `
   .ripple {
     position: absolute;
     border-radius: 50%;
@@ -194,52 +185,21 @@ style.textContent = `
     animation: ripple-animation 0.6s ease-out;
     pointer-events: none;
   }
-  
+
   @keyframes ripple-animation {
     to {
       transform: scale(4);
       opacity: 0;
     }
   }
-  
+
   a, button {
     position: relative;
     overflow: hidden;
   }
-  
+
   .animate-in {
     animation: fadeInUp 0.8s ease-out !important;
   }
 `;
-document.head.appendChild(style);
-const endDate = new Date("2026-07-31T17:00:00+05:30").getTime();
-const endDate = new Date("2026-07-31T17:00:00+05:30").getTime();
-
-function updateCountdown(){
-
-const now = new Date().getTime();
-const distance = endDate - now;
-
-if(distance <= 0){
- document.getElementById("countdown").innerHTML = `
- <h2>Registration Closed</h2>
- <p>The deadline has passed.</p>`;
- return;
-}
-
-document.getElementById("days").innerHTML =
-Math.floor(distance/(1000*60*60*24));
-
-document.getElementById("hours").innerHTML =
-Math.floor((distance/(1000*60*60))%24);
-
-document.getElementById("minutes").innerHTML =
-Math.floor((distance/(1000*60))%60);
-
-document.getElementById("seconds").innerHTML =
-Math.floor((distance/1000)%60);
-
-}
-
-updateCountdown();
-setInterval(updateCountdown,1000);
+document.head.appendChild(rippleStyle);
