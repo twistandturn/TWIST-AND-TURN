@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sign Up - Twist & Turn</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg-base:#101218; --bg-surface:#181B24; --ink:#F2F1ED; --ink-muted:#9297A6;
+    --cube-red:#E8412B; --cube-yellow:#F2B705; --cube-blue:#2F6FE0; --cube-green:#22A35C;
+  }
+  body{ font-family:'Inter', sans-serif; background:var(--bg-base); color:var(--ink); }
+  .font-display{ font-family:'Space Grotesk', sans-serif; }
+  .font-mono{ font-family:'JetBrains Mono', monospace; }
+  .surface-card{ background:var(--bg-surface); border:1px solid rgba(255,255,255,0.06); }
+  .btn-primary{ background:var(--cube-red); color:#fff; font-family:'Space Grotesk',sans-serif; font-weight:600; }
+  .btn-primary:hover{ filter:brightness(1.08); }
+  .field{ background:var(--bg-base); border:1px solid rgba(255,255,255,0.12); color:var(--ink); }
+  .field:focus{ outline:none; border-color:var(--cube-blue); }
+</style>
+</head>
+<body class="min-h-screen flex items-center justify-center px-4">
+
+  <div class="w-full max-w-md">
+    <div class="text-center mb-8">
+      <span class="font-display font-bold text-2xl cursor-pointer" onclick="window.location.href='index.html'">Twist &amp; Turn</span>
+      <p class="eyebrow font-mono text-xs tracking-widest uppercase mt-1" style="color:var(--ink-muted);">Create Your Account</p>
+    </div>
+
+    <form id="signup-form" class="surface-card rounded-2xl p-8 shadow-2xl space-y-4">
+      <div>
+        <label class="block text-sm font-mono mb-1" style="color:var(--ink-muted);">Full Name</label>
+        <input type="text" id="name" required class="field w-full rounded-lg px-4 py-3" placeholder="Your full name">
+      </div>
+      <div>
+        <label class="block text-sm font-mono mb-1" style="color:var(--ink-muted);">Email</label>
+        <input type="email" id="email" required class="field w-full rounded-lg px-4 py-3" placeholder="you@example.com">
+      </div>
+      <div>
+        <label class="block text-sm font-mono mb-1" style="color:var(--ink-muted);">Password</label>
+        <input type="password" id="password" required minlength="6" class="field w-full rounded-lg px-4 py-3" placeholder="At least 6 characters">
+      </div>
+
+      <p id="error-msg" class="text-sm hidden" style="color:var(--cube-red);"></p>
+
+      <button type="submit" class="btn-primary w-full py-3 rounded-lg mt-2">Sign Up</button>
+
+      <p class="text-center text-sm" style="color:var(--ink-muted);">
+        Already have an account?
+        <a href="login.html" class="underline" style="color:var(--cube-blue);">Log in</a>
+      </p>
+    </form>
+  </div>
+
+  <script type="module">
+    import { signUpUser } from "./auth.js";
+
+    const form = document.getElementById("signup-form");
+    const errorMsg = document.getElementById("error-msg");
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      errorMsg.classList.add("hidden");
+
+      const name = document.getElementById("name").value.trim();
+      const email = document.getElementById("email").value.trim();
+      const password = document.getElementById("password").value;
+
+      try {
+        await signUpUser(name, email, password);
+        window.location.href = "dashboard.html";
+      } catch (err) {
+        errorMsg.textContent = err.message.replace("Firebase: ", "");
+        errorMsg.classList.remove("hidden");
+      }
+    });
+  </script>
+</body>
+</html>

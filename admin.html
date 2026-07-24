@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Organizer Panel - Twist & Turn</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg-base:#101218; --bg-surface:#181B24; --ink:#F2F1ED; --ink-muted:#9297A6;
+    --cube-red:#E8412B; --cube-yellow:#F2B705; --cube-blue:#2F6FE0; --cube-green:#22A35C;
+  }
+  body{ font-family:'Inter', sans-serif; background:var(--bg-base); color:var(--ink); }
+  .font-display{ font-family:'Space Grotesk', sans-serif; }
+  .font-mono{ font-family:'JetBrains Mono', monospace; }
+  .surface-card{ background:var(--bg-surface); border:1px solid rgba(255,255,255,0.06); }
+  .btn-primary{ background:var(--cube-red); color:#fff; font-family:'Space Grotesk',sans-serif; font-weight:600; }
+  .btn-primary:hover{ filter:brightness(1.08); }
+  .field{ background:var(--bg-base); border:1px solid rgba(255,255,255,0.12); color:var(--ink); }
+  .field:focus{ outline:none; border-color:var(--cube-blue); }
+  .id-badge{ background:linear-gradient(135deg, var(--cube-blue), var(--cube-green)); }
+</style>
+</head>
+<body class="min-h-screen">
+
+  <div id="not-admin" class="hidden min-h-screen flex items-center justify-center px-4 text-center">
+    <div>
+      <h1 class="font-display text-2xl font-bold mb-2">Access Restricted</h1>
+      <p style="color:var(--ink-muted);">This page is only for the Twist &amp; Turn organizer.</p>
+      <a href="index.html" class="underline" style="color:var(--cube-blue);">Go home</a>
+    </div>
+  </div>
+
+  <div id="admin-panel" class="hidden">
+    <nav class="sticky top-0 z-50 border-b border-white/5" style="background:rgba(16,18,24,0.9);">
+      <div class="max-w-3xl mx-auto px-4 h-16 flex items-center justify-between">
+        <span class="font-display font-bold text-xl cursor-pointer" onclick="window.location.href='index.html'">Twist &amp; Turn — Organizer</span>
+      </div>
+    </nav>
+
+    <main class="max-w-3xl mx-auto px-4 py-16">
+      <p class="font-mono text-xs tracking-widest uppercase mb-2" style="color:var(--ink-muted);">Confirm Participation</p>
+      <h1 class="font-display text-3xl font-bold mb-8">Assign Competitor ID &amp; Record Result</h1>
+
+      <div class="surface-card rounded-2xl p-8 shadow-xl space-y-4">
+        <div>
+          <label class="block text-sm font-mono mb-1" style="color:var(--ink-muted);">Competitor's Email</label>
+          <div class="flex gap-2">
+            <input type="email" id="search-email" class="field w-full rounded-lg px-4 py-3" placeholder="competitor@example.com">
+            <button id="search-btn" class="btn-primary px-5 rounded-lg whitespace-nowrap">Find</button>
+          </div>
+        </div>
+
+        <div id="found-user" class="hidden pt-4 border-t border-white/5 space-y-4">
+          <div>
+            <p class="text-sm" style="color:var(--ink-muted);">Name</p>
+            <p id="found-name" class="font-semibold"></p>
+          </div>
+          <div>
+            <p class="text-sm" style="color:var(--ink-muted);">Current Competitor ID</p>
+            <p id="found-id" class="font-mono"></p>
+          </div>
+
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-mono mb-1" style="color:var(--ink-muted);">Competition Name</label>
+              <input type="text" id="competition-name" class="field w-full rounded-lg px-4 py-3" placeholder="Twist & Turn S1">
+            </div>
+            <div>
+              <label class="block text-sm font-mono mb-1" style="color:var(--ink-muted);">Year</label>
+              <input type="number" id="competition-year" class="field w-full rounded-lg px-4 py-3" placeholder="2026">
+            </div>
+          </div>
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-mono mb-1" style="color:var(--ink-muted);">Event</label>
+              <input type="text" id="event-name" class="field w-full rounded-lg px-4 py-3" placeholder="3x3">
+            </div>
+            <div>
+              <label class="block text-sm font-mono mb-1" style="color:var(--ink-muted);">Placement / Result</label>
+              <input type="text" id="placement" class="field w-full rounded-lg px-4 py-3" placeholder="1st Place">
+            </div>
+          </div>
+
+          <button id="confirm-btn" class="btn-primary w-full py-3 rounded-lg">Confirm Participation &amp; Assign ID</button>
+          <p id="confirm-msg" class="text-sm hidden"></p>
+        </div>
+
+        <p id="search-msg" class="text-sm hidden" style="color:var(--cube-red);"></p>
+      </div>
+    </main>
+  </div>
+
+  <script type="module">
+    import { watchAuthState, getUserProfile, findUserByEmail, addResultAndConfirm } from "./auth.js";
+
+    let currentFoundUser = null;
+
+    watchAuthState(async (user) => {
+      if (!user) {
+        window.location.href = "login.html";
+        return;
+      }
+      const profile = await getUserProfile(user.uid);
+      if (!profile.isAdmin) {
+        document.getElementById("not-admin").classList.remove("hidden");
+        return;
+      }
+      document.getElementById("admin-panel").classList.remove("hidden");
+    });
+
+    document.getElementById("search-btn").addEventListener("click", async () => {
+      const email = document.getElementById("search-email").value.trim();
+      const searchMsg = document.getElementById("search-msg");
+      const foundBlock = document.getElementById("found-user");
+      searchMsg.classList.add("hidden");
+      foundBlock.classList.add("hidden");
+
+      const result = await findUserByEmail(email);
+      if (!result) {
+        searchMsg.textContent = "No competitor found with that email.";
+        searchMsg.classList.remove("hidden");
+        return;
+      }
+
+      currentFoundUser = result;
+      document.getElementById("found-name").textContent = result.name;
+      document.getElementById("found-id").textContent = result.competitorId || "Not assigned yet";
+      foundBlock.classList.remove("hidden");
+    });
+
+    document.getElementById("confirm-btn").addEventListener("click", async () => {
+      if (!currentFoundUser) return;
+      const confirmMsg = document.getElementById("confirm-msg");
+
+      const competitionName = document.getElementById("competition-name").value.trim();
+      const year = document.getElementById("competition-year").value.trim();
+      const eventName = document.getElementById("event-name").value.trim();
+      const placement = document.getElementById("placement").value.trim();
+
+      if (!competitionName || !year || !eventName || !placement) {
+        confirmMsg.textContent = "Please fill in all fields.";
+        confirmMsg.style.color = "var(--cube-red)";
+        confirmMsg.classList.remove("hidden");
+        return;
+      }
+
+      await addResultAndConfirm(currentFoundUser.uid, currentFoundUser.name, Number(year), {
+        competition: competitionName,
+        event: eventName,
+        placement: placement
+      });
+
+      confirmMsg.textContent = "Result recorded and ID assigned (if this was their first confirmation).";
+      confirmMsg.style.color = "var(--cube-green)";
+      confirmMsg.classList.remove("hidden");
+
+      // refresh displayed ID
+      const refreshed = await findUserByEmail(currentFoundUser.email);
+      currentFoundUser = refreshed;
+      document.getElementById("found-id").textContent = refreshed.competitorId || "Not assigned yet";
+    });
+  </script>
+</body>
+</html>
