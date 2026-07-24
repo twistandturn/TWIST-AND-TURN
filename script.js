@@ -14,8 +14,7 @@ function updateCountdown(){
   if(distance <= 0){
     countdownEl.innerHTML = `
       <h2>Registration Closed</h2>
-      <p>The deadline has passed.</p>`;
-    return;
+      <p>Registration closed on 27 August 2026 at 5:00 PM IST.</p>
   }
 
   const daysEl = document.getElementById("days");
