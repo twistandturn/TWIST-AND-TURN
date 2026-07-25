@@ -93,18 +93,9 @@
       <div class="flex justify-center mb-6">
         <div class="cube-mark"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
       </div>
-      <h1 class="font-display text-4xl md:text-6xl font-bold tracking-tight mb-6">
-        Twist &amp; Turn : Cubing Battle 2026
-      </h1>
-      <p class="text-lg md:text-xl max-w-2xl mx-auto" style="color:var(--ink-muted)">
-        The biggest online 3×3 competition is here.<br><br>
-        📅 29–30 August 2026<br>
-        🌐 Online Competition<br>
-        🏆 Qualifier → Top 8 → Grand Finals
-      </p>
-      <div class="mt-10 flex flex-wrap justify-center gap-4">
-        <a href="https://form.jotform.com/261972389202058" class="btn-primary px-8 py-4 rounded-xl shadow-xl">Register Now 🚀</a>
-        <a href="#rules" class="px-8 py-4 rounded-xl border border-white/20 hover:bg-white/10">Rules 📖</a>
+      <div id="hero-dynamic">
+        <h1 class="font-display text-4xl md:text-6xl font-bold tracking-tight mb-6">Welcome to Twist &amp; Turn</h1>
+        <p class="text-lg md:text-xl max-w-2xl mx-auto" style="color:var(--ink-muted)">Your platform for high-stakes online Rubik's Cube competitions.</p>
       </div>
     </div>
   </section>
@@ -178,6 +169,7 @@
     const db = getFirestore(app);
     const box = document.getElementById("upcoming-content");
     const extra = document.getElementById("upcoming-extra");
+    const hero = document.getElementById("hero-dynamic");
 
     getDoc(doc(db, "site", "upcomingCompetition")).then(snap => {
       if (!snap.exists() || !snap.data().status || snap.data().status === "none") {
@@ -188,11 +180,27 @@
             <p class="text-lg font-semibold" style="color:var(--cube-yellow)">Stay tuned for our next event! 🚀</p>
           </div>`;
         extra.classList.add("hidden");
+        hero.innerHTML = `
+          <h1 class="font-display text-4xl md:text-6xl font-bold tracking-tight mb-6">Welcome to Twist &amp; Turn</h1>
+          <p class="text-lg md:text-xl max-w-2xl mx-auto" style="color:var(--ink-muted)">Your platform for high-stakes online Rubik's Cube competitions.</p>`;
         return;
       }
 
       extra.classList.remove("hidden");
       const d = snap.data();
+
+      hero.innerHTML = `
+        <h1 class="font-display text-4xl md:text-6xl font-bold tracking-tight mb-6">${d.title || ""}</h1>
+        <p class="text-lg md:text-xl max-w-2xl mx-auto" style="color:var(--ink-muted)">
+          ${d.details ? d.details + "<br><br>" : ""}
+          📅 ${d.date || ""}<br>
+          🌐 ${d.mode || ""}<br>
+          ${d.format ? "🏆 " + d.format : ""}
+        </p>
+        <div class="mt-10 flex flex-wrap justify-center gap-4">
+          ${d.regLink ? `<a href="${d.regLink}" target="_blank" class="btn-primary px-8 py-4 rounded-xl shadow-xl">Register Now 🚀</a>` : ""}
+          <a href="#rules" class="px-8 py-4 rounded-xl border border-white/20 hover:bg-white/10">Rules 📖</a>
+        </div>`;
       const statusLabel = d.status === "open" ? "🟢 Registration Open" : "🔴 Registration Closed";
       const statusColor = d.status === "open" ? "var(--cube-green)" : "var(--cube-red)";
 
@@ -286,8 +294,43 @@
   <section id="results" class="py-16" style="background:var(--bg-surface);">
     <div class="max-w-7xl mx-auto px-4">
       <p class="eyebrow mb-2">Leaderboard</p>
-      <h2 class="font-display text-3xl font-bold mb-8">Twist &amp; Turn S1 Results</h2>
-      <div class="overflow-x-auto rounded-2xl shadow-xl surface-card">
+      <h2 id="results-title" class="font-display text-3xl font-bold mb-8">Results</h2>
+      <div id="results-table-wrap" class="overflow-x-auto rounded-2xl shadow-xl surface-card">
+        <p class="p-8 text-center" style="color:var(--ink-muted)">Loading...</p>
+      </div>
+      <div class="mt-10 text-center">
+        <p class="max-w-2xl mx-auto" style="color:var(--ink-muted)">Stay tuned for the next results update after the upcoming competition. Our leaderboard reflects the latest verified scores and official rankings.</p>
+      </div>
+    </div>
+  </section>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    import { firebaseConfig } from "./firebase-config.js";
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const wrap = document.getElementById("results-table-wrap");
+    const titleEl = document.getElementById("results-title");
+
+    getDoc(doc(db, "site", "results")).then(snap => {
+      if (!snap.exists() || !snap.data().rows || snap.data().rows.length === 0) {
+        wrap.innerHTML = `<p class="p-8 text-center" style="color:var(--ink-muted)">No results published yet.</p>`;
+        return;
+      }
+      const d = snap.data();
+      titleEl.textContent = d.competitionName || "Results";
+
+      const rowsHtml = d.rows.map(r => `
+        <tr class="hover:bg-white/5 transition-colors">
+          <td class="px-6 py-4 font-semibold">${r.event || ""}</td>
+          <td class="px-6 py-4" style="color:#D6D8DF;">${r.first || ""}</td>
+          <td class="px-6 py-4" style="color:#D6D8DF;">${r.second || ""}</td>
+          <td class="px-6 py-4" style="color:#D6D8DF;">${r.third || ""}</td>
+        </tr>`).join("");
+
+      wrap.innerHTML = `
         <table class="w-full border-collapse font-mono text-sm">
           <thead style="background:var(--cube-green); color:#0B1A10;">
             <tr>
@@ -297,51 +340,10 @@
               <th class="px-6 py-4 text-left font-bold">3rd 🥉</th>
             </tr>
           </thead>
-          <tbody class="divide-y divide-white/5">
-            <tr class="hover:bg-white/5 transition-colors">
-              <td class="px-6 py-4 font-semibold">3x3</td>
-              <td class="px-6 py-4" style="color:#D6D8DF;">MOHITH B</td>
-              <td class="px-6 py-4" style="color:#D6D8DF;">LIM KAI YI</td>
-              <td class="px-6 py-4" style="color:#D6D8DF;">CHIRAG GUPTA</td>
-            </tr>
-            <tr class="hover:bg-white/5 transition-colors">
-              <td class="px-6 py-4 font-semibold">2x2</td>
-              <td class="px-6 py-4" style="color:#D6D8DF;">MOHITH B</td>
-              <td class="px-6 py-4" style="color:#D6D8DF;">RUTHVIK SHELKE</td>
-              <td class="px-6 py-4" style="color:#D6D8DF;">LIM KAI YI</td>
-            </tr>
-            <tr class="hover:bg-white/5 transition-colors">
-              <td class="px-6 py-4 font-semibold">3x3 One-Handed</td>
-              <td class="px-6 py-4" style="color:#D6D8DF;">MOHITH B</td>
-              <td class="px-6 py-4" style="color:#D6D8DF;">LIM KAI YI</td>
-              <td class="px-6 py-4" style="color:#D6D8DF;">SYED WAFA ANDRABI</td>
-            </tr>
-            <tr class="hover:bg-white/5 transition-colors">
-              <td class="px-6 py-4 font-semibold">Clock</td>
-              <td class="px-6 py-4" style="color:#D6D8DF;">JUNAID EKHLAQUE</td>
-              <td class="px-6 py-4" style="color:#D6D8DF;">AARIZ ALI</td>
-              <td class="px-6 py-4" style="color:#D6D8DF;">MOHITH B</td>
-            </tr>
-            <tr class="hover:bg-white/5 transition-colors">
-              <td class="px-6 py-4 font-semibold">Skewb</td>
-              <td class="px-6 py-4" style="color:#D6D8DF;">LIM KAI YI</td>
-              <td class="px-6 py-4" style="color:#D6D8DF;">MOHITH B</td>
-              <td class="px-6 py-4" style="color:#D6D8DF;">JUNAID EKHLAQUE</td>
-            </tr>
-            <tr class="hover:bg-white/5 transition-colors">
-              <td class="px-6 py-4 font-semibold">Pyraminx</td>
-              <td class="px-6 py-4" style="color:#D6D8DF;">MOHITH B</td>
-              <td class="px-6 py-4" style="color:#D6D8DF;">LIM KAI YI</td>
-              <td class="px-6 py-4" style="color:#D6D8DF;">SYED WAFA ANDRABI</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-      <div class="mt-10 text-center">
-        <p class="max-w-2xl mx-auto" style="color:var(--ink-muted)">Stay tuned for the next results update after the upcoming competition. Our leaderboard reflects the latest verified scores and official rankings.</p>
-      </div>
-    </div>
-  </section>
+          <tbody class="divide-y divide-white/5">${rowsHtml}</tbody>
+        </table>`;
+    });
+  </script>
 
   <div id="chat-widget" class="fixed bottom-6 right-6 z-50">
     <button id="chat-toggle" class="btn-primary p-4 rounded-full shadow-2xl transition">

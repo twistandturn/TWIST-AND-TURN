@@ -117,6 +117,22 @@
       <p class="text-xs mt-6" style="color:var(--ink-muted);">
         Changes appear on the homepage automatically — no code editing needed.
       </p>
+
+      <p class="font-mono text-xs tracking-widest uppercase mt-16 mb-2" style="color:var(--ink-muted);">Leaderboard</p>
+      <h1 class="font-display text-3xl font-bold mb-8">Manage Results</h1>
+
+      <div class="surface-card rounded-2xl p-8 shadow-xl space-y-4">
+        <div>
+          <label class="block text-sm font-mono mb-1" style="color:var(--ink-muted);">Competition Name (shown as heading)</label>
+          <input type="text" id="results-title" class="field w-full rounded-lg px-4 py-3" placeholder="Twist & Turn S1 Results">
+        </div>
+
+        <div id="results-rows" class="space-y-3"></div>
+
+        <button id="add-row-btn" type="button" class="w-full py-2 rounded-lg border border-white/15 font-mono text-sm" style="color:var(--ink-muted);">+ Add Event Row</button>
+        <button id="save-results-btn" class="btn-primary w-full py-3 rounded-lg mt-2">Save Results</button>
+        <p id="results-save-msg" class="text-sm hidden"></p>
+      </div>
     </main>
   </div>
 
@@ -144,6 +160,7 @@
         gate.classList.add("hidden");
         panel.classList.remove("hidden");
         loadCurrentData();
+        loadResults();
       } else {
         document.getElementById("pin-error").classList.remove("hidden");
       }
@@ -210,6 +227,65 @@
         saveMsg.textContent = "Error: " + err.message;
         saveMsg.style.color = "var(--cube-red)";
         saveMsg.classList.remove("hidden");
+      }
+    });
+
+    // ============================================
+    // Results management
+    // ============================================
+    const rowsContainer = document.getElementById("results-rows");
+
+    function addRow(event = "", first = "", second = "", third = "") {
+      const rowDiv = document.createElement("div");
+      rowDiv.className = "grid grid-cols-5 gap-2 items-center";
+      rowDiv.innerHTML = `
+        <input type="text" class="field rounded-lg px-3 py-2 text-sm row-event" placeholder="Event" value="${event}">
+        <input type="text" class="field rounded-lg px-3 py-2 text-sm row-first" placeholder="1st" value="${first}">
+        <input type="text" class="field rounded-lg px-3 py-2 text-sm row-second" placeholder="2nd" value="${second}">
+        <input type="text" class="field rounded-lg px-3 py-2 text-sm row-third" placeholder="3rd" value="${third}">
+        <button type="button" class="remove-row-btn text-sm py-2 rounded-lg" style="color:var(--cube-red); border:1px solid rgba(255,255,255,0.1);">Remove</button>
+      `;
+      rowDiv.querySelector(".remove-row-btn").addEventListener("click", () => rowDiv.remove());
+      rowsContainer.appendChild(rowDiv);
+    }
+
+    document.getElementById("add-row-btn").addEventListener("click", () => addRow());
+
+    async function loadResults() {
+      const snap = await getDoc(doc(db, "site", "results"));
+      rowsContainer.innerHTML = "";
+      if (snap.exists() && snap.data().rows && snap.data().rows.length > 0) {
+        document.getElementById("results-title").value = snap.data().competitionName || "";
+        snap.data().rows.forEach(r => addRow(r.event, r.first, r.second, r.third));
+      } else {
+        addRow(); // start with one empty row
+      }
+    }
+
+    document.getElementById("save-results-btn").addEventListener("click", async () => {
+      const resultsMsg = document.getElementById("results-save-msg");
+      resultsMsg.classList.add("hidden");
+
+      const rows = Array.from(rowsContainer.children).map(rowDiv => ({
+        event: rowDiv.querySelector(".row-event").value,
+        first: rowDiv.querySelector(".row-first").value,
+        second: rowDiv.querySelector(".row-second").value,
+        third: rowDiv.querySelector(".row-third").value
+      })).filter(r => r.event.trim() !== "");
+
+      try {
+        await setDoc(doc(db, "site", "results"), {
+          competitionName: document.getElementById("results-title").value,
+          rows: rows,
+          updatedAt: new Date().toISOString()
+        });
+        resultsMsg.textContent = "Results saved! Check your homepage.";
+        resultsMsg.style.color = "var(--cube-green)";
+        resultsMsg.classList.remove("hidden");
+      } catch (err) {
+        resultsMsg.textContent = "Error: " + err.message;
+        resultsMsg.style.color = "var(--cube-red)";
+        resultsMsg.classList.remove("hidden");
       }
     });
   </script>
