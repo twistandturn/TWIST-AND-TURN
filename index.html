@@ -355,8 +355,13 @@
   <section id="live-results" class="py-16">
     <div class="max-w-4xl mx-auto px-4">
       <p class="eyebrow mb-2">Right Now</p>
-      <h2 id="live-results-title" class="font-display text-3xl font-bold mb-2">Live Results</h2>
-      <span id="live-results-badge" class="hidden inline-block font-mono text-xs px-3 py-1 rounded-full mb-6" style="background:rgba(232,65,43,0.15); color:var(--cube-red);">🔴 LIVE</span>
+      <div class="flex items-center gap-3 mb-2 flex-wrap">
+        <h2 class="font-display text-3xl font-bold">Live Results</h2>
+        <span id="live-results-badge" class="hidden inline-block font-mono text-xs px-3 py-1 rounded-full" style="background:rgba(232,65,43,0.15); color:var(--cube-red);">🔴 LIVE</span>
+      </div>
+
+      <div id="live-event-tabs" class="flex flex-wrap gap-2 mt-4 mb-2"></div>
+
       <div id="live-results-wrap" class="rounded-2xl shadow-xl surface-card mt-4 overflow-hidden">
         <p class="p-8 text-center" style="color:var(--ink-muted)">Waiting for results…</p>
       </div>
@@ -370,23 +375,22 @@
 
     const liveApp = initializeApp(firebaseConfig, "liveResultsApp");
     const liveDb = getFirestore(liveApp);
+    const tabsEl = document.getElementById("live-event-tabs");
     const liveWrap = document.getElementById("live-results-wrap");
-    const liveTitleEl = document.getElementById("live-results-title");
     const liveBadgeEl = document.getElementById("live-results-badge");
 
-    onSnapshot(doc(liveDb, "site", "liveResults"), (snap) => {
-      if (!snap.exists() || !snap.data().rows || snap.data().rows.length === 0) {
+    let activeEventIdx = 0;
+
+    function renderEvent(events) {
+      if (activeEventIdx >= events.length) activeEventIdx = 0;
+      const ev = events[activeEventIdx];
+      const sorted = [...(ev.rows || [])].sort((a, b) => (a.timeMs ?? Infinity) - (b.timeMs ?? Infinity));
+      const medals = ["🥇", "🥈", "🥉"];
+
+      if (sorted.length === 0) {
         liveWrap.innerHTML = `<p class="p-8 text-center" style="color:var(--ink-muted)">Waiting for results…</p>`;
-        liveBadgeEl.classList.add("hidden");
         return;
       }
-      const d = snap.data();
-      liveTitleEl.textContent = d.title || "Live Results";
-      liveBadgeEl.classList.toggle("hidden", !d.isLive);
-
-      // Fastest time first — this is what makes it auto re-order as new times come in
-      const sorted = [...d.rows].sort((a, b) => (a.timeMs ?? Infinity) - (b.timeMs ?? Infinity));
-      const medals = ["🥇", "🥈", "🥉"];
 
       liveWrap.innerHTML = `
         <div class="divide-y divide-white/5">
@@ -400,6 +404,37 @@
             </div>
           `).join("")}
         </div>`;
+    }
+
+    function renderTabs(events) {
+      tabsEl.innerHTML = events.map((ev, i) => `
+        <button type="button" data-idx="${i}" class="live-tab-btn font-mono text-sm px-4 py-2 rounded-full transition-colors"
+          style="${i === activeEventIdx
+            ? 'background:var(--cube-red); color:#fff;'
+            : 'background:var(--bg-surface); color:var(--ink-muted); border:1px solid rgba(255,255,255,0.1);'}">
+          ${ev.name || "Event"}
+        </button>`).join("");
+
+      tabsEl.querySelectorAll(".live-tab-btn").forEach(btn => {
+        btn.addEventListener("click", () => {
+          activeEventIdx = parseInt(btn.dataset.idx, 10);
+          renderTabs(events);
+          renderEvent(events);
+        });
+      });
+    }
+
+    onSnapshot(doc(liveDb, "site", "liveResults"), (snap) => {
+      if (!snap.exists() || !snap.data().events || snap.data().events.length === 0) {
+        tabsEl.innerHTML = "";
+        liveWrap.innerHTML = `<p class="p-8 text-center" style="color:var(--ink-muted)">Waiting for results…</p>`;
+        liveBadgeEl.classList.add("hidden");
+        return;
+      }
+      const d = snap.data();
+      liveBadgeEl.classList.toggle("hidden", !d.isLive);
+      renderTabs(d.events);
+      renderEvent(d.events);
     });
   </script>
 
