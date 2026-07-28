@@ -138,6 +138,27 @@
         <p id="results-save-msg" class="text-sm hidden"></p>
       </div>
 
+      <p class="font-mono text-xs tracking-widest uppercase mt-16 mb-2" style="color:var(--ink-muted);">Right Now</p>
+      <h1 class="font-display text-3xl font-bold mb-8">Manage Live Results</h1>
+
+      <div class="surface-card rounded-2xl p-8 shadow-xl space-y-4">
+        <div>
+          <label class="block text-sm font-mono mb-1" style="color:var(--ink-muted);">Heading (shown above the live list)</label>
+          <input type="text" id="live-results-title" class="field w-full rounded-lg px-4 py-3" placeholder="Live Results">
+        </div>
+
+        <label class="flex items-center gap-2 text-sm font-mono" style="color:var(--ink-muted);">
+          <input type="checkbox" id="live-results-live"> Mark as LIVE (shows a red LIVE badge, updates instantly on homepage)
+        </label>
+
+        <div id="live-results-rows" class="space-y-3"></div>
+
+        <button id="add-live-row-btn" type="button" class="w-full py-2 rounded-lg border border-white/15 font-mono text-sm" style="color:var(--ink-muted);">+ Add Participant</button>
+        <button id="save-live-results-btn" class="btn-primary w-full py-3 rounded-lg mt-2">Save Live Results</button>
+        <p id="live-results-save-msg" class="text-sm hidden"></p>
+        <p class="text-xs" style="color:var(--ink-muted);">Naam registration close hote hi add kar do (time khaali chhod ke). Jaise-jaise session khatam ho, us row mein time daal ke phir se "Save" dabao — homepage par sabse acha time apne aap sabse upar chala jayega. Time format: <span class="font-mono">12.34</span> ya <span class="font-mono">1:02.45</span></p>
+      </div>
+
       <p class="font-mono text-xs tracking-widest uppercase mt-16 mb-2" style="color:var(--ink-muted);">Community</p>
       <h1 class="font-display text-3xl font-bold mb-8">General Settings</h1>
       <div class="surface-card rounded-2xl p-8 shadow-xl space-y-4">
@@ -232,6 +253,7 @@
         panel.classList.remove("hidden");
         loadCurrentData();
         loadResults();
+        loadLiveResults();
         loadGeneral();
         loadGallery();
         loadReviews();
@@ -361,6 +383,90 @@
         resultsMsg.textContent = "Error: " + err.message;
         resultsMsg.style.color = "var(--cube-red)";
         resultsMsg.classList.remove("hidden");
+      }
+    });
+
+    // ============================================
+    // Live Results management (auto-sorted, real-time)
+    // ============================================
+    const liveRowsContainer = document.getElementById("live-results-rows");
+
+    // Accepts "12.34" or "1:02.45" style times, returns milliseconds (for sorting)
+    function parseTimeToMs(str) {
+      str = (str || "").trim();
+      if (/^\d+:\d{1,2}(\.\d+)?$/.test(str)) {
+        const [m, s] = str.split(":");
+        return Math.round((parseInt(m, 10) * 60 + parseFloat(s)) * 1000);
+      }
+      if (/^\d+(\.\d+)?$/.test(str)) {
+        return Math.round(parseFloat(str) * 1000);
+      }
+      return null;
+    }
+
+    function formatMs(ms) {
+      const totalSec = ms / 1000;
+      if (totalSec >= 60) {
+        const m = Math.floor(totalSec / 60);
+        const s = (totalSec % 60).toFixed(2).padStart(5, "0");
+        return `${m}:${s}`;
+      }
+      return totalSec.toFixed(2);
+    }
+
+    function addLiveRow(name = "", timeStr = "") {
+      const rowDiv = document.createElement("div");
+      rowDiv.className = "grid grid-cols-4 gap-2 items-center";
+      rowDiv.innerHTML = `
+        <input type="text" class="field rounded-lg px-3 py-2 text-sm live-row-name col-span-2" placeholder="Participant name" value="${name}">
+        <input type="text" class="field rounded-lg px-3 py-2 text-sm live-row-time" placeholder="12.34 or 1:02.45 (leave blank until done)" value="${timeStr}">
+        <button type="button" class="remove-live-row-btn text-sm py-2 rounded-lg" style="color:var(--cube-red); border:1px solid rgba(255,255,255,0.1);">Remove</button>
+      `;
+      rowDiv.querySelector(".remove-live-row-btn").addEventListener("click", () => rowDiv.remove());
+      liveRowsContainer.appendChild(rowDiv);
+    }
+
+    document.getElementById("add-live-row-btn").addEventListener("click", () => addLiveRow());
+
+    async function loadLiveResults() {
+      const snap = await getDoc(doc(db, "site", "liveResults"));
+      liveRowsContainer.innerHTML = "";
+      if (snap.exists() && snap.data().rows && snap.data().rows.length > 0) {
+        document.getElementById("live-results-title").value = snap.data().title || "";
+        document.getElementById("live-results-live").checked = !!snap.data().isLive;
+        const sorted = [...snap.data().rows].sort((a, b) => (a.timeMs ?? Infinity) - (b.timeMs ?? Infinity));
+        sorted.forEach(r => addLiveRow(r.name, r.timeDisplay || ""));
+      } else {
+        addLiveRow();
+      }
+    }
+
+    document.getElementById("save-live-results-btn").addEventListener("click", async () => {
+      const msg = document.getElementById("live-results-save-msg");
+      msg.classList.add("hidden");
+
+      const rows = Array.from(liveRowsContainer.children).map(rowDiv => {
+        const name = rowDiv.querySelector(".live-row-name").value.trim();
+        const timeStr = rowDiv.querySelector(".live-row-time").value.trim();
+        if (!timeStr) return { name, timeMs: null, timeDisplay: "—" }; // name added, time not in yet
+        const timeMs = parseTimeToMs(timeStr);
+        return { name, timeMs, timeDisplay: timeMs !== null ? formatMs(timeMs) : timeStr };
+      }).filter(r => r.name !== "");
+
+      try {
+        await setDoc(doc(db, "site", "liveResults"), {
+          title: document.getElementById("live-results-title").value,
+          isLive: document.getElementById("live-results-live").checked,
+          rows: rows,
+          updatedAt: new Date().toISOString()
+        });
+        msg.textContent = "Saved! Homepage updates instantly.";
+        msg.style.color = "var(--cube-green)";
+        msg.classList.remove("hidden");
+      } catch (err) {
+        msg.textContent = "Error: " + err.message;
+        msg.style.color = "var(--cube-red)";
+        msg.classList.remove("hidden");
       }
     });
 

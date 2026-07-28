@@ -77,6 +77,7 @@
         <button onclick="goToPage('previous-competitions.html')" class="block w-full px-4 py-3 text-left hover:text-[var(--cube-blue)] transition border-b-2 border-transparent hover:border-[var(--cube-blue)] md:inline-block md:w-auto md:p-2">Previous</button>
         <button onclick="scrollToSection('rules')" class="block w-full px-4 py-3 text-left hover:text-[var(--cube-red)] transition border-b-2 border-transparent hover:border-[var(--cube-red)] md:inline-block md:w-auto md:p-2">Rules</button>
         <button onclick="scrollToSection('results')" class="block w-full px-4 py-3 text-left hover:text-[var(--cube-green)] transition border-b-2 border-transparent hover:border-[var(--cube-green)] md:inline-block md:w-auto md:p-2">Results</button>
+        <button onclick="scrollToSection('live-results')" class="block w-full px-4 py-3 text-left hover:text-[var(--cube-red)] transition border-b-2 border-transparent hover:border-[var(--cube-red)] md:inline-block md:w-auto md:p-2">Live</button>
         <button onclick="scrollToSection('gallery')" class="block w-full px-4 py-3 text-left hover:text-[var(--cube-yellow)] transition border-b-2 border-transparent hover:border-[var(--cube-yellow)] md:inline-block md:w-auto md:p-2">Gallery</button>
         <button onclick="scrollToSection('faq')" class="block w-full px-4 py-3 text-left hover:text-[var(--cube-green)] transition border-b-2 border-transparent hover:border-[var(--cube-green)] md:inline-block md:w-auto md:p-2">FAQ</button>
         <button onclick="scrollToSection('organizer')" class="block w-full px-4 py-3 text-left hover:text-[var(--cube-blue)] transition border-b-2 border-transparent hover:border-[var(--cube-blue)] md:inline-block md:w-auto md:p-2">Organizer</button>
@@ -348,6 +349,57 @@
           </thead>
           <tbody class="divide-y divide-white/5">${rowsHtml}</tbody>
         </table>`;
+    });
+  </script>
+
+  <section id="live-results" class="py-16">
+    <div class="max-w-4xl mx-auto px-4">
+      <p class="eyebrow mb-2">Right Now</p>
+      <h2 id="live-results-title" class="font-display text-3xl font-bold mb-2">Live Results</h2>
+      <span id="live-results-badge" class="hidden inline-block font-mono text-xs px-3 py-1 rounded-full mb-6" style="background:rgba(232,65,43,0.15); color:var(--cube-red);">🔴 LIVE</span>
+      <div id="live-results-wrap" class="rounded-2xl shadow-xl surface-card mt-4 overflow-hidden">
+        <p class="p-8 text-center" style="color:var(--ink-muted)">Waiting for results…</p>
+      </div>
+    </div>
+  </section>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getFirestore, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    import { firebaseConfig } from "./firebase-config.js";
+
+    const liveApp = initializeApp(firebaseConfig, "liveResultsApp");
+    const liveDb = getFirestore(liveApp);
+    const liveWrap = document.getElementById("live-results-wrap");
+    const liveTitleEl = document.getElementById("live-results-title");
+    const liveBadgeEl = document.getElementById("live-results-badge");
+
+    onSnapshot(doc(liveDb, "site", "liveResults"), (snap) => {
+      if (!snap.exists() || !snap.data().rows || snap.data().rows.length === 0) {
+        liveWrap.innerHTML = `<p class="p-8 text-center" style="color:var(--ink-muted)">Waiting for results…</p>`;
+        liveBadgeEl.classList.add("hidden");
+        return;
+      }
+      const d = snap.data();
+      liveTitleEl.textContent = d.title || "Live Results";
+      liveBadgeEl.classList.toggle("hidden", !d.isLive);
+
+      // Fastest time first — this is what makes it auto re-order as new times come in
+      const sorted = [...d.rows].sort((a, b) => (a.timeMs ?? Infinity) - (b.timeMs ?? Infinity));
+      const medals = ["🥇", "🥈", "🥉"];
+
+      liveWrap.innerHTML = `
+        <div class="divide-y divide-white/5">
+          ${sorted.map((r, i) => `
+            <div class="flex items-center justify-between px-6 py-4 ${i < 3 ? 'bg-white/[0.03]' : ''} transition-colors">
+              <div class="flex items-center gap-4">
+                <span class="font-mono w-8 text-center ${i < 3 ? 'text-xl' : ''}" style="color:var(--ink-muted);">${medals[i] || (i + 1)}</span>
+                <span class="font-semibold">${r.name || ""}</span>
+              </div>
+              <span class="font-mono font-bold text-lg" style="color:var(--cube-yellow);">${r.timeDisplay || ""}</span>
+            </div>
+          `).join("")}
+        </div>`;
     });
   </script>
 
