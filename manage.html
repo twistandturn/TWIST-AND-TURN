@@ -219,46 +219,6 @@
         <p class="text-xs" style="color:var(--ink-muted);">Photo URL is optional — leave blank to show a trophy icon instead.</p>
       </div>
 
-      <p class="font-mono text-xs tracking-widest uppercase mt-16 mb-2" style="color:var(--ink-muted);">Verification</p>
-      <h1 class="font-display text-3xl font-bold mb-8">🎥 Video Submissions</h1>
-      <div id="video-submissions-list" class="space-y-3">
-        <p style="color:var(--ink-muted)">Loading…</p>
-      </div>
-
-      <p class="font-mono text-xs tracking-widest uppercase mt-16 mb-2" style="color:var(--ink-muted);">Event Day</p>
-      <h1 class="font-display text-3xl font-bold mb-8">📱 QR Check-in</h1>
-      <div class="surface-card rounded-2xl p-8 shadow-xl space-y-4">
-        <input type="text" id="checkin-comp-name" placeholder="Competition name (used as check-in ID)" class="field w-full rounded-lg px-4 py-3">
-        <button id="generate-qr-btn" type="button" class="w-full py-2 rounded-lg border border-white/15 font-mono text-sm" style="color:var(--ink-muted);">Generate QR Code</button>
-        <div id="qr-output" class="hidden text-center space-y-3 pt-2">
-          <img id="qr-image" class="mx-auto rounded-lg bg-white p-3" width="200" height="200">
-          <p class="text-xs break-all" style="color:var(--ink-muted);" id="qr-link"></p>
-          <div class="flex items-center justify-between px-4 py-3 rounded-lg" style="background:var(--bg-base);">
-            <span class="font-mono text-sm" style="color:var(--ink-muted);">Checked in so far</span>
-            <span id="checkin-count" class="font-bold text-xl" style="color:var(--cube-green);">0</span>
-          </div>
-          <div id="checkin-names" class="text-left text-sm space-y-1 max-h-48 overflow-y-auto"></div>
-        </div>
-      </div>
-
-      <p class="font-mono text-xs tracking-widest uppercase mt-16 mb-2" style="color:var(--ink-muted);">Awards</p>
-      <h1 class="font-display text-3xl font-bold mb-8">🏅 Certificate Generator</h1>
-      <div class="surface-card rounded-2xl p-8 shadow-xl space-y-4">
-        <input type="text" id="cert-name" placeholder="Participant name" class="field w-full rounded-lg px-4 py-3">
-        <input type="text" id="cert-achievement" placeholder="Achievement e.g. 1st Place - 3x3" class="field w-full rounded-lg px-4 py-3">
-        <input type="text" id="cert-competition" placeholder="Competition name" class="field w-full rounded-lg px-4 py-3">
-        <button id="generate-cert-btn" type="button" class="btn-primary w-full py-3 rounded-lg">⬇️ Download Certificate PDF</button>
-      </div>
-    </main>
-  </div>
-
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-    import { getFirestore, doc, getDoc, setDoc, collection, addDoc, getDocs, deleteDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-    import { firebaseConfig } from "./firebase-config.js";
-
     // ============================================
     // CHANGE THIS PIN to whatever you want
     // ============================================
