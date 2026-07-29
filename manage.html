@@ -790,42 +790,6 @@
     }
 
     // ============================================
-    // Archive Live Results (for My Results / Rankings)
-    // ============================================
-    document.getElementById("archive-results-btn").addEventListener("click", async () => {
-      const msg = document.getElementById("archive-msg");
-      const compName = document.getElementById("archive-comp-name").value.trim();
-      if (!compName) {
-        msg.textContent = "Competition name daalo pehle.";
-        msg.style.color = "var(--cube-red)";
-        msg.classList.remove("hidden");
-        return;
-      }
-      try {
-        const snap = await getDoc(doc(db, "site", "liveResults"));
-        const events = (snap.exists() && snap.data().events) ? snap.data().events : [];
-        if (events.length === 0) {
-          msg.textContent = "Koi live results nahi mile archive karne ke liye.";
-          msg.style.color = "var(--cube-red)";
-          msg.classList.remove("hidden");
-          return;
-        }
-        await addDoc(collection(db, "resultsHistory"), {
-          competitionName: compName,
-          events: events,
-          archivedAt: new Date().toISOString()
-        });
-        msg.textContent = `✅ "${compName}" archived! Ab "My Results" aur "Rankings" mein dikhega.`;
-        msg.style.color = "var(--cube-green)";
-        msg.classList.remove("hidden");
-      } catch (err) {
-        msg.textContent = "Error: " + err.message;
-        msg.style.color = "var(--cube-red)";
-        msg.classList.remove("hidden");
-      }
-    });
-
-    // ============================================
     // WhatsApp Reminder
     // ============================================
     document.getElementById("wa-reminder-btn").addEventListener("click", async () => {
