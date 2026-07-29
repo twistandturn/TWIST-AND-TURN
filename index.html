@@ -64,7 +64,23 @@
 
   ::selection{ background:var(--cube-yellow); color:#101218; }
   section[id]{ scroll-margin-top: 80px; }
+
+  html.light-theme{
+    --bg-base:#F7F7F5;
+    --bg-surface:#FFFFFF;
+    --ink:#181B24;
+    --ink-muted:#5C6170;
+  }
+  html.light-theme .scramble-row{ opacity:0.06; }
+  html.light-theme nav{ background:rgba(247,247,245,0.9) !important; }
+  html.light-theme .field{ background:#fff; color:#181B24; border-color:rgba(0,0,0,0.12); }
 </style>
+<script>
+  // Apply saved theme before paint to avoid flash
+  if (localStorage.getItem('tt-theme') === 'light') {
+    document.documentElement.classList.add('light-theme');
+  }
+</script>
 </head>
 <body class="antialiased min-h-screen flex flex-col">
 
@@ -75,18 +91,39 @@
         <img src="logo.png.jpeg" alt="Logo" class="h-9 w-auto rounded-full p-0.5 bg-white/90" onerror="this.onerror=null;this.src='https://placehold.co/40x40/101218/F2B705?text=T%26T';">
         <span class="font-display font-bold text-xl tracking-tight">Twist &amp; Turn</span>
       </div>
-      <button id="menuBtn" class="md:hidden text-3xl leading-none text-[var(--ink)]">☰</button>
+      <div class="flex items-center gap-2">
+        <button id="search-toggle-btn" title="Search" class="text-lg p-2 rounded-lg hover:bg-white/10">🔍</button>
+        <button id="lang-toggle-btn" title="Language" class="font-mono text-xs px-2 py-2 rounded-lg hover:bg-white/10 border border-white/10">EN</button>
+        <button id="theme-toggle-btn" title="Theme" class="text-lg p-2 rounded-lg hover:bg-white/10">🌙</button>
+        <button id="notif-toggle-btn" title="Notifications" class="text-lg p-2 rounded-lg hover:bg-white/10">🔔</button>
+        <button id="menuBtn" class="md:hidden text-3xl leading-none text-[var(--ink)]">☰</button>
+      </div>
       <div id="navLinks" class="hidden absolute top-full right-0 mt-2 w-full md:static md:mt-0 md:w-auto md:flex md:items-center md:space-x-1 text-right md:text-left font-mono text-sm uppercase tracking-wider" style="background:var(--bg-surface);">
-        <button onclick="scrollToSection('upcoming')" class="block w-full px-4 py-3 text-left hover:text-[var(--cube-yellow)] transition border-b-2 border-transparent hover:border-[var(--cube-yellow)] md:inline-block md:w-auto md:p-2">Upcoming</button>
-        <button onclick="goToPage('previous-competitions.html')" class="block w-full px-4 py-3 text-left hover:text-[var(--cube-blue)] transition border-b-2 border-transparent hover:border-[var(--cube-blue)] md:inline-block md:w-auto md:p-2">Previous</button>
-        <button onclick="scrollToSection('rules')" class="block w-full px-4 py-3 text-left hover:text-[var(--cube-red)] transition border-b-2 border-transparent hover:border-[var(--cube-red)] md:inline-block md:w-auto md:p-2">Rules</button>
-        <button onclick="scrollToSection('results')" class="block w-full px-4 py-3 text-left hover:text-[var(--cube-green)] transition border-b-2 border-transparent hover:border-[var(--cube-green)] md:inline-block md:w-auto md:p-2">Results</button>
-        <button onclick="scrollToSection('live-results')" class="block w-full px-4 py-3 text-left hover:text-[var(--cube-red)] transition border-b-2 border-transparent hover:border-[var(--cube-red)] md:inline-block md:w-auto md:p-2">Live</button>
-        <button onclick="scrollToSection('gallery')" class="block w-full px-4 py-3 text-left hover:text-[var(--cube-yellow)] transition border-b-2 border-transparent hover:border-[var(--cube-yellow)] md:inline-block md:w-auto md:p-2">Gallery</button>
-        <button onclick="scrollToSection('hall-of-fame')" class="block w-full px-4 py-3 text-left hover:text-[var(--cube-blue)] transition border-b-2 border-transparent hover:border-[var(--cube-blue)] md:inline-block md:w-auto md:p-2">Hall of Fame</button>
-        <button onclick="scrollToSection('faq')" class="block w-full px-4 py-3 text-left hover:text-[var(--cube-green)] transition border-b-2 border-transparent hover:border-[var(--cube-green)] md:inline-block md:w-auto md:p-2">FAQ</button>
-        <button onclick="scrollToSection('organizer')" class="block w-full px-4 py-3 text-left hover:text-[var(--cube-blue)] transition border-b-2 border-transparent hover:border-[var(--cube-blue)] md:inline-block md:w-auto md:p-2">Organizer</button>
-        <button onclick="scrollToSection('contact')" class="block w-full px-4 py-3 text-left hover:text-[var(--cube-yellow)] transition border-b-2 border-transparent hover:border-[var(--cube-yellow)] md:inline-block md:w-auto md:p-2">Contact</button>
+        <button onclick="scrollToSection('upcoming')" data-i18n="nav-upcoming" class="block w-full px-4 py-3 text-left hover:text-[var(--cube-yellow)] transition border-b-2 border-transparent hover:border-[var(--cube-yellow)] md:inline-block md:w-auto md:p-2">Upcoming</button>
+        <button onclick="goToPage('previous-competitions.html')" data-i18n="nav-previous" class="block w-full px-4 py-3 text-left hover:text-[var(--cube-blue)] transition border-b-2 border-transparent hover:border-[var(--cube-blue)] md:inline-block md:w-auto md:p-2">Previous</button>
+        <button onclick="scrollToSection('rules')" data-i18n="nav-rules" class="block w-full px-4 py-3 text-left hover:text-[var(--cube-red)] transition border-b-2 border-transparent hover:border-[var(--cube-red)] md:inline-block md:w-auto md:p-2">Rules</button>
+        <button onclick="scrollToSection('results')" data-i18n="nav-results" class="block w-full px-4 py-3 text-left hover:text-[var(--cube-green)] transition border-b-2 border-transparent hover:border-[var(--cube-green)] md:inline-block md:w-auto md:p-2">Results</button>
+        <button onclick="scrollToSection('live-results')" data-i18n="nav-live" class="block w-full px-4 py-3 text-left hover:text-[var(--cube-red)] transition border-b-2 border-transparent hover:border-[var(--cube-red)] md:inline-block md:w-auto md:p-2">Live</button>
+        <button onclick="scrollToSection('scramble')" data-i18n="nav-scramble" class="block w-full px-4 py-3 text-left hover:text-[var(--cube-green)] transition border-b-2 border-transparent hover:border-[var(--cube-green)] md:inline-block md:w-auto md:p-2">Scramble</button>
+        <button onclick="scrollToSection('personal-best')" data-i18n="nav-pb" class="block w-full px-4 py-3 text-left hover:text-[var(--cube-blue)] transition border-b-2 border-transparent hover:border-[var(--cube-blue)] md:inline-block md:w-auto md:p-2">My Results</button>
+        <button onclick="scrollToSection('rankings')" data-i18n="nav-rankings" class="block w-full px-4 py-3 text-left hover:text-[var(--cube-yellow)] transition border-b-2 border-transparent hover:border-[var(--cube-yellow)] md:inline-block md:w-auto md:p-2">Rankings</button>
+        <button onclick="scrollToSection('gallery')" data-i18n="nav-gallery" class="block w-full px-4 py-3 text-left hover:text-[var(--cube-yellow)] transition border-b-2 border-transparent hover:border-[var(--cube-yellow)] md:inline-block md:w-auto md:p-2">Gallery</button>
+        <button onclick="scrollToSection('hall-of-fame')" data-i18n="nav-hof" class="block w-full px-4 py-3 text-left hover:text-[var(--cube-blue)] transition border-b-2 border-transparent hover:border-[var(--cube-blue)] md:inline-block md:w-auto md:p-2">Hall of Fame</button>
+        <button onclick="scrollToSection('video-submit')" data-i18n="nav-video" class="block w-full px-4 py-3 text-left hover:text-[var(--cube-red)] transition border-b-2 border-transparent hover:border-[var(--cube-red)] md:inline-block md:w-auto md:p-2">Submit Video</button>
+        <button onclick="scrollToSection('faq')" data-i18n="nav-faq" class="block w-full px-4 py-3 text-left hover:text-[var(--cube-green)] transition border-b-2 border-transparent hover:border-[var(--cube-green)] md:inline-block md:w-auto md:p-2">FAQ</button>
+        <button onclick="scrollToSection('organizer')" data-i18n="nav-organizer" class="block w-full px-4 py-3 text-left hover:text-[var(--cube-blue)] transition border-b-2 border-transparent hover:border-[var(--cube-blue)] md:inline-block md:w-auto md:p-2">Organizer</button>
+        <button onclick="scrollToSection('contact')" data-i18n="nav-contact" class="block w-full px-4 py-3 text-left hover:text-[var(--cube-yellow)] transition border-b-2 border-transparent hover:border-[var(--cube-yellow)] md:inline-block md:w-auto md:p-2">Contact</button>
+      </div>
+
+      <!-- Search overlay -->
+      <div id="search-overlay" class="hidden fixed inset-0 z-[100] flex items-start justify-center pt-24 px-4" style="background:rgba(0,0,0,0.75);">
+        <div class="w-full max-w-xl surface-card rounded-2xl p-6 shadow-2xl">
+          <div class="flex items-center gap-2 mb-4">
+            <input id="search-input" type="text" placeholder="Search FAQ, Hall of Fame..." class="field flex-grow rounded-lg px-4 py-3">
+            <button id="search-close-btn" class="text-2xl px-2">✕</button>
+          </div>
+          <div id="search-results" class="space-y-2 max-h-[60vh] overflow-y-auto"></div>
+        </div>
       </div>
     </div>
   </div>
@@ -299,6 +336,75 @@
     </div>
   </section>
 
+  <section id="scramble" class="py-16" style="background:var(--bg-surface);">
+    <div class="max-w-3xl mx-auto px-4">
+      <p class="eyebrow mb-2">Practice Tool</p>
+      <h2 class="font-display text-3xl font-bold mb-8">🎲 Scramble Generator</h2>
+      <div class="surface-card rounded-2xl p-8 shadow-xl">
+        <div class="flex flex-wrap gap-2 mb-6" id="scramble-event-tabs"></div>
+        <div id="scramble-display" class="font-mono text-xl md:text-2xl text-center leading-relaxed p-8 rounded-xl" style="background:var(--bg-base); letter-spacing:0.05em;"></div>
+        <button id="new-scramble-btn" class="btn-primary w-full py-3 rounded-lg mt-6">🔄 New Scramble</button>
+        <p class="text-xs mt-4 text-center" style="color:var(--ink-muted);">Random-move scrambles for practice — not WCA official random-state scrambles.</p>
+      </div>
+    </div>
+  </section>
+
+  <script>
+    (function() {
+      const moveSets = {
+        "3x3": { moves: ["U","D","L","R","F","B"], mods: ["","'","2"], length: 20 },
+        "2x2": { moves: ["U","D","L","R","F","B"], mods: ["","'","2"], length: 9 },
+        "Pyraminx": { moves: ["U","L","R","B","u","l","r","b"], mods: ["","'"], length: 10 },
+        "Skewb": { moves: ["U","L","R","B"], mods: ["","'"], length: 8 },
+        "Clock": { moves: ["UR","DR","DL","UL","U","R","D","L","ALL"], mods: ["+3","+4","+5","-3","-4","-5"], length: 9 }
+      };
+      const events = Object.keys(moveSets);
+      let currentEvent = "3x3";
+
+      function genScramble(evName) {
+        const cfg = moveSets[evName];
+        const seq = [];
+        let lastAxis = "";
+        for (let i = 0; i < cfg.length; i++) {
+          let move;
+          if (evName === "Clock") {
+            move = cfg.moves[Math.floor(Math.random() * cfg.moves.length)] + cfg.mods[Math.floor(Math.random() * cfg.mods.length)];
+          } else {
+            let m;
+            do { m = cfg.moves[Math.floor(Math.random() * cfg.moves.length)]; } while (m === lastAxis);
+            lastAxis = m;
+            move = m + cfg.mods[Math.floor(Math.random() * cfg.mods.length)];
+          }
+          seq.push(move);
+        }
+        return seq.join("  ");
+      }
+
+      function renderTabs() {
+        const tabsEl = document.getElementById("scramble-event-tabs");
+        tabsEl.innerHTML = events.map(ev => `
+          <button type="button" data-ev="${ev}" class="scramble-tab-btn font-mono text-sm px-4 py-2 rounded-full transition-colors"
+            style="${ev === currentEvent ? 'background:var(--cube-green); color:#fff;' : 'background:var(--bg-base); color:var(--ink-muted); border:1px solid rgba(255,255,255,0.1);'}">
+            ${ev}
+          </button>`).join("");
+        tabsEl.querySelectorAll(".scramble-tab-btn").forEach(btn => {
+          btn.addEventListener("click", () => {
+            currentEvent = btn.dataset.ev;
+            renderTabs();
+            document.getElementById("scramble-display").textContent = genScramble(currentEvent);
+          });
+        });
+      }
+
+      document.getElementById("new-scramble-btn").addEventListener("click", () => {
+        document.getElementById("scramble-display").textContent = genScramble(currentEvent);
+      });
+
+      renderTabs();
+      document.getElementById("scramble-display").textContent = genScramble(currentEvent);
+    })();
+  </script>
+
   <section id="results" class="py-16" style="background:var(--bg-surface);">
     <div class="max-w-7xl mx-auto px-4">
       <p class="eyebrow mb-2">Leaderboard</p>
@@ -443,6 +549,114 @@
     });
   </script>
 
+  <section id="personal-best" class="py-16">
+    <div class="max-w-3xl mx-auto px-4">
+      <p class="eyebrow mb-2">Track Yourself</p>
+      <h2 class="font-display text-3xl font-bold mb-8">🔎 My Results</h2>
+      <div class="surface-card rounded-2xl p-8 shadow-xl">
+        <div class="flex gap-2 mb-4">
+          <input id="pb-search-input" type="text" placeholder="Type your name exactly as registered" class="field flex-grow rounded-lg px-4 py-3">
+          <button id="pb-search-btn" class="btn-primary px-6 rounded-lg">Search</button>
+        </div>
+        <div id="pb-results" class="space-y-2"></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="rankings" class="py-16" style="background:var(--bg-surface);">
+    <div class="max-w-3xl mx-auto px-4">
+      <p class="eyebrow mb-2">All Competitions Combined</p>
+      <h2 class="font-display text-3xl font-bold mb-8">🏅 Rankings</h2>
+      <div id="rankings-list" class="surface-card rounded-2xl overflow-hidden shadow-xl">
+        <p class="p-8 text-center" style="color:var(--ink-muted)">Loading…</p>
+      </div>
+      <p class="text-xs mt-3" style="color:var(--ink-muted);">Points: 1st=25, 2nd=18, 3rd=15, 4th=12, 5th=10, 6th=8, 7th=6, 8th=4, others=2 — summed across every archived competition &amp; event.</p>
+    </div>
+  </section>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    import { firebaseConfig } from "./firebase-config.js";
+
+    const histApp = initializeApp(firebaseConfig, "historyApp");
+    const histDb = getFirestore(histApp);
+    const POINTS = [25, 18, 15, 12, 10, 8, 6, 4];
+
+    async function loadHistory() {
+      const snap = await getDocs(collection(histDb, "resultsHistory"));
+      const comps = [];
+      snap.forEach(d => comps.push(d.data()));
+      return comps;
+    }
+
+    const historyPromise = loadHistory();
+
+    // ---- Personal Best search ----
+    function runPbSearch() {
+      const name = document.getElementById("pb-search-input").value.trim().toLowerCase();
+      const out = document.getElementById("pb-results");
+      if (!name) { out.innerHTML = `<p style="color:var(--ink-muted)">Enter a name to search.</p>`; return; }
+      out.innerHTML = `<p style="color:var(--ink-muted)">Searching…</p>`;
+      historyPromise.then(comps => {
+        const rows = [];
+        comps.forEach(c => {
+          (c.events || []).forEach(ev => {
+            (ev.rows || []).forEach(r => {
+              if ((r.name || "").toLowerCase().includes(name)) {
+                rows.push({ comp: c.competitionName || "Competition", event: ev.name, time: r.timeDisplay });
+              }
+            });
+          });
+        });
+        if (rows.length === 0) {
+          out.innerHTML = `<p style="color:var(--ink-muted)">No results found for that name yet.</p>`;
+          return;
+        }
+        out.innerHTML = rows.map(r => `
+          <div class="flex items-center justify-between px-4 py-3 rounded-lg" style="background:var(--bg-base);">
+            <div><span class="font-semibold">${r.comp}</span> <span style="color:var(--ink-muted);">— ${r.event}</span></div>
+            <span class="font-mono font-bold" style="color:var(--cube-yellow);">${r.time}</span>
+          </div>`).join("");
+      });
+    }
+    document.getElementById("pb-search-btn").addEventListener("click", runPbSearch);
+    document.getElementById("pb-search-input").addEventListener("keydown", e => { if (e.key === "Enter") runPbSearch(); });
+
+    // ---- Rankings ----
+    historyPromise.then(comps => {
+      const points = {};
+      comps.forEach(c => {
+        (c.events || []).forEach(ev => {
+          const sorted = [...(ev.rows || [])].filter(r => r.timeMs != null).sort((a, b) => a.timeMs - b.timeMs);
+          sorted.forEach((r, i) => {
+            const pts = POINTS[i] || 2;
+            const key = (r.name || "").trim();
+            if (!key) return;
+            points[key] = (points[key] || 0) + pts;
+          });
+        });
+      });
+      const ranked = Object.entries(points).sort((a, b) => b[1] - a[1]).slice(0, 20);
+      const el = document.getElementById("rankings-list");
+      if (ranked.length === 0) {
+        el.innerHTML = `<p class="p-8 text-center" style="color:var(--ink-muted)">No archived competitions yet.</p>`;
+        return;
+      }
+      const medals = ["🥇", "🥈", "🥉"];
+      el.innerHTML = `<div class="divide-y divide-white/5">
+        ${ranked.map(([name, pts], i) => `
+          <div class="flex items-center justify-between px-6 py-4 ${i < 3 ? 'bg-white/[0.03]' : ''}">
+            <div class="flex items-center gap-4">
+              <span class="font-mono w-8 text-center ${i < 3 ? 'text-xl' : ''}" style="color:var(--ink-muted);">${medals[i] || (i + 1)}</span>
+              <span class="font-semibold">${name}</span>
+            </div>
+            <span class="font-mono font-bold" style="color:var(--cube-green);">${pts} pts</span>
+          </div>`).join("")}
+      </div>`;
+    });
+  </script>
+
   <section id="gallery" class="py-16">
     <div class="max-w-7xl mx-auto px-4">
       <p class="eyebrow mb-2">Highlights</p>
@@ -462,6 +676,58 @@
       </div>
     </div>
   </section>
+
+  <section id="video-submit" class="py-16">
+    <div class="max-w-2xl mx-auto px-4">
+      <p class="eyebrow mb-2">Verification</p>
+      <h2 class="font-display text-3xl font-bold mb-8">🎥 Submit Your Solve Video</h2>
+      <div class="surface-card rounded-2xl p-8 shadow-xl space-y-4">
+        <input id="vid-name" type="text" placeholder="Your name" class="field w-full rounded-lg px-4 py-3">
+        <input id="vid-event" type="text" placeholder="Event e.g. 3x3" class="field w-full rounded-lg px-4 py-3">
+        <input id="vid-link" type="text" placeholder="YouTube / Google Drive video link" class="field w-full rounded-lg px-4 py-3">
+        <button id="vid-submit-btn" class="btn-primary w-full py-3 rounded-lg">Submit for Verification</button>
+        <p id="vid-submit-msg" class="text-sm hidden"></p>
+      </div>
+    </div>
+  </section>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    import { firebaseConfig } from "./firebase-config.js";
+
+    const vidApp = initializeApp(firebaseConfig, "videoApp");
+    const vidDb = getFirestore(vidApp);
+
+    document.getElementById("vid-submit-btn").addEventListener("click", async () => {
+      const name = document.getElementById("vid-name").value.trim();
+      const evName = document.getElementById("vid-event").value.trim();
+      const link = document.getElementById("vid-link").value.trim();
+      const msg = document.getElementById("vid-submit-msg");
+
+      if (!name || !evName || !link) {
+        msg.textContent = "Please fill in all fields.";
+        msg.style.color = "var(--cube-red)";
+        msg.classList.remove("hidden");
+        return;
+      }
+      try {
+        await addDoc(collection(vidDb, "videoSubmissions"), {
+          name, event: evName, link, submittedAt: new Date().toISOString()
+        });
+        msg.textContent = "✅ Submitted! The organizer will review it shortly.";
+        msg.style.color = "var(--cube-green)";
+        msg.classList.remove("hidden");
+        document.getElementById("vid-name").value = "";
+        document.getElementById("vid-event").value = "";
+        document.getElementById("vid-link").value = "";
+      } catch (err) {
+        msg.textContent = "Error: " + err.message;
+        msg.style.color = "var(--cube-red)";
+        msg.classList.remove("hidden");
+      }
+    });
+  </script>
 
   <section id="reviews" class="py-16" style="background:var(--bg-surface);">
     <div class="max-w-5xl mx-auto px-4">
@@ -485,7 +751,7 @@
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-    import { getFirestore, doc, getDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    import { getFirestore, doc, getDoc, collection, getDocs, setDoc, increment } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
     import { firebaseConfig } from "./firebase-config.js";
 
     const extrasApp = initializeApp(firebaseConfig, "extrasApp");
@@ -528,13 +794,16 @@
         </div>`).join("");
     });
 
+    // ---- Visitor stats (silent, for admin dashboard) ----
+    setDoc(doc(db, "site", "stats"), { pageViews: increment(1) }, { merge: true }).catch(() => {});
+
     // ---- Hall of Fame ----
-    getDoc(doc(db, "site", "hallOfFame")).then(snap => {
+    const hofReady = getDoc(doc(db, "site", "hallOfFame")).then(snap => {
       const grid = document.getElementById("hof-grid");
       const items = (snap.exists() && snap.data().items) ? snap.data().items : [];
       if (items.length === 0) {
         grid.innerHTML = `<p style="color:var(--ink-muted)">No entries yet — check back after the next competition!</p>`;
-        return;
+        return items;
       }
       grid.innerHTML = items.map(h => `
         <div class="interactive-card surface-card accent-border-yellow rounded-2xl p-6 text-center">
@@ -543,6 +812,7 @@
           <p class="font-mono text-sm mt-1" style="color:var(--cube-yellow);">${h.achievement || ""}</p>
           ${h.event ? `<p class="text-sm mt-1" style="color:var(--ink-muted);">${h.event}</p>` : ""}
         </div>`).join("");
+      return items;
     });
 
     // ---- FAQ (also feeds the chatbot's knowledge base below) ----
@@ -575,7 +845,13 @@
       return (str || "").toLowerCase().replace(/[^a-z0-9\s]/g, " ").split(/\s+/).filter(w => w.length > 1 && !stop.has(w));
     }
 
-    Promise.all([faqReady, upcomingReady, generalReady]).then(([, upcomingSnap, generalSnap]) => {
+    Promise.all([faqReady, upcomingReady, generalReady, hofReady]).then(([, upcomingSnap, generalSnap, hofItems]) => {
+      // Build search index for the search overlay
+      window.ttSearchIndex = [
+        ...faqItemsCache.map(f => ({ type: "FAQ", text: (f.q || "") + " — " + (f.a || ""), section: "faq" })),
+        ...(hofItems || []).map(h => ({ type: "Hall of Fame", text: (h.name || "") + " — " + (h.achievement || ""), section: "hall-of-fame" }))
+      ];
+
       const kb = [];
 
       // FAQ entries
@@ -728,6 +1004,44 @@
 <footer class="py-8 text-center font-mono text-xs" style="color:var(--ink-muted); border-top:1px solid rgba(255,255,255,0.06);">
   © 2026 Twist &amp; Turn — Speedcubing Arena
 </footer>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getMessaging, getToken, onMessage } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging.js";
+    import { firebaseConfig } from "./firebase-config.js";
+
+    // ⚠️ SETUP NEEDED: generate a Web Push certificate in
+    // Firebase Console > Project Settings > Cloud Messaging > Web configuration,
+    // then paste the key pair here to enable this button.
+    const VAPID_KEY = "PASTE_YOUR_VAPID_KEY_HERE";
+
+    const notifApp = initializeApp(firebaseConfig, "messagingApp");
+    const notifBtn = document.getElementById("notif-toggle-btn");
+
+    if (notifBtn && "serviceWorker" in navigator && "Notification" in window) {
+      notifBtn.addEventListener("click", async () => {
+        if (VAPID_KEY === "PASTE_YOUR_VAPID_KEY_HERE") {
+          alert("Notifications aren't fully set up yet — the organizer needs to add a VAPID key.");
+          return;
+        }
+        try {
+          const permission = await Notification.requestPermission();
+          if (permission !== "granted") { notifBtn.textContent = "🔕"; return; }
+          const messaging = getMessaging(notifApp);
+          const registration = await navigator.serviceWorker.register("service-worker.js");
+          const token = await getToken(messaging, { vapidKey: VAPID_KEY, serviceWorkerRegistration: registration });
+          if (token) {
+            notifBtn.textContent = "✅";
+            onMessage(messaging, (payload) => {
+              alert((payload.notification?.title || "Twist & Turn") + "\n" + (payload.notification?.body || ""));
+            });
+          }
+        } catch (err) {
+          console.warn("Notifications setup error:", err);
+        }
+      });
+    }
+  </script>
 
 <script src="script.js"></script>
 </body>

@@ -49,6 +49,110 @@ window.addEventListener("appinstalled", () => {
 });
 
 // ==========================
+// Theme Toggle (Dark / Light)
+// ==========================
+
+const themeToggleBtn = document.getElementById("theme-toggle-btn");
+if (themeToggleBtn) {
+  function syncThemeIcon() {
+    themeToggleBtn.textContent = document.documentElement.classList.contains("light-theme") ? "☀️" : "🌙";
+  }
+  syncThemeIcon();
+  themeToggleBtn.addEventListener("click", () => {
+    document.documentElement.classList.toggle("light-theme");
+    const isLight = document.documentElement.classList.contains("light-theme");
+    localStorage.setItem("tt-theme", isLight ? "light" : "dark");
+    syncThemeIcon();
+  });
+}
+
+// ==========================
+// Language Toggle (EN / HI) — translates key static labels
+// ==========================
+
+const i18n = {
+  en: {
+    "nav-upcoming": "Upcoming", "nav-previous": "Previous", "nav-rules": "Rules",
+    "nav-results": "Results", "nav-live": "Live", "nav-scramble": "Scramble",
+    "nav-pb": "My Results", "nav-rankings": "Rankings", "nav-gallery": "Gallery",
+    "nav-hof": "Hall of Fame", "nav-video": "Submit Video", "nav-faq": "FAQ",
+    "nav-organizer": "Organizer", "nav-contact": "Contact"
+  },
+  hi: {
+    "nav-upcoming": "आगामी", "nav-previous": "पिछले", "nav-rules": "नियम",
+    "nav-results": "परिणाम", "nav-live": "लाइव", "nav-scramble": "स्क्रैम्बल",
+    "nav-pb": "मेरे परिणाम", "nav-rankings": "रैंकिंग", "nav-gallery": "गैलरी",
+    "nav-hof": "हॉल ऑफ फेम", "nav-video": "वीडियो जमा करें", "nav-faq": "सवाल-जवाब",
+    "nav-organizer": "आयोजक", "nav-contact": "संपर्क"
+  }
+};
+
+function applyLang(lang) {
+  document.querySelectorAll("[data-i18n]").forEach(el => {
+    const key = el.getAttribute("data-i18n");
+    if (i18n[lang] && i18n[lang][key]) el.textContent = i18n[lang][key];
+  });
+}
+
+const langToggleBtn = document.getElementById("lang-toggle-btn");
+if (langToggleBtn) {
+  let currentLang = localStorage.getItem("tt-lang") || "en";
+  langToggleBtn.textContent = currentLang.toUpperCase();
+  applyLang(currentLang);
+  langToggleBtn.addEventListener("click", () => {
+    currentLang = currentLang === "en" ? "hi" : "en";
+    localStorage.setItem("tt-lang", currentLang);
+    langToggleBtn.textContent = currentLang.toUpperCase();
+    applyLang(currentLang);
+  });
+}
+
+// ==========================
+// Search Overlay (FAQ + Hall of Fame)
+// ==========================
+
+const searchToggleBtn = document.getElementById("search-toggle-btn");
+const searchOverlay = document.getElementById("search-overlay");
+const searchCloseBtn = document.getElementById("search-close-btn");
+const searchInput = document.getElementById("search-input");
+const searchResultsEl = document.getElementById("search-results");
+
+if (searchToggleBtn && searchOverlay) {
+  searchToggleBtn.addEventListener("click", () => {
+    searchOverlay.classList.remove("hidden");
+    searchInput.focus();
+  });
+  searchCloseBtn.addEventListener("click", () => searchOverlay.classList.add("hidden"));
+  searchOverlay.addEventListener("click", (e) => { if (e.target === searchOverlay) searchOverlay.classList.add("hidden"); });
+
+  searchInput.addEventListener("input", () => {
+    const q = searchInput.value.trim().toLowerCase();
+    if (!q || !window.ttSearchIndex) {
+      searchResultsEl.innerHTML = q ? "" : `<p style="color:var(--ink-muted)">Start typing to search FAQ and Hall of Fame…</p>`;
+      return;
+    }
+    const matches = window.ttSearchIndex.filter(item =>
+      item.text.toLowerCase().includes(q)
+    ).slice(0, 15);
+    if (matches.length === 0) {
+      searchResultsEl.innerHTML = `<p style="color:var(--ink-muted)">No matches.</p>`;
+      return;
+    }
+    searchResultsEl.innerHTML = matches.map(m => `
+      <button type="button" class="search-result-item block w-full text-left p-3 rounded-lg hover:bg-white/5" data-section="${m.section}">
+        <span class="font-mono text-xs" style="color:var(--cube-yellow);">${m.type}</span>
+        <p class="text-sm mt-1">${m.text}</p>
+      </button>`).join("");
+    searchResultsEl.querySelectorAll(".search-result-item").forEach(btn => {
+      btn.addEventListener("click", () => {
+        searchOverlay.classList.add("hidden");
+        scrollToSection(btn.dataset.section);
+      });
+    });
+  });
+}
+
+// ==========================
 // Countdown Timer
 // ==========================
 

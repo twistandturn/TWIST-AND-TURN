@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Check In — Twist & Turn</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg-base:#101218; --bg-surface:#181B24; --ink:#F2F1ED; --ink-muted:#9297A6;
+    --cube-red:#E8412B; --cube-yellow:#F2B705; --cube-blue:#2F6FE0; --cube-green:#22A35C;
+  }
+  body{ font-family:'Inter', sans-serif; background:var(--bg-base); color:var(--ink); }
+  .font-display{ font-family:'Space Grotesk', sans-serif; }
+  .surface-card{ background:var(--bg-surface); border:1px solid rgba(255,255,255,0.06); }
+  .field{ background:var(--bg-base); border:1px solid rgba(255,255,255,0.12); color:var(--ink); }
+  .field:focus{ outline:none; border-color:var(--cube-blue); }
+  .btn-primary{ background:var(--cube-red); color:#fff; font-family:'Space Grotesk',sans-serif; font-weight:600; }
+</style>
+</head>
+<body class="min-h-screen flex items-center justify-center px-4">
+
+  <div class="w-full max-w-sm surface-card rounded-2xl p-8 shadow-2xl text-center">
+    <div class="text-4xl mb-3">🎲</div>
+    <h1 class="font-display text-2xl font-bold mb-1">Check In</h1>
+    <p id="comp-label" class="text-sm mb-6" style="color:var(--ink-muted);">Loading competition…</p>
+
+    <div id="form-box">
+      <input type="text" id="checkin-name" placeholder="Your full name" class="field w-full rounded-lg px-4 py-3 mb-3">
+      <button id="checkin-btn" class="btn-primary w-full py-3 rounded-lg">✅ Check In</button>
+      <p id="checkin-msg" class="text-sm mt-3 hidden"></p>
+    </div>
+
+    <div id="success-box" class="hidden">
+      <div class="text-5xl mb-3">🎉</div>
+      <p class="font-display font-bold text-xl">You're checked in!</p>
+      <p class="text-sm mt-2" style="color:var(--ink-muted);">Good luck, cuber. See you in the round.</p>
+    </div>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    import { firebaseConfig } from "./firebase-config.js";
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    const params = new URLSearchParams(location.search);
+    const compId = params.get("comp") || "general";
+    const compName = params.get("name") || "the competition";
+
+    document.getElementById("comp-label").textContent = `Checking in for: ${compName}`;
+
+    document.getElementById("checkin-btn").addEventListener("click", async () => {
+      const name = document.getElementById("checkin-name").value.trim();
+      const msg = document.getElementById("checkin-msg");
+      if (!name) {
+        msg.textContent = "Please enter your name.";
+        msg.style.color = "var(--cube-red)";
+        msg.classList.remove("hidden");
+        return;
+      }
+      try {
+        await addDoc(collection(db, "checkins", compId, "list"), {
+          name, checkedInAt: new Date().toISOString()
+        });
+        document.getElementById("form-box").classList.add("hidden");
+        document.getElementById("success-box").classList.remove("hidden");
+      } catch (err) {
+        msg.textContent = "Error: " + err.message;
+        msg.style.color = "var(--cube-red)";
+        msg.classList.remove("hidden");
+      }
+    });
+  </script>
+</body>
+</html>
