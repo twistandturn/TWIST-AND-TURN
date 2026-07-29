@@ -1,4 +1,54 @@
 // ==========================
+// PWA: Service Worker + Install Prompt
+// ==========================
+
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("service-worker.js").catch(() => {});
+  });
+}
+
+let deferredInstallPrompt = null;
+
+window.addEventListener("beforeinstallprompt", (e) => {
+  e.preventDefault();
+  deferredInstallPrompt = e;
+
+  const btn = document.createElement("button");
+  btn.id = "pwa-install-btn";
+  btn.textContent = "📲 Install App";
+  btn.style.position = "fixed";
+  btn.style.bottom = "24px";
+  btn.style.left = "50%";
+  btn.style.transform = "translateX(-50%)";
+  btn.style.zIndex = "9999";
+  btn.style.background = "#E8412B";
+  btn.style.color = "#fff";
+  btn.style.fontFamily = "'Space Grotesk', sans-serif";
+  btn.style.fontWeight = "600";
+  btn.style.padding = "10px 20px";
+  btn.style.borderRadius = "999px";
+  btn.style.border = "none";
+  btn.style.boxShadow = "0 8px 24px rgba(0,0,0,0.35)";
+  btn.style.cursor = "pointer";
+
+  btn.addEventListener("click", async () => {
+    btn.remove();
+    if (!deferredInstallPrompt) return;
+    deferredInstallPrompt.prompt();
+    await deferredInstallPrompt.userChoice;
+    deferredInstallPrompt = null;
+  });
+
+  document.body.appendChild(btn);
+});
+
+window.addEventListener("appinstalled", () => {
+  const btn = document.getElementById("pwa-install-btn");
+  if (btn) btn.remove();
+});
+
+// ==========================
 // Countdown Timer
 // ==========================
 

@@ -194,6 +194,16 @@
         <button id="save-faq-btn" class="btn-primary w-full py-3 rounded-lg mt-2">Save FAQ</button>
         <p id="faq-save-msg" class="text-sm hidden"></p>
       </div>
+
+      <p class="font-mono text-xs tracking-widest uppercase mt-16 mb-2" style="color:var(--ink-muted);">All-Time Greats</p>
+      <h1 class="font-display text-3xl font-bold mb-8">Manage Hall of Fame</h1>
+      <div class="surface-card rounded-2xl p-8 shadow-xl space-y-4">
+        <div id="hof-rows" class="space-y-3"></div>
+        <button id="add-hof-btn" type="button" class="w-full py-2 rounded-lg border border-white/15 font-mono text-sm" style="color:var(--ink-muted);">+ Add Entry</button>
+        <button id="save-hof-btn" class="btn-primary w-full py-3 rounded-lg mt-2">Save Hall of Fame</button>
+        <p id="hof-save-msg" class="text-sm hidden"></p>
+        <p class="text-xs" style="color:var(--ink-muted);">Photo URL is optional — leave blank to show a trophy icon instead.</p>
+      </div>
     </main>
   </div>
 
@@ -253,6 +263,7 @@
         loadGallery();
         loadReviews();
         loadFaq();
+        loadHallOfFame();
       } else {
         document.getElementById("pin-error").classList.remove("hidden");
       }
@@ -654,6 +665,62 @@
       try {
         await setDoc(doc(db, "site", "faq"), { items: items });
         msg.textContent = "Saved!";
+        msg.style.color = "var(--cube-green)";
+        msg.classList.remove("hidden");
+      } catch (err) {
+        msg.textContent = "Error: " + err.message;
+        msg.style.color = "var(--cube-red)";
+        msg.classList.remove("hidden");
+      }
+    });
+
+    // ============================================
+    // Hall of Fame management
+    // ============================================
+    const hofContainer = document.getElementById("hof-rows");
+
+    function addHofRow(name = "", achievement = "", event = "", photo = "") {
+      const rowDiv = document.createElement("div");
+      rowDiv.className = "space-y-2 pb-3 border-b border-white/5";
+      rowDiv.innerHTML = `
+        <div class="grid md:grid-cols-2 gap-2">
+          <input type="text" class="field w-full rounded-lg px-3 py-2 text-sm hof-name" placeholder="Name" value="${name}">
+          <input type="text" class="field w-full rounded-lg px-3 py-2 text-sm hof-achievement" placeholder="Achievement e.g. S1 Champion, National Record" value="${achievement}">
+        </div>
+        <div class="grid md:grid-cols-2 gap-2">
+          <input type="text" class="field w-full rounded-lg px-3 py-2 text-sm hof-event" placeholder="Event e.g. 3x3 (optional)" value="${event}">
+          <input type="text" class="field w-full rounded-lg px-3 py-2 text-sm hof-photo" placeholder="Photo URL (optional)" value="${photo}">
+        </div>
+        <button type="button" class="remove-hof-btn text-sm py-1 px-3 rounded-lg" style="color:var(--cube-red); border:1px solid rgba(255,255,255,0.1);">Remove</button>
+      `;
+      rowDiv.querySelector(".remove-hof-btn").addEventListener("click", () => rowDiv.remove());
+      hofContainer.appendChild(rowDiv);
+    }
+
+    document.getElementById("add-hof-btn").addEventListener("click", () => addHofRow());
+
+    async function loadHallOfFame() {
+      const snap = await getDoc(doc(db, "site", "hallOfFame"));
+      hofContainer.innerHTML = "";
+      if (snap.exists() && snap.data().items && snap.data().items.length > 0) {
+        snap.data().items.forEach(h => addHofRow(h.name, h.achievement, h.event, h.photo));
+      } else {
+        addHofRow();
+      }
+    }
+
+    document.getElementById("save-hof-btn").addEventListener("click", async () => {
+      const msg = document.getElementById("hof-save-msg");
+      const items = Array.from(hofContainer.children).map(rowDiv => ({
+        name: rowDiv.querySelector(".hof-name").value,
+        achievement: rowDiv.querySelector(".hof-achievement").value,
+        event: rowDiv.querySelector(".hof-event").value,
+        photo: rowDiv.querySelector(".hof-photo").value
+      })).filter(h => h.name.trim() !== "");
+
+      try {
+        await setDoc(doc(db, "site", "hallOfFame"), { items: items });
+        msg.textContent = "Saved! Homepage updates instantly.";
         msg.style.color = "var(--cube-green)";
         msg.classList.remove("hidden");
       } catch (err) {
