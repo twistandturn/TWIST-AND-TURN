@@ -268,11 +268,16 @@
       return parts.join(" / ") + " /";
     }
 
+    function clockHour() {
+      const v = randInt(0, 11); // pick a net clockwise position 0-11, then use the shortest signed notation for it
+      if (v === 0) return "0+";
+      if (v <= 5) return v + "+";
+      if (v === 6) return "6"; // halfway point — no sign, since +6 and -6 are identical
+      return (12 - v) + "-"; // 7..11 -> shorter counter-clockwise equivalent, e.g. 11 -> "-1", 10 -> "-2"
+    }
     function clockScramble() {
-      const front = ["UR", "DR", "DL", "UL", "U", "R", "D", "L", "ALL"]
-        .map(k => `${k}${randInt(0, 11)}${Math.random() < 0.5 ? "+" : "-"}`);
-      const back = ["U", "R", "D", "L"]
-        .map(k => `${k}${randInt(0, 11)}${Math.random() < 0.5 ? "+" : "-"}`);
+      const front = ["UR", "DR", "DL", "UL", "U", "R", "D", "L", "ALL"].map(k => k + clockHour());
+      const back = ["U", "R", "D", "L"].map(k => k + clockHour());
       return front.join(" ") + " y2 " + back.join(" ");
     }
 
