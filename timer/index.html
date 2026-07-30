@@ -258,16 +258,6 @@
       return moves.join(" ");
     }
 
-    function sq1Scramble() {
-      const parts = [];
-      for (let i = 0; i < 12; i++) {
-        let a, b;
-        do { a = randInt(-5, 6); b = randInt(-5, 6); } while (a === 0 && b === 0);
-        parts.push(`(${a},${b})`);
-      }
-      return parts.join(" / ") + " /";
-    }
-
     function clockHour() {
       const v = randInt(0, 11); // pick a net clockwise position 0-11, then use the shortest signed notation for it
       if (v === 0) return "0+";
@@ -277,7 +267,7 @@
     }
     function clockScramble() {
       const front = ["UR", "DR", "DL", "UL", "U", "R", "D", "L", "ALL"].map(k => k + clockHour());
-      const back = [ "U", "R", "D", "L", "ALL"].map(k => k + clockHour());
+      const back = ["U", "R", "D", "L"].map(k => k + clockHour());
       return front.join(" ") + " y2 " + back.join(" ");
     }
 
@@ -310,11 +300,9 @@
       "777": () => cubeScramble(["U", "D", "L", "R", "F", "B"], 100, "deep", true),
       "333oh": () => cubeScramble(["U", "D", "L", "R", "F", "B"], 20, null, true),
       "333bf": () => cubeScramble(["U", "D", "L", "R", "F", "B"], 20, null, true),
-      "333fm": () => cubeScramble(["U", "D", "L", "R", "F", "B"], 25, null, true),
       "333mbf": () => mbldScramble(3),
       "pyram": pyraminxScramble,
       "skewb": skewbScramble,
-      "sq1": sq1Scramble,
       "clock": clockScramble,
       "minx": megaminxScramble,
     };
@@ -335,7 +323,7 @@
         return;
       }
 
-      // 333 and fto: use the cubing.js library (confirmed working on this host)
+      // 333, fto, sq1, 333fm: use the cubing.js library for true WCA-legal random-state scrambles
       const MAX_TRIES = 3;
       let lastErr = null;
       for (let attempt = 1; attempt <= MAX_TRIES; attempt++) {
