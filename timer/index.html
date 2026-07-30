@@ -277,7 +277,7 @@
     }
     function clockScramble() {
       const front = ["UR", "DR", "DL", "UL", "U", "R", "D", "L", "ALL"].map(k => k + clockHour());
-      const back = ["U", "R", "D", "L"].map(k => k + clockHour());
+      const back = [ "U", "R", "D", "L", "ALL"].map(k => k + clockHour());
       return front.join(" ") + " y2 " + back.join(" ");
     }
 
