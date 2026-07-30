@@ -289,9 +289,14 @@
       return scrambles.join("\n");
     }
 
-    // Events handled entirely locally (no network / WASM dependency at all)
-    const LOCAL_SCRAMBLERS = {
+    // Puzzle-appropriate LAST-RESORT fallbacks only — used only if cubing.js fails
+    // repeatedly (e.g. CDN/WASM hiccup). Each fallback matches the puzzle's own
+    // move notation so it never hands out invalid moves (this is what was
+    // breaking Square-1: it used to fall back to plain cube moves like "R U2 F'",
+    // which a Square-1 can't apply, so the scramble got stuck mid-way).
+    const FALLBACK_SCRAMBLERS = {
       "222": () => cubeScramble(["U", "R", "F"], randInt(9, 11), null, false),
+      "333": () => cubeScramble(["U", "D", "L", "R", "F", "B"], 20, null, true),
       "444": () => cubeScramble(["U", "D", "L", "R", "F", "B"], randInt(40, 45), "simple", true),
       "444bf": () => cubeScramble(["U", "D", "L", "R", "F", "B"], randInt(40, 45), "simple", true),
       "555": () => cubeScramble(["U", "D", "L", "R", "F", "B"], 60, "simple", true),
@@ -305,27 +310,18 @@
       "skewb": skewbScramble,
       "clock": clockScramble,
       "minx": megaminxScramble,
+      "fto": ftoScramble,
+      // sq1 and 333fm intentionally have NO fallback — there's no safe way to fake
+      // a valid Square-1 slice sequence or an FMC scramble locally, so on repeated
+      // failure we ask the user to retry instead of feeding the cube a broken scramble.
     };
 
+    // All 18 events: always use cubing.js for true WCA-legal random-state scrambles.
     async function getNewScramble() {
       scrambleLoading = true;
       scrambleTextEl.textContent = "Generating scramble…";
 
-      // Events we generate locally — instant, no CDN/WASM dependency, always works.
-      if (LOCAL_SCRAMBLERS[currentEvent]) {
-        try {
-          scrambleTextEl.textContent = LOCAL_SCRAMBLERS[currentEvent]();
-        } catch (err) {
-          console.error(`Local scramble failed for "${currentEvent}":`, err);
-          scrambleTextEl.textContent = `Couldn't build a "${currentEvent}" scramble: ${err.message || err}`;
-        }
-        scrambleLoading = false;
-        return;
-      }
-
-      // 333, fto, sq1, 333fm: use the cubing.js library for true WCA-legal random-state scrambles
       const MAX_TRIES = 3;
-      let lastErr = null;
       for (let attempt = 1; attempt <= MAX_TRIES; attempt++) {
         try {
           const scramble = await randomScrambleForEvent(currentEvent);
@@ -333,17 +329,23 @@
           scrambleLoading = false;
           return;
         } catch (err) {
-          lastErr = err;
           console.error(`Scramble attempt ${attempt} failed for event "${currentEvent}":`, err);
           if (attempt < MAX_TRIES) await new Promise(r => setTimeout(r, 400 * attempt));
         }
       }
-      // Fallback: if even 333 somehow fails, still give the user a usable scramble
-      console.error(`Falling back to local scrambler for "${currentEvent}" after repeated failures.`);
-      const fallbackFaces = currentEvent === "fto"
-        ? null
-        : ["U", "D", "L", "R", "F", "B"];
-      scrambleTextEl.textContent = currentEvent === "fto" ? ftoScramble() : cubeScramble(fallbackFaces, 20, null, true);
+
+      // cubing.js failed repeatedly (network/CDN issue) — use a puzzle-correct
+      // fallback if one exists for this event, never a generic cube fallback.
+      console.error(`cubing.js failed repeatedly for "${currentEvent}", using local fallback if available.`);
+      if (FALLBACK_SCRAMBLERS[currentEvent]) {
+        try {
+          scrambleTextEl.textContent = FALLBACK_SCRAMBLERS[currentEvent]();
+        } catch (err) {
+          scrambleTextEl.textContent = `Couldn't generate a scramble — check your connection and hit "New".`;
+        }
+      } else {
+        scrambleTextEl.textContent = `Couldn't generate a scramble — check your connection and hit "New".`;
+      }
       scrambleLoading = false;
     }
     document.getElementById("new-scramble-btn").addEventListener("click", () => { if (!scrambleLoading) getNewScramble(); });
@@ -585,7 +587,7 @@
       }
     }
     typeModeBtn.addEventListener("click", () => setTypeMode(!typeMode));
-
+                                
     // Turns a raw digit string into a live-formatted time, e.g. "1234" -> "12.34", "10345" -> "1:03.45"
     function digitsToTimeString(digits) {
       digits = digits.replace(/\D/g, "");
@@ -600,7 +602,7 @@
         return `${parseInt(minPart, 10)}:${sec}.${cs}`;
       }
       return `${parseInt(sec, 10)}.${cs}`;
-    }
+    }                                                                                                  
 
     typeInput.addEventListener("input", () => {
       const raw = typeInput.value;
