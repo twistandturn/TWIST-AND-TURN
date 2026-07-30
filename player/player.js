@@ -53,3 +53,27 @@ getDoc(playerRef).then((snap) => {
     }
 
 }).catch(console.error);
+const params = new URLSearchParams(window.location.search);
+const playerId = params.get("id");
+
+if (playerId) {
+  loadPlayer(playerId);
+} else {
+  document.body.innerHTML = "<h2 style='text-align:center;margin-top:50px'>Player not found</h2>";
+}
+
+async function loadPlayer(id) {
+  const doc = await db.collection("players").doc(id).get();
+
+  if (!doc.exists) {
+    document.body.innerHTML = "<h2 style='text-align:center;margin-top:50px'>Player not found</h2>";
+    return;
+  }
+
+  const player = doc.data();
+
+  document.getElementById("playerName").textContent = player.name || "";
+  document.getElementById("playerRank").textContent = "#" + (player.rank || "-");
+  document.getElementById("playerCountry").textContent = player.country || "";
+  document.getElementById("playerImage").src = player.image || "";
+}
