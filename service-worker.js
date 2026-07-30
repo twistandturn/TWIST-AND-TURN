@@ -1,33 +1,6 @@
 // Twist & Turn — Service Worker
 // Caches the app shell so the site opens (with cached content) even offline,
 // while always trying the network first so live data (results, FAQ, etc.) stays fresh.
-// Also handles background push notifications via Firebase Cloud Messaging.
-
-importScripts("https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js");
-importScripts("https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging-compat.js");
-
-// Must match firebase-config.js — service workers can't use ES module imports,
-// so the same config values are duplicated here.
-firebase.initializeApp({
-  apiKey: "AIzaSyAmgZw3YeTDZSfrpwsULUAq6SnmtFQ1qTE",
-  authDomain: "twistnturn-9623d.firebaseapp.com",
-  projectId: "twistnturn-9623d",
-  storageBucket: "twistnturn-9623d.firebasestorage.app",
-  messagingSenderId: "802786554775",
-  appId: "1:802786554775:web:9d2fe8b157513b0d5bcad2"
-});
-
-const messaging = firebase.messaging();
-
-messaging.onBackgroundMessage((payload) => {
-  const title = payload.notification?.title || "Twist & Turn";
-  const options = {
-    body: payload.notification?.body || "",
-    icon: "icon-192.png",
-    badge: "icon-192.png"
-  };
-  self.registration.showNotification(title, options);
-});
 
 const CACHE_NAME = "tt-cache-v1";
 const APP_SHELL = [

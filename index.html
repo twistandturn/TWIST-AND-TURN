@@ -64,23 +64,7 @@
 
   ::selection{ background:var(--cube-yellow); color:#101218; }
   section[id]{ scroll-margin-top: 80px; }
-
-  html.light-theme{
-    --bg-base:#F7F7F5;
-    --bg-surface:#FFFFFF;
-    --ink:#181B24;
-    --ink-muted:#5C6170;
-  }
-  html.light-theme .scramble-row{ opacity:0.06; }
-  html.light-theme nav{ background:rgba(247,247,245,0.9) !important; }
-  html.light-theme .field{ background:#fff; color:#181B24; border-color:rgba(0,0,0,0.12); }
 </style>
-<script>
-  // Apply saved theme before paint to avoid flash
-  if (localStorage.getItem('tt-theme') === 'light') {
-    document.documentElement.classList.add('light-theme');
-  }
-</script>
 </head>
 <body class="antialiased min-h-screen flex flex-col">
 
@@ -92,34 +76,19 @@
         <span class="font-display font-bold text-xl tracking-tight">Twist &amp; Turn</span>
       </div>
       <div class="flex items-center gap-2">
-        <button id="search-toggle-btn" title="Search" class="text-lg p-2 rounded-lg hover:bg-white/10">🔍</button>
-        <button id="lang-toggle-btn" title="Language" class="font-mono text-xs px-2 py-2 rounded-lg hover:bg-white/10 border border-white/10">EN</button>
-        <button id="theme-toggle-btn" title="Theme" class="text-lg p-2 rounded-lg hover:bg-white/10">🌙</button>
-        <button id="notif-toggle-btn" title="Notifications" class="text-lg p-2 rounded-lg hover:bg-white/10">🔔</button>
         <button id="menuBtn" class="md:hidden text-3xl leading-none text-[var(--ink)]">☰</button>
       </div>
       <div id="navLinks" class="hidden absolute top-full right-0 mt-2 w-full md:static md:mt-0 md:w-auto md:flex md:items-center md:space-x-1 text-right md:text-left font-mono text-sm uppercase tracking-wider" style="background:var(--bg-surface);">
-        <button onclick="scrollToSection('upcoming')" data-i18n="nav-upcoming" class="block w-full px-4 py-3 text-left hover:text-[var(--cube-yellow)] transition border-b-2 border-transparent hover:border-[var(--cube-yellow)] md:inline-block md:w-auto md:p-2">Upcoming</button>
-        <button onclick="goToPage('previous-competitions.html')" data-i18n="nav-previous" class="block w-full px-4 py-3 text-left hover:text-[var(--cube-blue)] transition border-b-2 border-transparent hover:border-[var(--cube-blue)] md:inline-block md:w-auto md:p-2">Previous</button>
-        <button onclick="scrollToSection('rules')" data-i18n="nav-rules" class="block w-full px-4 py-3 text-left hover:text-[var(--cube-red)] transition border-b-2 border-transparent hover:border-[var(--cube-red)] md:inline-block md:w-auto md:p-2">Rules</button>
-        <button onclick="scrollToSection('results')" data-i18n="nav-results" class="block w-full px-4 py-3 text-left hover:text-[var(--cube-green)] transition border-b-2 border-transparent hover:border-[var(--cube-green)] md:inline-block md:w-auto md:p-2">Results</button>
-        <button onclick="scrollToSection('live-results')" data-i18n="nav-live" class="block w-full px-4 py-3 text-left hover:text-[var(--cube-red)] transition border-b-2 border-transparent hover:border-[var(--cube-red)] md:inline-block md:w-auto md:p-2">Live</button>
-        <button onclick="scrollToSection('gallery')" data-i18n="nav-gallery" class="block w-full px-4 py-3 text-left hover:text-[var(--cube-yellow)] transition border-b-2 border-transparent hover:border-[var(--cube-yellow)] md:inline-block md:w-auto md:p-2">Gallery</button>
-        <button onclick="scrollToSection('hall-of-fame')" data-i18n="nav-hof" class="block w-full px-4 py-3 text-left hover:text-[var(--cube-blue)] transition border-b-2 border-transparent hover:border-[var(--cube-blue)] md:inline-block md:w-auto md:p-2">Hall of Fame</button>
-        <button onclick="scrollToSection('faq')" data-i18n="nav-faq" class="block w-full px-4 py-3 text-left hover:text-[var(--cube-green)] transition border-b-2 border-transparent hover:border-[var(--cube-green)] md:inline-block md:w-auto md:p-2">FAQ</button>
-        <button onclick="scrollToSection('organizer')" data-i18n="nav-organizer" class="block w-full px-4 py-3 text-left hover:text-[var(--cube-blue)] transition border-b-2 border-transparent hover:border-[var(--cube-blue)] md:inline-block md:w-auto md:p-2">Organizer</button>
-        <button onclick="scrollToSection('contact')" data-i18n="nav-contact" class="block w-full px-4 py-3 text-left hover:text-[var(--cube-yellow)] transition border-b-2 border-transparent hover:border-[var(--cube-yellow)] md:inline-block md:w-auto md:p-2">Contact</button>
-      </div>
-
-      <!-- Search overlay -->
-      <div id="search-overlay" class="hidden fixed inset-0 z-[100] flex items-start justify-center pt-24 px-4" style="background:rgba(0,0,0,0.75);">
-        <div class="w-full max-w-xl surface-card rounded-2xl p-6 shadow-2xl">
-          <div class="flex items-center gap-2 mb-4">
-            <input id="search-input" type="text" placeholder="Search FAQ, Hall of Fame..." class="field flex-grow rounded-lg px-4 py-3">
-            <button id="search-close-btn" class="text-2xl px-2">✕</button>
-          </div>
-          <div id="search-results" class="space-y-2 max-h-[60vh] overflow-y-auto"></div>
-        </div>
+        <button onclick="scrollToSection('upcoming')" class="block w-full px-4 py-3 text-left hover:text-[var(--cube-yellow)] transition border-b-2 border-transparent hover:border-[var(--cube-yellow)] md:inline-block md:w-auto md:p-2">Upcoming</button>
+        <button onclick="goToPage('previous-competitions.html')" class="block w-full px-4 py-3 text-left hover:text-[var(--cube-blue)] transition border-b-2 border-transparent hover:border-[var(--cube-blue)] md:inline-block md:w-auto md:p-2">Previous</button>
+        <button onclick="scrollToSection('rules')" class="block w-full px-4 py-3 text-left hover:text-[var(--cube-red)] transition border-b-2 border-transparent hover:border-[var(--cube-red)] md:inline-block md:w-auto md:p-2">Rules</button>
+        <button onclick="scrollToSection('results')" class="block w-full px-4 py-3 text-left hover:text-[var(--cube-green)] transition border-b-2 border-transparent hover:border-[var(--cube-green)] md:inline-block md:w-auto md:p-2">Results</button>
+        <button onclick="scrollToSection('live-results')" class="block w-full px-4 py-3 text-left hover:text-[var(--cube-red)] transition border-b-2 border-transparent hover:border-[var(--cube-red)] md:inline-block md:w-auto md:p-2">Live</button>
+        <button onclick="scrollToSection('gallery')" class="block w-full px-4 py-3 text-left hover:text-[var(--cube-yellow)] transition border-b-2 border-transparent hover:border-[var(--cube-yellow)] md:inline-block md:w-auto md:p-2">Gallery</button>
+        <button onclick="scrollToSection('hall-of-fame')" class="block w-full px-4 py-3 text-left hover:text-[var(--cube-blue)] transition border-b-2 border-transparent hover:border-[var(--cube-blue)] md:inline-block md:w-auto md:p-2">Hall of Fame</button>
+        <button onclick="scrollToSection('faq')" class="block w-full px-4 py-3 text-left hover:text-[var(--cube-green)] transition border-b-2 border-transparent hover:border-[var(--cube-green)] md:inline-block md:w-auto md:p-2">FAQ</button>
+        <button onclick="scrollToSection('organizer')" class="block w-full px-4 py-3 text-left hover:text-[var(--cube-blue)] transition border-b-2 border-transparent hover:border-[var(--cube-blue)] md:inline-block md:w-auto md:p-2">Organizer</button>
+        <button onclick="scrollToSection('contact')" class="block w-full px-4 py-3 text-left hover:text-[var(--cube-yellow)] transition border-b-2 border-transparent hover:border-[var(--cube-yellow)] md:inline-block md:w-auto md:p-2">Contact</button>
       </div>
     </div>
   </div>
@@ -332,6 +301,18 @@
     </div>
   </section>
 
+  <section id="results" class="py-16" style="background:var(--bg-surface);">
+    <div class="max-w-7xl mx-auto px-4">
+      <p class="eyebrow mb-2">Leaderboard</p>
+      <h2 id="results-title" class="font-display text-3xl font-bold mb-2">Results</h2>
+      <span id="live-badge" class="hidden inline-block font-mono text-xs px-3 py-1 rounded-full mb-6" style="background:rgba(232,65,43,0.15); color:var(--cube-red);">🔴 LIVE</span>
+      <div id="results-table-wrap" class="overflow-x-auto rounded-2xl shadow-xl surface-card mt-4">
+        <p class="p-8 text-center" style="color:var(--ink-muted)">Loading...</p>
+      </div>
+      <div class="mt-10 text-center">
+        <p class="max-w-2xl mx-auto" style="color:var(--ink-muted)">Stay tuned for the next results update after the upcoming competition. Our leaderboard reflects the latest verified scores and official rankings.</p>
+      </div>
+    </div>
   </section>
 
   <script type="module">
@@ -464,8 +445,6 @@
     });
   </script>
 
-  </script>
-
   <section id="gallery" class="py-16">
     <div class="max-w-7xl mx-auto px-4">
       <p class="eyebrow mb-2">Highlights</p>
@@ -485,6 +464,15 @@
       </div>
     </div>
   </section>
+
+  <section id="reviews" class="py-16" style="background:var(--bg-surface);">
+    <div class="max-w-5xl mx-auto px-4">
+      <p class="eyebrow mb-2">Community Says</p>
+      <h2 class="font-display text-3xl font-bold mb-8">What Cubers Say</h2>
+      <div id="reviews-grid" class="grid md:grid-cols-2 gap-6">
+        <p style="color:var(--ink-muted)">Loading...</p>
+      </div>
+    </div>
   </section>
 
   <section id="faq" class="py-16">
@@ -499,7 +487,7 @@
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-    import { getFirestore, doc, getDoc, collection, getDocs, setDoc, increment } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    import { getFirestore, doc, getDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
     import { firebaseConfig } from "./firebase-config.js";
 
     const extrasApp = initializeApp(firebaseConfig, "extrasApp");
@@ -541,9 +529,6 @@
           <p class="font-display font-bold" style="color:var(--cube-yellow);">— ${r.name || "Anonymous"}</p>
         </div>`).join("");
     });
-
-    // ---- Visitor stats (silent, for admin dashboard) ----
-    setDoc(doc(db, "site", "stats"), { pageViews: increment(1) }, { merge: true }).catch(() => {});
 
     // ---- Hall of Fame ----
     const hofReady = getDoc(doc(db, "site", "hallOfFame")).then(snap => {
@@ -594,12 +579,6 @@
     }
 
     Promise.all([faqReady, upcomingReady, generalReady, hofReady]).then(([, upcomingSnap, generalSnap, hofItems]) => {
-      // Build search index for the search overlay
-      window.ttSearchIndex = [
-        ...faqItemsCache.map(f => ({ type: "FAQ", text: (f.q || "") + " — " + (f.a || ""), section: "faq" })),
-        ...(hofItems || []).map(h => ({ type: "Hall of Fame", text: (h.name || "") + " — " + (h.achievement || ""), section: "hall-of-fame" }))
-      ];
-
       const kb = [];
 
       // FAQ entries
@@ -753,44 +732,6 @@
   © 2026 Twist &amp; Turn — Speedcubing Arena
 </footer>
 
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-    import { getMessaging, getToken, onMessage } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging.js";
-    import { firebaseConfig } from "./firebase-config.js";
-
-    // ⚠️ SETUP NEEDED: generate a Web Push certificate in
-    // Firebase Console > Project Settings > Cloud Messaging > Web configuration,
-    // then paste the key pair here to enable this button.
-    const VAPID_KEY = "PASTE_YOUR_VAPID_KEY_HERE";
-
-    const notifApp = initializeApp(firebaseConfig, "messagingApp");
-    const notifBtn = document.getElementById("notif-toggle-btn");
-
-    if (notifBtn && "serviceWorker" in navigator && "Notification" in window) {
-      notifBtn.addEventListener("click", async () => {
-        if (VAPID_KEY === "PASTE_YOUR_VAPID_KEY_HERE") {
-          alert("Notifications aren't fully set up yet — the organizer needs to add a VAPID key.");
-          return;
-        }
-        try {
-          const permission = await Notification.requestPermission();
-          if (permission !== "granted") { notifBtn.textContent = "🔕"; return; }
-          const messaging = getMessaging(notifApp);
-          const registration = await navigator.serviceWorker.register("service-worker.js");
-          const token = await getToken(messaging, { vapidKey: VAPID_KEY, serviceWorkerRegistration: registration });
-          if (token) {
-            notifBtn.textContent = "✅";
-            onMessage(messaging, (payload) => {
-              alert((payload.notification?.title || "Twist & Turn") + "\n" + (payload.notification?.body || ""));
-            });
-          }
-        } catch (err) {
-          console.warn("Notifications setup error:", err);
-        }
-      });
-    }
-  </script>
-
-<script src="script.js"></script>
+  <script src="script.js"></script>
 </body>
 </html>
