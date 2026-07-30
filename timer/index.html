@@ -3,211 +3,192 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Timer - Twist & Turn</title>
+<title>Twist & Turn - csTimer Style</title>
 <script src="https://cdn.tailwindcss.com"></script>
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
   :root{
-    --bg-base:#101218; --bg-surface:#181B24; --ink:#F2F1ED; --ink-muted:#9297A6;
-    --cube-red:#E8412B; --cube-yellow:#F2B705; --cube-blue:#2F6FE0; --cube-green:#22A35C;
+    --bg-base: #1f1f24; /* csTimer dark vibe */
+    --bg-panel: #282830;
+    --ink: #f0f0f0; 
+    --ink-muted: #9a9a9a;
+    --cube-red: #ff5252; --cube-yellow: #ffd740; --cube-blue: #448aff; --cube-green: #69f0ae;
   }
-  *{ box-sizing:border-box; }
-  body{ font-family:'Inter', sans-serif; background:var(--bg-base); color:var(--ink); overscroll-behavior:none; }
-  .font-display{ font-family:'Space Grotesk', sans-serif; }
-  .font-mono{ font-family:'JetBrains Mono', monospace; }
-  .surface-card{ background:var(--bg-surface); border:1px solid rgba(255,255,255,0.06); }
-  .field{ background:var(--bg-base); border:1px solid rgba(255,255,255,0.12); color:var(--ink); }
-  .field:focus{ outline:none; border-color:var(--cube-blue); }
-  .btn-primary{ background:var(--cube-red); color:#fff; font-family:'Space Grotesk',sans-serif; font-weight:600; }
-  .btn-primary:hover{ filter:brightness(1.08); }
-  .btn-ghost{ border:1px solid rgba(255,255,255,0.15); color:var(--ink-muted); font-family:'JetBrains Mono',monospace; }
-  .btn-ghost:hover{ color:var(--ink); border-color:rgba(255,255,255,0.3); }
-
-  #timer-zone{
-    user-select:none; -webkit-user-select:none; touch-action:none; cursor:pointer;
-    transition:background .15s ease, transform .1s ease;
+  *{ box-sizing: border-box; }
+  body { 
+    font-family: 'Inter', sans-serif; 
+    background: var(--bg-base); 
+    color: var(--ink); 
+    overscroll-behavior: none; 
+    margin: 0;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
   }
-  #timer-zone.state-holding{ background:rgba(232,65,43,0.12); }
-  #timer-zone.state-ready{ background:rgba(34,163,92,0.15); }
-  #timer-zone.state-running{ background:rgba(47,111,224,0.08); }
-  #timer-display{
-    font-family:'JetBrains Mono', monospace; font-weight:700;
-    font-size:clamp(3.2rem, 12vw, 7rem); line-height:1; letter-spacing:0.01em;
-    transition:color .15s ease;
+  .font-mono{ font-family: 'JetBrains Mono', monospace; }
+  
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: var(--bg-base); }
+  ::-webkit-scrollbar-thumb { background: #555; border-radius: 3px; }
+  
+  /* Inputs & Buttons */
+  select, input { background: #383842; border: 1px solid #444; color: var(--ink); outline: none; border-radius: 4px; }
+  select:focus, input:focus { border-color: var(--cube-blue); }
+  button { cursor: pointer; border: none; background: transparent; color: var(--ink); transition: 0.15s; }
+  .btn-solid { background: #383842; border: 1px solid #444; padding: 4px 10px; border-radius: 4px; font-size: 0.85rem; }
+  .btn-solid:hover { background: #484852; }
+  
+  /* Layout Areas */
+  #top-bar { background: var(--bg-panel); border-bottom: 1px solid #111; }
+  #main-area { display: flex; flex: 1; overflow: hidden; }
+  #left-sidebar { width: 280px; background: var(--bg-panel); border-right: 1px solid #111; display: flex; flex-direction: column; }
+  #timer-container { flex: 1; display: flex; flex-direction: column; position: relative; }
+  
+  /* Timer Area */
+  #timer-zone {
+    flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center;
+    user-select: none; -webkit-user-select: none; touch-action: none; cursor: pointer;
   }
-  .state-holding #timer-display{ color:var(--cube-red); }
-  .state-ready #timer-display{ color:var(--cube-green); }
-  .state-running #timer-display{ color:var(--cube-blue); }
+  #timer-display {
+    font-family: 'JetBrains Mono', monospace; font-weight: 700;
+    font-size: clamp(4rem, 15vw, 12rem); line-height: 1; letter-spacing: -0.02em;
+    transition: color .1s ease;
+  }
+  .state-holding #timer-display { color: var(--cube-red); }
+  .state-ready #timer-display { color: var(--cube-green); }
+  .state-running #timer-display { color: var(--ink); }
 
-  .event-tab{ font-family:'Space Grotesk',sans-serif; font-weight:600; }
-  .event-tab.active{ color:#fff; }
+  /* Solve List Hover */
+  .solve-row .solve-actions { opacity: 0; }
+  .solve-row:hover .solve-actions { opacity: 1; }
+  @media (hover:none){ .solve-row .solve-actions { opacity: 1; } }
 
-  .solve-row:hover .solve-actions{ opacity:1; }
-  .solve-actions{ opacity:0; transition:opacity .15s ease; }
-  @media (hover:none){ .solve-actions{ opacity:1; } }
+  /* Light theme */
+  html[data-theme="light"]{ 
+    --bg-base: #f5f5f5; --bg-panel: #ffffff; --ink: #222; --ink-muted: #666;
+    --cube-red: #d32f2f; --cube-green: #2e7d32;
+  }
+  html[data-theme="light"] #top-bar, html[data-theme="light"] #left-sidebar { border-color: #ddd; }
+  html[data-theme="light"] .btn-solid, html[data-theme="light"] select, html[data-theme="light"] input { background: #eee; border-color: #ccc; color: #222;}
+  html[data-theme="light"] .btn-solid:hover { background: #ddd; }
+  html[data-theme="light"] .solve-row:hover { background: #f9f9f9; }
 
-  /* ---------- Light theme ---------- */
-  html[data-theme="light"]{ --bg-base:#F4F3EF; --bg-surface:#FFFFFF; --ink:#15171C; --ink-muted:#5B6070; }
-  html[data-theme="light"] .surface-card{ border-color:rgba(0,0,0,0.08); }
-  html[data-theme="light"] .field{ border-color:rgba(0,0,0,0.15); }
-  html[data-theme="light"] .btn-ghost{ border-color:rgba(0,0,0,0.15); color:#5B6070; }
-  html[data-theme="light"] .btn-ghost:hover{ color:#15171C; border-color:rgba(0,0,0,0.3); }
-  html[data-theme="light"] .event-tab:not(.active){ background:#fff !important; border-color:rgba(0,0,0,0.1) !important; }
-  html[data-theme="light"] #site-nav{ background:rgba(244,243,239,0.92); }
-  html[data-theme="light"] .toggle-switch-input{ background:rgba(0,0,0,0.15); }
-
-  /* ---------- Nav ---------- */
-  #site-nav{ background:rgba(16,18,24,0.92); backdrop-filter:blur(8px); }
-
-  /* ---------- Fullscreen practice mode ---------- */
-  body.fs-active #brand-title, body.fs-active #home-link{ display:none; }
-  body.fs-active #page-intro{ display:none; }
-  body.fs-active main{ max-width:100%; }
-  body.fs-active #timer-zone{ min-height:58vh; display:flex; flex-direction:column; justify-content:center; }
-  body.fs-active #timer-display{ font-size:clamp(4rem, 17vw, 11rem); }
-  body.fs-active #type-time-input{ font-size:clamp(4rem, 17vw, 11rem) !important; }
-  body.fs-active #scramble-text{ font-size:1.4rem; }
-
-  /* ---------- Toggle switches (settings) ---------- */
-  .toggle-switch-input{ appearance:none; -webkit-appearance:none; width:42px; height:24px; background:rgba(255,255,255,0.15); border-radius:999px; position:relative; cursor:pointer; transition:background .15s ease; flex-shrink:0; }
-  .toggle-switch-input::before{ content:""; position:absolute; top:2px; left:2px; width:20px; height:20px; background:#fff; border-radius:50%; transition:transform .15s ease; }
+  /* Fullscreen mode (Distraction Free) */
+  body.fs-active #top-bar, body.fs-active #left-sidebar { display: none !important; }
+  body.fs-active #timer-container { border: none; }
+  body.fs-active #scramble-bar { font-size: 1.5rem; padding: 20px; }
+  
+  .toggle-switch-input{ appearance:none; width:36px; height:20px; background:#444; border-radius:99px; position:relative; cursor:pointer; }
+  .toggle-switch-input::before{ content:""; position:absolute; top:2px; left:2px; width:16px; height:16px; background:#fff; border-radius:50%; transition:transform .15s ease; }
   .toggle-switch-input:checked{ background:var(--cube-blue); }
-  .toggle-switch-input:checked::before{ transform:translateX(18px); }
-
-  #settings-drawer{ transition:transform .2s ease; }
+  .toggle-switch-input:checked::before{ transform:translateX(16px); }
 </style>
 </head>
-<body class="min-h-screen">
+<body>
 
-  <nav id="site-nav" class="sticky top-0 z-50 border-b border-white/5">
-    <div class="max-w-5xl mx-auto px-4 h-16 flex items-center justify-between">
-      <span id="brand-title" class="font-display font-bold text-xl cursor-pointer" onclick="window.location.href='index.html'">Twist &amp; Turn</span>
-      <div class="flex items-center gap-2">
-        <a id="home-link" href="index.html" class="font-mono text-sm px-4 py-2 rounded-lg" style="border:1px solid rgba(255,255,255,0.15); color:var(--ink-muted);">← Home</a>
-        <button id="settings-btn" type="button" class="btn-ghost w-10 h-10 flex items-center justify-center rounded-lg text-base" title="Settings">⚙️</button>
-        <button id="fullscreen-btn" type="button" class="btn-ghost w-10 h-10 flex items-center justify-center rounded-lg text-base" title="Fullscreen">⛶</button>
-      </div>
+  <nav id="top-bar" class="flex items-center justify-between px-4 py-2 shrink-0">
+    <div class="flex items-center gap-4">
+      <span class="font-bold text-lg tracking-tight">Twist & Turn</span>
+      <select id="event-selector" class="px-2 py-1 text-sm font-semibold"></select>
+    </div>
+    <div class="flex items-center gap-2">
+      <button id="settings-btn" class="btn-solid text-xs">⚙️ Settings</button>
+      <button id="fullscreen-btn" class="btn-solid text-xs" title="Fullscreen">⛶ Fullscreen</button>
     </div>
   </nav>
 
-  <main class="max-w-3xl mx-auto px-4 py-10">
-
-    <div id="page-intro">
-      <p class="font-mono text-xs tracking-widest uppercase mb-2 text-center" style="color:var(--ink-muted);">Practice</p>
-      <h1 class="font-display text-3xl font-bold mb-8 text-center">⏱️ Timer</h1>
-    </div>
-
-    <!-- Event tabs -->
-    <div id="event-tabs" class="flex flex-wrap gap-2 justify-center mb-6"></div>
-
-    <!-- Scramble -->
-    <div class="surface-card rounded-2xl p-5 md:p-6 mb-5">
-      <div class="flex items-center justify-between mb-3">
-        <p class="font-mono text-xs uppercase tracking-widest" style="color:var(--ink-muted);">WCA-style Scramble</p>
-        <button id="new-scramble-btn" class="btn-ghost text-xs px-3 py-1.5 rounded-lg">🔄 New</button>
+  <div id="main-area">
+    <aside id="left-sidebar" class="shrink-0 z-10 shadow-lg">
+      <div class="p-3 border-b border-black/20" style="border-bottom-color: rgba(150,150,150,0.2);">
+        <div class="flex justify-between items-center mb-2">
+          <span class="font-bold text-sm">Session Stats</span>
+          <button id="clear-session-btn" class="text-xs px-2 py-1 rounded bg-red-900/30 text-red-400 hover:bg-red-900/50">Clear</button>
+        </div>
+        <div class="grid grid-cols-2 gap-x-2 gap-y-1 text-xs font-mono" style="color:var(--ink-muted);">
+          <div>Solves: <span id="stat-count" class="text-[var(--ink)] font-bold">0</span></div>
+          <div>Best: <span id="stat-best" class="text-[var(--cube-green)] font-bold">—</span></div>
+          <div>Mean: <span id="stat-mean" class="text-[var(--ink)] font-bold">—</span></div>
+          <div id="stat-avgs-grid" class="contents"></div>
+        </div>
       </div>
-      <p id="scramble-text" class="font-mono text-lg md:text-xl text-center leading-relaxed" style="letter-spacing:0.03em;">Loading…</p>
-    </div>
-
-    <!-- Timer zone -->
-    <div id="timer-zone" class="surface-card rounded-2xl py-14 px-4 text-center mb-4 select-none">
-      <div id="timer-display" class="font-mono">0.00</div>
-      <input id="type-time-input" type="text" inputmode="numeric" autocomplete="off" placeholder="0.00"
-        class="hidden w-full bg-transparent text-center font-mono font-bold outline-none"
-        style="font-size:clamp(3.2rem, 12vw, 7rem); line-height:1; letter-spacing:0.01em; color:var(--ink);">
-      <p id="timer-hint" class="text-sm mt-4" style="color:var(--ink-muted);">Hold SPACE (or press &amp; hold here on mobile) to start</p>
-
-      <!-- Post-solve penalty panel -->
-      <div id="post-solve-panel" class="hidden items-center justify-center gap-2 mt-5 flex-wrap">
-        <button data-p="ok" class="post-penalty-btn font-mono text-sm px-4 py-2 rounded-lg" style="background:rgba(34,163,92,0.15); color:var(--cube-green); border:1px solid rgba(34,163,92,0.4);">OK</button>
-        <button data-p="+2" class="post-penalty-btn font-mono text-sm px-4 py-2 rounded-lg" style="background:rgba(242,183,5,0.12); color:var(--cube-yellow); border:1px solid rgba(242,183,5,0.4);">+2</button>
-        <button data-p="dnf" class="post-penalty-btn font-mono text-sm px-4 py-2 rounded-lg" style="background:rgba(232,65,43,0.12); color:var(--cube-red); border:1px solid rgba(232,65,43,0.4);">DNF</button>
-        <button id="post-solve-share-btn" class="hidden font-mono text-sm px-4 py-2 rounded-lg" style="background:rgba(47,111,224,0.12); color:var(--cube-blue); border:1px solid rgba(47,111,224,0.4);">🎉 PB! Share</button>
+      
+      <div class="p-2 text-xs font-bold text-center border-b border-black/20" style="color:var(--ink-muted); border-bottom-color: rgba(150,150,150,0.2);">Time List</div>
+      <div id="solve-list" class="flex-1 overflow-y-auto font-mono text-sm">
+        <p class="p-4 text-center text-xs" style="color:var(--ink-muted);">No solves yet.</p>
       </div>
-    </div>
+    </aside>
 
-    <!-- Controls -->
-    <div class="flex flex-wrap items-center justify-center gap-3 mb-6">
-      <button id="manual-start-btn" class="btn-primary px-6 py-2.5 rounded-lg">Start / Stop</button>
-    </div>
-
-    <!-- Stats -->
-    <div class="flex flex-wrap gap-3 mb-6 justify-center">
-      <div class="surface-card rounded-xl p-3 text-center w-24">
-        <p class="font-mono text-[10px] uppercase tracking-widest" style="color:var(--ink-muted);">Solves</p>
-        <p id="stat-count" class="font-display font-bold text-lg mt-1">0</p>
+    <main id="timer-container">
+      
+      <div id="scramble-bar" class="w-full p-3 md:p-4 text-center shrink-0 flex flex-col items-center justify-center min-h-[5rem]" style="background: rgba(0,0,0,0.1);">
+        <p id="scramble-text" class="font-mono text-lg md:text-xl font-bold leading-snug w-full max-w-4xl" style="color:var(--cube-green);"></p>
+        <div class="mt-2 flex gap-2">
+           <button id="new-scramble-btn" class="btn-solid text-[10px] uppercase tracking-wider">New Scramble</button>
+        </div>
       </div>
-      <div class="surface-card rounded-xl p-3 text-center w-24">
-        <p class="font-mono text-[10px] uppercase tracking-widest" style="color:var(--ink-muted);">Best</p>
-        <p id="stat-best" class="font-display font-bold text-lg mt-1" style="color:var(--cube-green);">—</p>
+
+      <div id="timer-zone">
+        <div id="timer-display">0.00</div>
+        
+        <input id="type-time-input" type="text" inputmode="numeric" autocomplete="off" placeholder="0.00"
+          class="hidden w-full max-w-xs bg-transparent text-center font-mono font-bold outline-none border-b-2 border-transparent focus:border-blue-500"
+          style="font-size:clamp(3rem, 10vw, 6rem); line-height:1; color:var(--ink);">
+          
+        <p id="timer-hint" class="text-xs mt-6 uppercase tracking-widest font-semibold" style="color:var(--ink-muted);">Hold SPACE to start</p>
+
+        <div id="post-solve-panel" class="hidden items-center justify-center gap-2 mt-6">
+          <button data-p="ok" class="post-penalty-btn btn-solid text-green-400 border-green-900/50">OK</button>
+          <button data-p="+2" class="post-penalty-btn btn-solid text-yellow-400 border-yellow-900/50">+2</button>
+          <button data-p="dnf" class="post-penalty-btn btn-solid text-red-400 border-red-900/50">DNF</button>
+        </div>
       </div>
-      <div class="surface-card rounded-xl p-3 text-center w-24">
-        <p class="font-mono text-[10px] uppercase tracking-widest" style="color:var(--ink-muted);">Mean</p>
-        <p id="stat-mean" class="font-display font-bold text-lg mt-1">—</p>
-      </div>
-      <div id="stat-avgs-grid" class="contents"></div>
-    </div>
+    </main>
+  </div>
 
-    <!-- Solve list -->
-    <div class="flex items-center justify-between mb-3">
-      <h2 class="font-display font-bold text-lg">Session</h2>
-      <button id="clear-session-btn" class="btn-ghost text-xs px-3 py-1.5 rounded-lg">🗑️ Clear Session</button>
+  <div id="settings-backdrop" class="hidden fixed inset-0 z-50" style="background:rgba(0,0,0,0.6);"></div>
+  <aside id="settings-drawer" class="fixed top-0 right-0 h-full w-full max-w-sm z-50 p-5 overflow-y-auto transition-transform duration-200" style="background:var(--bg-panel); transform:translateX(100%);">
+    <div class="flex items-center justify-between mb-6 border-b border-gray-600 pb-3">
+      <h2 class="font-bold text-lg">⚙️ Settings</h2>
+      <button id="settings-close-btn" class="btn-solid">✕ Close</button>
     </div>
-    <div id="solve-list" class="surface-card rounded-2xl overflow-hidden divide-y divide-white/5">
-      <p class="p-6 text-center text-sm" style="color:var(--ink-muted);">No solves yet — do your first solve!</p>
-    </div>
-
-  </main>
-
-  <!-- Settings drawer -->
-  <div id="settings-backdrop" class="hidden fixed inset-0 z-[70]" style="background:rgba(0,0,0,0.5);"></div>
-  <aside id="settings-drawer" class="fixed top-0 right-0 h-full w-full max-w-sm z-[71] surface-card overflow-y-auto" style="transform:translateX(100%);">
-    <div class="flex items-center justify-between px-5 py-4 border-b border-white/5">
-      <h2 class="font-display font-bold text-lg">⚙️ Settings</h2>
-      <button id="settings-close-btn" type="button" class="btn-ghost text-sm px-3 py-1.5 rounded-lg">✕</button>
-    </div>
-    <div class="p-5 space-y-7">
+    <div class="space-y-6">
       <div>
-        <p class="font-mono text-xs uppercase tracking-widest mb-3" style="color:var(--ink-muted);">Timer Mode</p>
-        <label class="flex items-center justify-between py-2">
+        <p class="text-xs uppercase tracking-widest mb-3 text-gray-400">Timer Settings</p>
+        <label class="flex items-center justify-between py-1">
           <span class="text-sm">Manual Time Entry</span>
           <input type="checkbox" id="setting-manual" class="toggle-switch-input">
         </label>
-        <label class="flex items-center justify-between py-2">
+        <label class="flex items-center justify-between py-1 mt-2">
           <span class="text-sm">15s WCA Inspection</span>
           <input type="checkbox" id="setting-inspection" class="toggle-switch-input">
         </label>
       </div>
       <div>
-        <p class="font-mono text-xs uppercase tracking-widest mb-3" style="color:var(--ink-muted);">Appearance</p>
+        <p class="text-xs uppercase tracking-widest mb-3 text-gray-400">Appearance</p>
         <div class="flex gap-2">
-          <button type="button" data-theme-btn="dark" class="theme-btn flex-1 py-2 rounded-lg text-sm font-mono">🌙 Dark</button>
-          <button type="button" data-theme-btn="light" class="theme-btn flex-1 py-2 rounded-lg text-sm font-mono">☀️ Light</button>
+          <button type="button" data-theme-btn="dark" class="theme-btn flex-1 py-1 text-sm border border-gray-600 rounded">Dark</button>
+          <button type="button" data-theme-btn="light" class="theme-btn flex-1 py-1 text-sm border border-gray-600 rounded">Light</button>
         </div>
       </div>
       <div>
-        <p class="font-mono text-xs uppercase tracking-widest mb-3" style="color:var(--ink-muted);">Extra Averages</p>
-        <p class="text-xs mb-2" style="color:var(--ink-muted);">Ao5 and Ao12 always show. Turn on the ones you want tracked too:</p>
-        <label class="flex items-center justify-between py-2"><span class="text-sm">Ao100</span><input type="checkbox" data-avg="100" class="toggle-switch-input avg-toggle"></label>
-        <label class="flex items-center justify-between py-2"><span class="text-sm">Ao200</span><input type="checkbox" data-avg="200" class="toggle-switch-input avg-toggle"></label>
-        <label class="flex items-center justify-between py-2"><span class="text-sm">Ao500</span><input type="checkbox" data-avg="500" class="toggle-switch-input avg-toggle"></label>
-        <label class="flex items-center justify-between py-2"><span class="text-sm">Ao1000</span><input type="checkbox" data-avg="1000" class="toggle-switch-input avg-toggle"></label>
+        <p class="text-xs uppercase tracking-widest mb-3 text-gray-400">Extra Averages</p>
+        <label class="flex items-center justify-between py-1"><span class="text-sm">Ao100</span><input type="checkbox" data-avg="100" class="toggle-switch-input avg-toggle"></label>
+        <label class="flex items-center justify-between py-1"><span class="text-sm">Ao200</span><input type="checkbox" data-avg="200" class="toggle-switch-input avg-toggle"></label>
       </div>
     </div>
   </aside>
 
-  <!-- Share modal -->
   <div id="share-backdrop" class="hidden fixed inset-0 z-[80] items-center justify-center p-4" style="background:rgba(0,0,0,0.6);">
-    <div class="surface-card rounded-2xl p-5 w-full max-w-sm">
+    <div class="rounded-lg p-5 w-full max-w-sm shadow-2xl" style="background:var(--bg-panel); border:1px solid rgba(255,255,255,0.1);">
       <div class="flex items-center justify-between mb-4">
-        <h3 class="font-display font-bold text-lg">🎉 Share Result</h3>
-        <button id="share-close-btn" type="button" class="btn-ghost text-sm px-3 py-1.5 rounded-lg">✕</button>
+        <h3 class="font-bold text-lg">🎉 Share Result</h3>
+        <button id="share-close-btn" class="btn-solid">✕</button>
       </div>
-      <pre id="share-preview" class="font-mono text-xs whitespace-pre-wrap p-3 rounded-lg mb-4" style="background:var(--bg-base); border:1px solid rgba(255,255,255,0.08); max-height:180px; overflow-y:auto;"></pre>
-      <div class="grid grid-cols-2 gap-2">
-        <button id="share-native-btn" type="button" class="btn-primary py-2.5 rounded-lg text-sm col-span-2">📤 Share…</button>
-        <a id="share-whatsapp-btn" target="_blank" rel="noopener" class="btn-ghost py-2.5 rounded-lg text-sm text-center">WhatsApp</a>
-        <button id="share-copy-btn" type="button" class="btn-ghost py-2.5 rounded-lg text-sm">📋 Copy</button>
+      <pre id="share-preview" class="font-mono text-xs whitespace-pre-wrap p-3 rounded mb-4" style="background:var(--bg-base); max-height:180px; overflow-y:auto; border:1px solid #444;"></pre>
+      <div class="flex gap-2">
+        <button id="share-copy-btn" class="flex-1 btn-solid py-2 text-center bg-blue-600 hover:bg-blue-500 border-none">📋 Copy</button>
       </div>
     </div>
   </div>
@@ -218,249 +199,106 @@
     // ==========================================================
     // Events
     // ==========================================================
-    const PALETTE = ["var(--cube-red)", "var(--cube-yellow)", "var(--cube-blue)", "var(--cube-green)", "#9B59B6", "#E67E22", "#1ABC9C", "#E91E63"];
     const EVENTS = [
-      { id: "333", label: "3x3" },
-      { id: "222", label: "2x2" },
-      { id: "444", label: "4x4" },
-      { id: "555", label: "5x5" },
-      { id: "666", label: "6x6" },
-      { id: "777", label: "7x7" },
+      { id: "333", label: "3x3x3" },
+      { id: "222", label: "2x2x2" },
+      { id: "444", label: "4x4x4" },
+      { id: "555", label: "5x5x5" },
+      { id: "666", label: "6x6x6" },
+      { id: "777", label: "7x7x7" },
       { id: "333bf", label: "3x3 BLD" },
-      { id: "333fm", label: "3x3 FMC" },
       { id: "333oh", label: "3x3 OH" },
       { id: "clock", label: "Clock" },
       { id: "minx", label: "Megaminx" },
       { id: "pyram", label: "Pyraminx" },
       { id: "skewb", label: "Skewb" },
-      { id: "sq1", label: "Square-1" },
-      { id: "444bf", label: "4x4 BLD" },
-      { id: "555bf", label: "5x5 BLD" },
-      { id: "333mbf", label: "3x3 MBLD" },
-      { id: "fto", label: "FTO ⭐" },
-    ].map((ev, i) => ({ ...ev, color: PALETTE[i % PALETTE.length] }));
+      { id: "sq1", label: "Square-1" }
+    ];
 
     let currentEvent = localStorage.getItem("tt-timer-event") || "333";
     if (!EVENTS.some(e => e.id === currentEvent)) currentEvent = "333";
 
-    const tabsEl = document.getElementById("event-tabs");
+    const eventSelect = document.getElementById("event-selector");
+    
     function renderTabs() {
-      tabsEl.innerHTML = EVENTS.map(ev => `
-        <button type="button" data-ev="${ev.id}" class="event-tab text-sm px-4 py-2 rounded-full transition-colors ${ev.id === currentEvent ? "active" : ""}"
-          style="${ev.id === currentEvent ? `background:${ev.color};` : "background:var(--bg-surface); color:var(--ink-muted); border:1px solid rgba(255,255,255,0.1);"}">
-          ${ev.label}
-        </button>`).join("");
-      tabsEl.querySelectorAll(".event-tab").forEach(btn => {
-        btn.addEventListener("click", () => {
-          if (state !== "idle") return; // don't switch mid-solve
-          currentEvent = btn.dataset.ev;
-          localStorage.setItem("tt-timer-event", currentEvent);
-          renderTabs();
-          renderSolves();
-          renderStats();
-          getNewScramble();
-        });
-      });
+      eventSelect.innerHTML = EVENTS.map(ev => 
+        `<option value="${ev.id}" ${ev.id === currentEvent ? "selected" : ""}>${ev.label}</option>`
+      ).join("");
     }
+    
+    eventSelect.addEventListener("change", (e) => {
+      if (state !== "idle") { e.target.value = currentEvent; return; }
+      currentEvent = e.target.value;
+      localStorage.setItem("tt-timer-event", currentEvent);
+      renderSolves();
+      renderStats();
+      getNewScramble();
+    });
 
     // ==========================================================
-    // Scramble
+    // Scramble logic
     // ==========================================================
     const scrambleTextEl = document.getElementById("scramble-text");
     let scrambleLoading = false;
 
-    // ---- generic helpers ----
-    function randInt(min, maxIncl) { return min + Math.floor(Math.random() * (maxIncl - min + 1)); }
-    function randMod(allowDouble) {
-      const r = Math.random();
-      if (allowDouble) return r < 1 / 3 ? "" : r < 2 / 3 ? "'" : "2";
-      return r < 0.5 ? "" : "'";
-    }
-    const AXIS_OF = { U: 0, D: 0, L: 1, R: 1, F: 2, B: 2 };
-
-    // NxN cube-style scramble (222/333/444/555/666/777 and their oh/bf variants)
-    function cubeScramble(faces, length, wideMode /* null | "simple" | "deep" */, restrictAxis) {
-      const moves = [];
-      let lastAxis = -1, lastFace = null;
-      for (let i = 0; i < length; i++) {
-        let face;
-        do { face = faces[randInt(0, faces.length - 1)]; }
-        while (face === lastFace || (restrictAxis && AXIS_OF[face] === lastAxis));
-        let prefix = "", suffix = "";
-        if (wideMode === "deep") {
-          if (Math.random() < 0.5) suffix = "w"; else { prefix = "3"; suffix = "w"; }
-        } else if (wideMode === "simple") {
-          if (Math.random() < 0.5) suffix = "w";
+    // Fallbacks
+    function randInt(min, max) { return min + Math.floor(Math.random() * (max - min + 1)); }
+    function cubeScramble(faces, length, wideMode, restrictAxis) {
+        const AXIS = { U:0, D:0, L:1, R:1, F:2, B:2 };
+        const moves = []; let lastAxis = -1, lastFace = null;
+        for (let i=0; i<length; i++) {
+            let f; do { f = faces[randInt(0, faces.length-1)]; } while (f === lastFace || (restrictAxis && AXIS[f] === lastAxis));
+            let s = Math.random() < 0.33 ? "" : Math.random() < 0.66 ? "'" : "2";
+            if(wideMode) s = "w" + s;
+            moves.push(f + s);
+            lastFace = f; lastAxis = AXIS[f];
         }
-        moves.push(prefix + face + suffix + randMod(true));
-        lastFace = face; lastAxis = AXIS_OF[face] ?? -1;
-      }
-      return moves.join(" ");
+        return moves.join(" ");
     }
-
-    function pyraminxScramble() {
-      const faces = ["U", "L", "R", "B"];
-      const moves = [];
-      let last = null;
-      for (let i = 0; i < 10; i++) {
-        let f; do { f = faces[randInt(0, 3)]; } while (f === last);
-        moves.push(f + randMod(false));
-        last = f;
-      }
-      const tips = ["u", "l", "r", "b"].filter(() => Math.random() < 0.5);
-      tips.forEach(t => moves.push(t + randMod(false)));
-      return moves.join(" ");
-    }
-
-    function skewbScramble() {
-      const faces = ["U", "L", "R", "B"];
-      const moves = [];
-      let last = null;
-      for (let i = 0; i < 11; i++) {
-        let f; do { f = faces[randInt(0, 3)]; } while (f === last);
-        moves.push(f + randMod(false));
-        last = f;
-      }
-      return moves.join(" ");
-    }
-
-    function ftoScramble() {
-      const faces = ["U", "D", "L", "R", "F", "B", "BL", "BR"];
-      const moves = [];
-      let last = null;
-      for (let i = 0; i < 25; i++) {
-        let f; do { f = faces[randInt(0, faces.length - 1)]; } while (f === last);
-        moves.push(f + randMod(false));
-        last = f;
-      }
-      return moves.join(" ");
-    }
-
-    function clockHour() {
-      const v = randInt(0, 11); // pick a net clockwise position 0-11, then use the shortest signed notation for it
-      if (v === 0) return "0+";
-      if (v <= 5) return v + "+";
-      if (v === 6) return "6"; // halfway point — no sign, since +6 and -6 are identical
-      return (12 - v) + "-"; // 7..11 -> shorter counter-clockwise equivalent, e.g. 11 -> "-1", 10 -> "-2"
-    }
-    function clockScramble() {
-      const front = ["UR", "DR", "DL", "UL", "U", "R", "D", "L", "ALL"].map(k => k + clockHour());
-      const back = [ "U", "R", "D", "L", "ALL"].map(k => k + clockHour());
-      return front.join(" ") + " y2 " + back.join(" ");
-    }
-
-    function megaminxScramble() {
-      const moves = [];
-      for (let round = 0; round < 7; round++) {
-        for (let pair = 0; pair < 5; pair++) {
-          const sign = Math.random() < 0.5 ? "++" : "--";
-          moves.push("R" + sign, "D" + sign);
-        }
-        moves.push(Math.random() < 0.5 ? "U" : "U'");
-      }
-      return moves.join(" ");
-    }
-
-    function mbldScramble(count) {
-      const scrambles = [];
-      for (let i = 0; i < count; i++) scrambles.push(`${i + 1}) ${cubeScramble(["U", "D", "L", "R", "F", "B"], 20, null, true)}`);
-      return scrambles.join("\n");
-    }
-
-    // Puzzle-appropriate LAST-RESORT fallbacks only — used only if cubing.js fails
-    // repeatedly (e.g. CDN/WASM hiccup).
-    //
-    // IMPORTANT: WCA Regulation 4b3 requires scrambles to be "random-state" for
-    // every event EXCEPT big cubes (5x5 and up) and Megaminx, which are allowed to
-    // be "random-moves". Our local functions below only do random-MOVES, so they
-    // are only WCA-legit for 555/555bf/666/777/minx. For every other event (2x2,
-    // 3x3, 4x4, OH, BLD, Pyraminx, Skewb, Clock, MBLD, Square-1) a random-moves
-    // scramble is NOT a valid WCA scramble even though it "looks" fine — this was
-    // exactly the bug reported for 2x2 (and the earlier Square-1 issue). So those
-    // events get NO local fallback: if cubing.js can't be reached, we tell the
-    // user to retry instead of quietly handing them a non-compliant scramble.
-    const FALLBACK_SCRAMBLERS = {
-      "555": () => cubeScramble(["U", "D", "L", "R", "F", "B"], 60, "simple", true),
-      "555bf": () => cubeScramble(["U", "D", "L", "R", "F", "B"], 60, "simple", true),
-      "666": () => cubeScramble(["U", "D", "L", "R", "F", "B"], 80, "deep", true),
-      "777": () => cubeScramble(["U", "D", "L", "R", "F", "B"], 100, "deep", true),
-      "minx": megaminxScramble,
-      "fto": ftoScramble, // not an official WCA event, so no regulation applies — safe to keep
+    const FALLBACKS = {
+        "555": () => cubeScramble(["U","D","L","R","F","B"], 60, false, true),
+        "666": () => cubeScramble(["U","D","L","R","F","B"], 80, true, true),
     };
 
-    // All 18 events: always use cubing.js for true WCA-legal random-state scrambles.
     async function getNewScramble() {
       scrambleLoading = true;
-      scrambleTextEl.textContent = "Generating scramble…";
-
-      const MAX_TRIES = 3;
-      for (let attempt = 1; attempt <= MAX_TRIES; attempt++) {
-        try {
-          const scramble = await randomScrambleForEvent(currentEvent);
-          scrambleTextEl.textContent = scramble.toString();
-          scrambleLoading = false;
-          return;
-        } catch (err) {
-          console.error(`Scramble attempt ${attempt} failed for event "${currentEvent}":`, err);
-          if (attempt < MAX_TRIES) await new Promise(r => setTimeout(r, 400 * attempt));
-        }
-      }
-
-      // cubing.js failed repeatedly (network/CDN issue) — use a puzzle-correct
-      // fallback if one exists for this event, never a generic cube fallback.
-      console.error(`cubing.js failed repeatedly for "${currentEvent}", using local fallback if available.`);
-      if (FALLBACK_SCRAMBLERS[currentEvent]) {
-        try {
-          scrambleTextEl.textContent = FALLBACK_SCRAMBLERS[currentEvent]();
-        } catch (err) {
-          scrambleTextEl.textContent = `Couldn't generate a scramble — check your connection and hit "New".`;
-        }
-      } else {
-        scrambleTextEl.textContent = `Couldn't generate a scramble — check your connection and hit "New".`;
+      scrambleTextEl.textContent = "Generating...";
+      try {
+        const scr = await randomScrambleForEvent(currentEvent);
+        scrambleTextEl.textContent = scr.toString();
+      } catch (e) {
+        scrambleTextEl.textContent = FALLBACKS[currentEvent] ? FALLBACKS[currentEvent]() : "Scramble Error - Retry";
       }
       scrambleLoading = false;
     }
     document.getElementById("new-scramble-btn").addEventListener("click", () => { if (!scrambleLoading) getNewScramble(); });
 
     // ==========================================================
-    // Storage — solves are kept per event
+    // Storage & Solves
     // ==========================================================
     function storageKey(ev) { return "tt-timer-solves-" + ev; }
-    function loadSolves() {
-      try { return JSON.parse(localStorage.getItem(storageKey(currentEvent)) || "[]"); }
-      catch { return []; }
-    }
-    function saveSolves(solves) {
-      localStorage.setItem(storageKey(currentEvent), JSON.stringify(solves));
-    }
+    function loadSolves() { try { return JSON.parse(localStorage.getItem(storageKey(currentEvent)) || "[]"); } catch { return []; } }
+    function saveSolves(solves) { localStorage.setItem(storageKey(currentEvent), JSON.stringify(solves)); }
 
     // ==========================================================
-    // Timer state machine
+    // Timer Core
     // ==========================================================
     const zone = document.getElementById("timer-zone");
     const display = document.getElementById("timer-display");
     const hint = document.getElementById("timer-hint");
 
-    let state = "idle"; // idle | inspecting | holding | ready | running
-    let holdStartAt = 0;
-    let holdTimeout = null;
-    let inspectionStartAt = 0;
-    let inspectionInterval = null;
-    let runStartAt = 0;
-    let runInterval = null;
-    let pendingPenalty = null; // null | "+2" | "DNF"
-    const HOLD_THRESHOLD_MS = 300;
+    let state = "idle"; 
+    let holdTimeout, runInterval, inspectionInterval;
+    let runStartAt = 0, holdStartAt = 0, inspectionStartAt = 0;
+    let pendingPenalty = null;
 
     function fmt(ms) {
       if (ms == null) return "—";
       const totalCs = Math.round(ms / 10);
-      const cs = totalCs % 100;
-      const totalSec = Math.floor(totalCs / 100);
-      const sec = totalSec % 60;
-      const min = Math.floor(totalSec / 60);
-      const csStr = String(cs).padStart(2, "0");
-      if (min > 0) return `${min}:${String(sec).padStart(2, "0")}.${csStr}`;
-      return `${sec}.${csStr}`;
+      const cs = String(totalCs % 100).padStart(2, "0");
+      const sec = Math.floor(totalCs / 100) % 60;
+      const min = Math.floor(totalCs / 6000);
+      return min > 0 ? `${min}:${String(sec).padStart(2, "0")}.${cs}` : `${sec}.${cs}`;
     }
 
     function setZoneState(s) {
@@ -468,547 +306,195 @@
       if (s) zone.classList.add("state-" + s);
     }
 
-    function isTypingInField() {
-      const el = document.activeElement;
-      return el && (el.tagName === "INPUT" || el.tagName === "TEXTAREA");
-    }
+    function isTyping() { return document.activeElement?.tagName === "INPUT"; }
 
-    // ---- begin sequence (keydown / touchstart / manual button) ----
     function beginPress() {
-      if (typeMode) return;
-      if (isTypingInField()) return;
+      if (typeMode || isTyping()) return;
       hidePostSolvePanel();
       if (state === "running") { stopTimer(); return; }
-      if (state !== "idle") return; // already holding/inspecting
+      if (state !== "idle") return; 
 
       if (settings.inspection) {
         state = "inspecting";
         inspectionStartAt = performance.now();
-        setZoneState(null);
-        hint.textContent = "Inspecting… keep holding to get ready";
+        hint.textContent = "Inspecting... keep holding to start";
         inspectionInterval = setInterval(() => {
-          const elapsed = (performance.now() - inspectionStartAt) / 1000;
-          const remain = Math.max(0, 15 - elapsed);
-          display.textContent = elapsed <= 15 ? remain.toFixed(0) + "s" : (elapsed <= 17 ? "+2" : "DNF");
+          const el = (performance.now() - inspectionStartAt) / 1000;
+          display.textContent = el <= 15 ? Math.max(0, 15 - el).toFixed(0) : (el <= 17 ? "+2" : "DNF");
         }, 100);
       } else {
         state = "holding";
-        holdStartAt = performance.now();
         setZoneState("holding");
-        hint.textContent = "Keep holding…";
       }
 
       holdTimeout = setTimeout(() => {
         if (state === "holding" || state === "inspecting") {
           state = "ready";
           setZoneState("ready");
-          hint.textContent = "Release to start!";
           display.textContent = "0.00";
         }
-      }, HOLD_THRESHOLD_MS);
+      }, 300);
     }
 
-    // ---- end sequence (keyup / touchend) ----
     function endPress() {
-      if (isTypingInField()) return;
-
+      if (isTyping()) return;
       if (state === "ready") {
-        // compute inspection penalty if applicable
         pendingPenalty = null;
         if (settings.inspection && inspectionInterval) {
-          const elapsed = (performance.now() - inspectionStartAt) / 1000;
-          if (elapsed > 17) pendingPenalty = "DNF";
-          else if (elapsed > 15) pendingPenalty = "+2";
+          const el = (performance.now() - inspectionStartAt) / 1000;
+          if (el > 17) pendingPenalty = "DNF"; else if (el > 15) pendingPenalty = "+2";
         }
         clearInterval(inspectionInterval); inspectionInterval = null;
         clearTimeout(holdTimeout);
         startTimer();
-        return;
-      }
-
-      if (state === "holding" || state === "inspecting") {
-        // released too early — cancel
-        clearTimeout(holdTimeout);
-        clearInterval(inspectionInterval); inspectionInterval = null;
-        state = "idle";
-        setZoneState(null);
+      } else if (state === "holding" || state === "inspecting") {
+        clearTimeout(holdTimeout); clearInterval(inspectionInterval);
+        state = "idle"; setZoneState(null);
         display.textContent = "0.00";
-        hint.textContent = "Hold SPACE (or press & hold here on mobile) to start";
+        hint.textContent = "Hold SPACE to start";
       }
     }
 
     function startTimer() {
-      state = "running";
-      setZoneState("running");
-      hint.textContent = "Tap / press SPACE to stop";
+      state = "running"; setZoneState("running"); hint.textContent = "";
       runStartAt = performance.now();
-      runInterval = setInterval(() => {
-        display.textContent = fmt(performance.now() - runStartAt);
-      }, 30);
+      runInterval = setInterval(() => display.textContent = fmt(performance.now() - runStartAt), 30);
     }
 
     function stopTimer() {
       clearInterval(runInterval);
-      const elapsed = performance.now() - runStartAt;
-      display.textContent = fmt(elapsed);
-      state = "idle";
-      setZoneState(null);
-      hint.textContent = "Hold SPACE (or press & hold here on mobile) to start";
+      const ms = performance.now() - runStartAt;
+      display.textContent = fmt(ms);
+      state = "idle"; setZoneState(null);
+      hint.textContent = "Hold SPACE to start";
 
-      const prevBest = currentBestMs();
-      const newSolve = {
-        ms: Math.round(elapsed),
-        penalty: pendingPenalty,
-        scramble: scrambleTextEl.textContent,
-        at: new Date().toISOString()
-      };
-      addSolve(newSolve);
+      addSolve({ ms: Math.round(ms), penalty: pendingPenalty, scramble: scrambleTextEl.textContent, at: new Date().toISOString() });
       pendingPenalty = null;
-
-      const newMs = solveEffectiveMs(newSolve);
-      const isPb = newMs !== Infinity && (prevBest === null || newMs < prevBest);
-      showPostSolvePanel(isPb ? newSolve : null);
+      showPostSolvePanel();
       getNewScramble();
     }
 
-    // ==========================================================
-    // Post-solve penalty panel (OK / +2 / DNF)
-    // ==========================================================
+    // Post-solve
     const postSolvePanel = document.getElementById("post-solve-panel");
-    const postSolveShareBtn = document.getElementById("post-solve-share-btn");
-    let postSolveHideTimeout = null;
-
-    function showPostSolvePanel(pbSolve) {
-      postSolvePanel.classList.remove("hidden");
-      postSolvePanel.classList.add("flex");
-      if (pbSolve) {
-        postSolveShareBtn.classList.remove("hidden");
-        postSolveShareBtn.onclick = () => openShareModal(buildShareText(pbSolve));
-      } else {
-        postSolveShareBtn.classList.add("hidden");
-      }
-      clearTimeout(postSolveHideTimeout);
-      postSolveHideTimeout = setTimeout(hidePostSolvePanel, 8000);
-    }
-    function hidePostSolvePanel() {
-      postSolvePanel.classList.add("hidden");
-      postSolvePanel.classList.remove("flex");
-      clearTimeout(postSolveHideTimeout);
-    }
-    postSolvePanel.querySelectorAll(".post-penalty-btn").forEach(btn => {
-      btn.addEventListener("click", () => {
+    function showPostSolvePanel() { postSolvePanel.classList.remove("hidden"); postSolvePanel.classList.add("flex"); }
+    function hidePostSolvePanel() { postSolvePanel.classList.add("hidden"); postSolvePanel.classList.remove("flex"); }
+    
+    postSolvePanel.querySelectorAll(".post-penalty-btn").forEach(b => {
+      b.addEventListener("click", () => {
         const solves = loadSolves();
-        if (solves.length === 0) return;
-        const p = btn.dataset.p;
-        solves[0].penalty = p === "ok" ? null : p === "+2" ? "+2" : "DNF";
-        saveSolves(solves);
-        renderSolves();
-        renderStats();
-        hidePostSolvePanel();
+        if(!solves.length) return;
+        solves[0].penalty = b.dataset.p === "ok" ? null : b.dataset.p === "+2" ? "+2" : "DNF";
+        saveSolves(solves); renderSolves(); renderStats(); hidePostSolvePanel();
       });
     });
 
-    // Keyboard
-    document.addEventListener("keydown", (e) => {
-      if (e.code !== "Space" || e.repeat) return;
-      if (isTypingInField()) return;
-      e.preventDefault();
-      beginPress();
-    });
-    document.addEventListener("keyup", (e) => {
-      if (e.code !== "Space") return;
-      if (isTypingInField()) return;
-      e.preventDefault();
-      endPress();
-    });
-
-    // Touch / click on the zone itself
-    zone.addEventListener("touchstart", (e) => { e.preventDefault(); beginPress(); }, { passive: false });
-    zone.addEventListener("touchend", (e) => { e.preventDefault(); endPress(); }, { passive: false });
-    zone.addEventListener("mousedown", (e) => { beginPress(); });
-    zone.addEventListener("mouseup", (e) => { endPress(); });
-
-    // Dedicated Start/Stop button — good for accessibility / no keyboard
-    const manualBtn = document.getElementById("manual-start-btn");
-    manualBtn.addEventListener("click", () => {
-      if (state === "running") { stopTimer(); return; }
-      if (state === "idle") {
-        // simulate an instant "hold then release" for click users
-        beginPress();
-        setTimeout(() => { if (state === "holding" || state === "ready" || state === "inspecting") endPress(); }, HOLD_THRESHOLD_MS + 20);
-      }
-    });
+    document.addEventListener("keydown", e => { if (e.code === "Space" && !e.repeat && !isTyping()) { e.preventDefault(); beginPress(); }});
+    document.addEventListener("keyup", e => { if (e.code === "Space" && !isTyping()) { e.preventDefault(); endPress(); }});
+    zone.addEventListener("touchstart", e => { e.preventDefault(); beginPress(); }, {passive:false});
+    zone.addEventListener("touchend", e => { e.preventDefault(); endPress(); }, {passive:false});
+    zone.addEventListener("mousedown", beginPress);
+    zone.addEventListener("mouseup", endPress);
 
     // ==========================================================
-    // Type-a-time mode — lives right inside the timer display
+    // Type Mode
     // ==========================================================
     let typeMode = false;
     const typeInput = document.getElementById("type-time-input");
 
     function setTypeMode(on) {
-      typeMode = on;
-      hidePostSolvePanel();
+      typeMode = on; hidePostSolvePanel();
       if (on) {
-        display.classList.add("hidden");
-        typeInput.classList.remove("hidden");
-        manualBtn.classList.add("hidden");
-        typeInput.value = "";
-        hint.textContent = "Type digits (e.g. 1234 → 12.34, 10345 → 1:03.45) and press Enter. Type dnf for a DNF.";
-        setZoneState(null);
-        typeInput.focus();
+        display.classList.add("hidden"); typeInput.classList.remove("hidden");
+        typeInput.value = ""; typeInput.focus();
+        hint.textContent = "Type numbers (e.g. 1234 -> 12.34) and hit Enter";
       } else {
-        display.classList.remove("hidden");
-        typeInput.classList.add("hidden");
-        manualBtn.classList.remove("hidden");
-        hint.textContent = "Hold SPACE (or press & hold here on mobile) to start";
+        display.classList.remove("hidden"); typeInput.classList.add("hidden");
+        hint.textContent = "Hold SPACE to start";
       }
-    }
-
-    // Turns a raw digit string into a live-formatted time, e.g. "1234" -> "12.34", "10345" -> "1:03.45"
-    function digitsToTimeString(digits) {
-      digits = digits.replace(/\D/g, "");
-      if (digits.length === 0) return "";
-      digits = digits.slice(-7); // cap at a sane length
-      const padded = digits.padStart(3, "0");
-      const cs = padded.slice(-2);
-      let secMin = padded.slice(0, -2).padStart(2, "0");
-      const sec = secMin.slice(-2);
-      const minPart = secMin.slice(0, -2);
-      if (minPart.length > 0) {
-        return `${parseInt(minPart, 10)}:${sec}.${cs}`;
-      }
-      return `${parseInt(sec, 10)}.${cs}`;
     }
 
     typeInput.addEventListener("input", () => {
-      const raw = typeInput.value;
-      if (/^dnf$/i.test(raw.trim())) { typeInput.value = raw.trim().toUpperCase(); return; }
-      // let the user freely type letters of "dnf" as they go (d, dn, dnf) without reformatting
-      if (/^[dnf]*$/i.test(raw.trim()) && /[a-z]/i.test(raw)) return;
-      const hasPlus = raw.trim().endsWith("+");
-      const digitsOnly = raw.replace(/[^\d]/g, "");
-      if (digitsOnly.length === 0) { typeInput.value = ""; return; }
-      let formatted = digitsToTimeString(digitsOnly);
-      if (hasPlus) formatted += "+";
-      typeInput.value = formatted;
+      let v = typeInput.value.replace(/[^\d]/g, "");
+      if(!v) return;
+      v = v.slice(-7).padStart(3, "0");
+      const cs = v.slice(-2), sec = v.slice(0,-2).padStart(2,"0").slice(-2), min = v.slice(0,-4);
+      typeInput.value = (min.length && parseInt(min) > 0 ? `${parseInt(min)}:${sec}` : `${parseInt(sec)}`) + `.${cs}`;
     });
 
-    function parseTypedTime(str) {
-      str = str.trim().toLowerCase();
-      if (str === "dnf") return { ms: null, penalty: "DNF" };
-      let penalty = null;
-      if (str.endsWith("+2") || str.endsWith("+")) {
-        penalty = "+2";
-        str = str.replace(/\+2$|\+$/, "").trim();
+    typeInput.addEventListener("keydown", e => {
+      if (e.key === "Enter" && typeInput.value) {
+        const v = typeInput.value;
+        let ms = 0;
+        if (v.includes(":")) {
+          const parts = v.split(":");
+          ms = (parseInt(parts[0]) * 60 + parseFloat(parts[1])) * 1000;
+        } else ms = parseFloat(v) * 1000;
+        
+        addSolve({ ms: Math.round(ms), penalty: null, scramble: scrambleTextEl.textContent, at: new Date().toISOString() });
+        typeInput.value = ""; getNewScramble();
       }
-      // formats: 12.34  |  1:05.67  |  65.4  |  1:05
-      const m = str.match(/^(?:(\d+):)?(\d+(?:\.\d+)?)$/);
-      if (!m) return null;
-      const min = m[1] ? parseInt(m[1], 10) : 0;
-      const sec = parseFloat(m[2]);
-      const ms = Math.round((min * 60 + sec) * 1000);
-      return { ms, penalty };
-    }
-
-    function addTypedTime() {
-      const parsed = parseTypedTime(typeInput.value);
-      if (!parsed) {
-        typeInput.classList.add("ring-2");
-        setTimeout(() => typeInput.classList.remove("ring-2"), 400);
-        return;
-      }
-      const prevBest = currentBestMs();
-      const newSolve = {
-        ms: parsed.ms,
-        penalty: parsed.penalty,
-        scramble: scrambleTextEl.textContent,
-        at: new Date().toISOString()
-      };
-      addSolve(newSolve);
-      const newMs = solveEffectiveMs(newSolve);
-      const isPb = newMs !== Infinity && (prevBest === null || newMs < prevBest);
-      showPostSolvePanel(isPb ? newSolve : null);
-      typeInput.value = "";
-      getNewScramble();
-    }
-    typeInput.addEventListener("keydown", (e) => {
-      if (e.key === "Enter") { e.preventDefault(); addTypedTime(); }
     });
 
     // ==========================================================
-    // Solves — storage, list, stats
+    // UI Rendering
     // ==========================================================
-    function solveEffectiveMs(solve) {
-      if (solve.penalty === "DNF") return Infinity;
-      if (solve.penalty === "+2") return solve.ms + 2000;
-      return solve.ms;
-    }
-    function currentBestMs() {
-      const valid = loadSolves().map(solveEffectiveMs).filter(v => v !== Infinity);
-      return valid.length ? Math.min(...valid) : null;
-    }
-    // Which solves (by index in the newest-first array) were a PB at the time they were set
-    function computePbFlags(solves) {
-      const flags = new Array(solves.length).fill(false);
-      let runningBest = Infinity;
-      for (let i = solves.length - 1; i >= 0; i--) {
-        const ms = solveEffectiveMs(solves[i]);
-        if (ms !== Infinity && ms < runningBest) {
-          runningBest = ms;
-          flags[i] = true;
-        }
-      }
-      return flags;
-    }
-    function buildShareText(solve) {
-      const d = new Date(solve.at);
-      const dateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-      const timeStr = solveDisplay(solve);
-      const eventLabel = (EVENTS.find(e => e.id === currentEvent) || {}).label || currentEvent;
-      return `Generated By Twist & Turn on ${dateStr}\n${eventLabel}: ${timeStr}\nTime List:\n1. ${timeStr}   ${solve.scramble}`;
-    }
-    function solveDisplay(solve) {
-      if (solve.penalty === "DNF") return "DNF";
-      const base = fmt(solve.ms);
-      return solve.penalty === "+2" ? base + "+" : base;
-    }
+    window.solveEffectiveMs = function(s) { return s.penalty === "DNF" ? Infinity : s.penalty === "+2" ? s.ms + 2000 : s.ms; }
+    function solveDisplay(s) { if(s.penalty === "DNF") return "DNF"; const b = fmt(s.ms); return s.penalty === "+2" ? b+"+" : b; }
 
-    function addSolve(solve) {
-      const solves = loadSolves();
-      solves.unshift(solve);
-      saveSolves(solves);
-      renderSolves();
-      renderStats();
-    }
-
-    function deleteSolve(index) {
-      const solves = loadSolves();
-      solves.splice(index, 1);
-      saveSolves(solves);
-      renderSolves();
-      renderStats();
-    }
-
-    function cyclePenalty(index) {
-      const solves = loadSolves();
-      const s = solves[index];
-      s.penalty = s.penalty === null ? "+2" : s.penalty === "+2" ? "DNF" : null;
-      saveSolves(solves);
-      renderSolves();
-      renderStats();
-    }
+    function addSolve(s) { const ls = loadSolves(); ls.unshift(s); saveSolves(ls); renderSolves(); renderStats(); }
+    window.cyclePenalty = function(i) { const ls = loadSolves(); ls[i].penalty = ls[i].penalty === null ? "+2" : ls[i].penalty === "+2" ? "DNF" : null; saveSolves(ls); renderSolves(); renderStats(); }
+    window.deleteSolve = function(i) { const ls = loadSolves(); ls.splice(i, 1); saveSolves(ls); renderSolves(); renderStats(); }
+    window.shareSolve = function(i) { const s = loadSolves()[i]; openShareModal(`Time: ${solveDisplay(s)}\nScramble: ${s.scramble}`); }
 
     function renderSolves() {
       const solves = loadSolves();
       const listEl = document.getElementById("solve-list");
-      if (solves.length === 0) {
-        listEl.innerHTML = `<p class="p-6 text-center text-sm" style="color:var(--ink-muted);">No solves yet — do your first solve!</p>`;
-        return;
-      }
-      const pbFlags = computePbFlags(solves);
+      if (!solves.length) { listEl.innerHTML = `<p class="p-4 text-center text-xs text-gray-500">No solves yet.</p>`; return; }
+      
       listEl.innerHTML = solves.map((s, i) => {
         const n = solves.length - i;
+        const color = s.penalty === "DNF" ? "color:var(--cube-red);" : "color:var(--ink);";
         return `
-        <div class="solve-row flex items-center justify-between px-4 py-3 gap-3">
-          <div class="flex items-center gap-3 min-w-0">
-            <span class="font-mono text-xs w-6 text-right flex-shrink-0" style="color:var(--ink-muted);">${n}</span>
-            <span class="font-mono font-bold text-base flex-shrink-0" style="${s.penalty === "DNF" ? "color:var(--cube-red);" : ""}">${solveDisplay(s)}</span>
-            ${pbFlags[i] ? `<span class="text-xs flex-shrink-0" title="Personal best at the time">🏆</span>` : ""}
-            <span class="font-mono text-xs truncate hidden sm:inline" style="color:var(--ink-muted);" title="${s.scramble}">${s.scramble}</span>
-          </div>
-          <div class="solve-actions flex items-center gap-1 flex-shrink-0">
-            <button data-i="${i}" class="share-btn text-xs px-2 py-1 rounded" style="color:var(--cube-blue); border:1px solid rgba(255,255,255,0.1);">📤</button>
-            <button data-i="${i}" class="penalty-btn text-xs px-2 py-1 rounded" style="color:var(--ink-muted); border:1px solid rgba(255,255,255,0.1);">+2/DNF</button>
-            <button data-i="${i}" class="delete-btn text-xs px-2 py-1 rounded" style="color:var(--cube-red); border:1px solid rgba(255,255,255,0.1);">✕</button>
+        <div class="solve-row flex justify-between items-center px-3 py-1.5 border-b border-black/10 hover:bg-black/10 transition-colors group cursor-default text-[0.8rem]">
+          <div class="flex items-center w-full">
+             <span class="w-6 text-right mr-3" style="color:var(--ink-muted);">${n}.</span>
+             <span class="font-bold flex-1" style="${color}">${solveDisplay(s)}</span>
+             <div class="solve-actions flex gap-1">
+                <button onclick="shareSolve(${i})" class="text-xs px-1.5 py-0.5 rounded bg-blue-900/30 text-blue-300 hover:bg-blue-900/50">📤</button>
+                <button onclick="cyclePenalty(${i})" class="text-xs px-1.5 py-0.5 rounded bg-gray-700 text-gray-300 hover:bg-gray-600">+2</button>
+                <button onclick="deleteSolve(${i})" class="text-xs px-1.5 py-0.5 rounded bg-red-900/40 text-red-300 hover:bg-red-900/60">X</button>
+             </div>
           </div>
         </div>`;
       }).join("");
-      listEl.querySelectorAll(".penalty-btn").forEach(b => b.addEventListener("click", () => cyclePenalty(parseInt(b.dataset.i))));
-      listEl.querySelectorAll(".delete-btn").forEach(b => b.addEventListener("click", () => deleteSolve(parseInt(b.dataset.i))));
-      listEl.querySelectorAll(".share-btn").forEach(b => b.addEventListener("click", () => openShareModal(buildShareText(solves[parseInt(b.dataset.i)]))));
     }
 
-    function average(msArray) {
-      // WCA-style: drop best & worst, average the rest. DNF counts as worst possible.
-      if (msArray.length === 0) return null;
-      const dnfCount = msArray.filter(v => v === Infinity).length;
-      if (dnfCount >= 2) return "DNF";
-      const sorted = [...msArray].sort((a, b) => a - b);
-      const trimmed = sorted.slice(1, -1);
-      if (trimmed.some(v => v === Infinity)) return "DNF";
-      const sum = trimmed.reduce((a, b) => a + b, 0);
-      return sum / trimmed.length;
+    function average(msArr) {
+      if(!msArr.length) return null;
+      if(msArr.filter(v => v === Infinity).length >= 2) return "DNF";
+      const t = [...msArr].sort((a,b)=>a-b).slice(1, -1);
+      if(t.some(v => v === Infinity)) return "DNF";
+      return t.reduce((a,b)=>a+b, 0) / t.length;
     }
 
     function renderStats() {
       const solves = loadSolves();
       document.getElementById("stat-count").textContent = solves.length;
-
       const valid = solves.map(solveEffectiveMs).filter(v => v !== Infinity);
-      const best = valid.length ? Math.min(...valid) : null;
-      document.getElementById("stat-best").textContent = best != null ? fmt(best) : "—";
+      document.getElementById("stat-best").textContent = valid.length ? fmt(Math.min(...valid)) : "—";
+      document.getElementById("stat-mean").textContent = valid.length ? fmt(valid.reduce((a,b)=>a+b,0)/valid.length) : "—";
 
-      const meanEl = document.getElementById("stat-mean");
-      if (valid.length === 0) meanEl.textContent = "—";
-      else meanEl.textContent = fmt(valid.reduce((a, b) => a + b, 0) / valid.length);
-
-      const avgsGrid = document.getElementById("stat-avgs-grid");
-      const avgs = [...settings.avgs].sort((a, b) => a - b);
-      avgsGrid.innerHTML = avgs.map(n => {
+      const html = settings.avgs.map(n => {
         let text = "—";
-        if (solves.length >= n) {
-          const last = solves.slice(0, n).map(solveEffectiveMs);
-          const avg = average(last);
-          text = avg === "DNF" ? "DNF" : avg == null ? "—" : fmt(avg);
+        if(solves.length >= n) {
+          const avg = average(solves.slice(0, n).map(solveEffectiveMs));
+          text = avg === "DNF" ? "DNF" : fmt(avg);
         }
-        return `<div class="surface-card rounded-xl p-3 text-center w-24">
-          <p class="font-mono text-[10px] uppercase tracking-widest" style="color:var(--ink-muted);">Ao${n}</p>
-          <p class="font-display font-bold text-lg mt-1">${text}</p>
-        </div>`;
+        return `<div>Ao${n}: <span class="font-bold text-[var(--ink)]">${text}</span></div>`;
       }).join("");
+      document.getElementById("stat-avgs-grid").innerHTML = html;
     }
 
     document.getElementById("clear-session-btn").addEventListener("click", () => {
-      if (!confirm("Clear all solves for this event? This can't be undone.")) return;
-      saveSolves([]);
-      renderSolves();
-      renderStats();
+      if(confirm("Clear session?")) { saveSolves([]); renderSolves(); renderStats(); }
     });
-
-    // ==========================================================
-    // Settings
-    // ==========================================================
-    const SETTINGS_KEY = "tt-timer-settings";
-    const DEFAULT_SETTINGS = { manualMode: false, inspection: false, theme: "dark", avgs: [5, 12] };
-    function loadSettings() {
-      try { return { ...DEFAULT_SETTINGS, ...JSON.parse(localStorage.getItem(SETTINGS_KEY)) }; }
-      catch { return { ...DEFAULT_SETTINGS }; }
-    }
-    function saveSettings(s) { localStorage.setItem(SETTINGS_KEY, JSON.stringify(s)); }
-    let settings = loadSettings();
-
-    function applyTheme(theme) {
-      document.documentElement.setAttribute("data-theme", theme);
-      document.querySelectorAll(".theme-btn").forEach(b => {
-        const active = b.dataset.themeBtn === theme;
-        b.style.background = active ? "var(--cube-blue)" : "var(--bg-base)";
-        b.style.color = active ? "#fff" : "var(--ink-muted)";
-        b.style.border = active ? "none" : "1px solid rgba(255,255,255,0.1)";
-      });
-    }
-    document.querySelectorAll(".theme-btn").forEach(b => {
-      b.addEventListener("click", () => {
-        settings.theme = b.dataset.themeBtn;
-        saveSettings(settings);
-        applyTheme(settings.theme);
-      });
-    });
-
-    const settingsBtn = document.getElementById("settings-btn");
-    const settingsDrawer = document.getElementById("settings-drawer");
-    const settingsBackdrop = document.getElementById("settings-backdrop");
-    const settingsCloseBtn = document.getElementById("settings-close-btn");
-    function openSettings() { settingsBackdrop.classList.remove("hidden"); settingsDrawer.style.transform = "translateX(0)"; }
-    function closeSettings() { settingsBackdrop.classList.add("hidden"); settingsDrawer.style.transform = "translateX(100%)"; }
-    settingsBtn.addEventListener("click", openSettings);
-    settingsCloseBtn.addEventListener("click", closeSettings);
-    settingsBackdrop.addEventListener("click", closeSettings);
-
-    const settingManual = document.getElementById("setting-manual");
-    const settingInspection = document.getElementById("setting-inspection");
-    settingManual.checked = settings.manualMode;
-    settingInspection.checked = settings.inspection;
-    settingManual.addEventListener("change", () => {
-      if (state !== "idle") { settingManual.checked = settings.manualMode; return; } // don't switch mid-solve
-      settings.manualMode = settingManual.checked;
-      saveSettings(settings);
-      setTypeMode(settings.manualMode);
-    });
-    settingInspection.addEventListener("change", () => {
-      settings.inspection = settingInspection.checked;
-      saveSettings(settings);
-    });
-
-    document.querySelectorAll(".avg-toggle").forEach(cb => {
-      const n = parseInt(cb.dataset.avg, 10);
-      cb.checked = settings.avgs.includes(n);
-      cb.addEventListener("change", () => {
-        if (cb.checked) { if (!settings.avgs.includes(n)) settings.avgs.push(n); }
-        else { settings.avgs = settings.avgs.filter(v => v !== n); }
-        saveSettings(settings);
-        renderStats();
-      });
-    });
-
-    // ==========================================================
-    // Fullscreen practice mode
-    // ==========================================================
-    const fsBtn = document.getElementById("fullscreen-btn");
-    async function enterFullscreen() {
-      try { await document.documentElement.requestFullscreen(); } catch (e) { /* fullscreen API may be blocked — CSS focus mode still applies */ }
-      document.body.classList.add("fs-active");
-      fsBtn.textContent = "✕";
-      fsBtn.title = "Exit Fullscreen";
-    }
-    async function exitFullscreen() {
-      if (document.fullscreenElement) { try { await document.exitFullscreen(); } catch (e) { } }
-      document.body.classList.remove("fs-active");
-      fsBtn.textContent = "⛶";
-      fsBtn.title = "Fullscreen";
-    }
-    fsBtn.addEventListener("click", () => {
-      document.body.classList.contains("fs-active") ? exitFullscreen() : enterFullscreen();
-    });
-    document.addEventListener("fullscreenchange", () => {
-      if (!document.fullscreenElement) { document.body.classList.remove("fs-active"); fsBtn.textContent = "⛶"; fsBtn.title = "Fullscreen"; }
-    });
-
-    // ==========================================================
-    // Share modal
-    // ==========================================================
-    const shareBackdrop = document.getElementById("share-backdrop");
-    const sharePreview = document.getElementById("share-preview");
-    const shareNativeBtn = document.getElementById("share-native-btn");
-    const shareWhatsappBtn = document.getElementById("share-whatsapp-btn");
-    const shareCopyBtn = document.getElementById("share-copy-btn");
-    let currentShareText = "";
-
-    function openShareModal(text) {
-      currentShareText = text;
-      sharePreview.textContent = text;
-      shareWhatsappBtn.href = "https://wa.me/?text=" + encodeURIComponent(text);
-      shareNativeBtn.classList.toggle("hidden", !navigator.share);
-      shareBackdrop.classList.remove("hidden");
-      shareBackdrop.classList.add("flex");
-    }
-    function closeShareModal() {
-      shareBackdrop.classList.add("hidden");
-      shareBackdrop.classList.remove("flex");
-    }
-    document.getElementById("share-close-btn").addEventListener("click", closeShareModal);
-    shareBackdrop.addEventListener("click", (e) => { if (e.target === shareBackdrop) closeShareModal(); });
-    shareNativeBtn.addEventListener("click", async () => {
-      try { await navigator.share({ text: currentShareText }); } catch (e) { /* user cancelled or unsupported — ignore */ }
-    });
-    shareCopyBtn.addEventListener("click", async () => {
-      try {
-        await navigator.clipboard.writeText(currentShareText);
-        shareCopyBtn.textContent = "✅ Copied";
-      } catch (e) {
-        shareCopyBtn.textContent = "⚠️ Failed";
-      }
-      setTimeout(() => { shareCopyBtn.textContent = "📋 Copy"; }, 1500);
-    });
-
-    // ==========================================================
-    // Init
-    // ==========================================================
-    applyTheme(settings.theme);
-    setTypeMode(settings.manualMode);
-    renderTabs();
-    renderSolves();
-    renderStats();
-    getNewScramble();
-  </script>
-</body>
-</html>
