@@ -76,26 +76,27 @@
     <!-- Timer zone -->
     <div id="timer-zone" class="surface-card rounded-2xl py-14 px-4 text-center mb-4 select-none">
       <div id="timer-display" class="font-mono">0.00</div>
+      <input id="type-time-input" type="text" inputmode="numeric" autocomplete="off" placeholder="0.00"
+        class="hidden w-full bg-transparent text-center font-mono font-bold outline-none"
+        style="font-size:clamp(3.2rem, 12vw, 7rem); line-height:1; letter-spacing:0.01em; color:var(--ink);">
       <p id="timer-hint" class="text-sm mt-4" style="color:var(--ink-muted);">Hold SPACE (or press &amp; hold here on mobile) to start</p>
+
+      <!-- Post-solve penalty panel -->
+      <div id="post-solve-panel" class="hidden items-center justify-center gap-2 mt-5">
+        <button data-p="ok" class="post-penalty-btn font-mono text-sm px-4 py-2 rounded-lg" style="background:rgba(34,163,92,0.15); color:var(--cube-green); border:1px solid rgba(34,163,92,0.4);">OK</button>
+        <button data-p="+2" class="post-penalty-btn font-mono text-sm px-4 py-2 rounded-lg" style="background:rgba(242,183,5,0.12); color:var(--cube-yellow); border:1px solid rgba(242,183,5,0.4);">+2</button>
+        <button data-p="dnf" class="post-penalty-btn font-mono text-sm px-4 py-2 rounded-lg" style="background:rgba(232,65,43,0.12); color:var(--cube-red); border:1px solid rgba(232,65,43,0.4);">DNF</button>
+      </div>
     </div>
 
     <!-- Controls -->
     <div class="flex flex-wrap items-center justify-center gap-3 mb-6">
       <button id="manual-start-btn" class="btn-primary px-6 py-2.5 rounded-lg">Start / Stop</button>
-      <label class="flex items-center gap-2 font-mono text-xs" style="color:var(--ink-muted);">
+      <label id="inspection-label" class="flex items-center gap-2 font-mono text-xs" style="color:var(--ink-muted);">
         <input type="checkbox" id="inspection-toggle" class="accent-[--cube-blue]">
         15s Inspection (WCA)
       </label>
       <button id="toggle-type-mode-btn" class="btn-ghost text-xs px-3 py-2 rounded-lg">⌨️ Type a time instead</button>
-    </div>
-
-    <!-- Manual type entry -->
-    <div id="type-mode-box" class="hidden surface-card rounded-2xl p-5 mb-6">
-      <p class="text-xs mb-2" style="color:var(--ink-muted);">Type your time (e.g. <span class="font-mono">12.34</span> or <span class="font-mono">1:05.67</span>) and press Enter. You can also type <span class="font-mono">dnf</span>.</p>
-      <div class="flex gap-2">
-        <input id="type-time-input" type="text" placeholder="12.34" class="field flex-grow rounded-lg px-4 py-3 font-mono">
-        <button id="type-time-add-btn" class="btn-primary px-5 rounded-lg">Add</button>
-      </div>
     </div>
 
     <!-- Stats -->
@@ -139,13 +140,27 @@
     // ==========================================================
     // Events
     // ==========================================================
+    const PALETTE = ["var(--cube-red)", "var(--cube-yellow)", "var(--cube-blue)", "var(--cube-green)", "#9B59B6", "#E67E22", "#1ABC9C", "#E91E63"];
     const EVENTS = [
-      { id: "333", label: "3x3", color: "var(--cube-red)" },
-      { id: "222", label: "2x2", color: "var(--cube-yellow)" },
-      { id: "pyram", label: "Pyraminx", color: "var(--cube-green)" },
-      { id: "skewb", label: "Skewb", color: "var(--cube-blue)" },
-      { id: "clock", label: "Clock", color: "var(--cube-yellow)" },
-    ];
+      { id: "333", label: "3x3" },
+      { id: "222", label: "2x2" },
+      { id: "444", label: "4x4" },
+      { id: "555", label: "5x5" },
+      { id: "666", label: "6x6" },
+      { id: "777", label: "7x7" },
+      { id: "333bf", label: "3x3 BLD" },
+      { id: "333fm", label: "3x3 FMC" },
+      { id: "333oh", label: "3x3 OH" },
+      { id: "clock", label: "Clock" },
+      { id: "minx", label: "Megaminx" },
+      { id: "pyram", label: "Pyraminx" },
+      { id: "skewb", label: "Skewb" },
+      { id: "sq1", label: "Square-1" },
+      { id: "444bf", label: "4x4 BLD" },
+      { id: "555bf", label: "5x5 BLD" },
+      { id: "333mbf", label: "3x3 MBLD" },
+      { id: "fto", label: "FTO ⭐" },
+    ].map((ev, i) => ({ ...ev, color: PALETTE[i % PALETTE.length] }));
 
     let currentEvent = localStorage.getItem("tt-timer-event") || "333";
     if (!EVENTS.some(e => e.id === currentEvent)) currentEvent = "333";
@@ -244,7 +259,9 @@
 
     // ---- begin sequence (keydown / touchstart / manual button) ----
     function beginPress() {
+      if (typeMode) return;
       if (isTypingInField()) return;
+      hidePostSolvePanel();
       if (state === "running") { stopTimer(); return; }
       if (state !== "idle") return; // already holding/inspecting
 
@@ -329,8 +346,39 @@
         at: new Date().toISOString()
       });
       pendingPenalty = null;
+      showPostSolvePanel();
       getNewScramble();
     }
+
+    // ==========================================================
+    // Post-solve penalty panel (OK / +2 / DNF)
+    // ==========================================================
+    const postSolvePanel = document.getElementById("post-solve-panel");
+    let postSolveHideTimeout = null;
+
+    function showPostSolvePanel() {
+      postSolvePanel.classList.remove("hidden");
+      postSolvePanel.classList.add("flex");
+      clearTimeout(postSolveHideTimeout);
+      postSolveHideTimeout = setTimeout(hidePostSolvePanel, 8000);
+    }
+    function hidePostSolvePanel() {
+      postSolvePanel.classList.add("hidden");
+      postSolvePanel.classList.remove("flex");
+      clearTimeout(postSolveHideTimeout);
+    }
+    postSolvePanel.querySelectorAll(".post-penalty-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const solves = loadSolves();
+        if (solves.length === 0) return;
+        const p = btn.dataset.p;
+        solves[0].penalty = p === "ok" ? null : p === "+2" ? "+2" : "DNF";
+        saveSolves(solves);
+        renderSolves();
+        renderStats();
+        hidePostSolvePanel();
+      });
+    });
 
     // Keyboard
     document.addEventListener("keydown", (e) => {
@@ -364,12 +412,64 @@
     });
 
     // ==========================================================
-    // Type-a-time mode
+    // Type-a-time mode — lives right inside the timer display
     // ==========================================================
-    const typeBox = document.getElementById("type-mode-box");
-    document.getElementById("toggle-type-mode-btn").addEventListener("click", () => {
-      typeBox.classList.toggle("hidden");
-      if (!typeBox.classList.contains("hidden")) document.getElementById("type-time-input").focus();
+    let typeMode = false;
+    const typeInput = document.getElementById("type-time-input");
+    const typeModeBtn = document.getElementById("toggle-type-mode-btn");
+    const inspectionLabel = document.getElementById("inspection-label");
+
+    function setTypeMode(on) {
+      typeMode = on;
+      hidePostSolvePanel();
+      if (on) {
+        display.classList.add("hidden");
+        typeInput.classList.remove("hidden");
+        manualBtn.classList.add("hidden");
+        inspectionLabel.classList.add("hidden");
+        typeModeBtn.textContent = "⏱️ Use Stopwatch instead";
+        typeInput.value = "";
+        hint.textContent = "Type digits (e.g. 1234 → 12.34, 10345 → 1:03.45) and press Enter. Type dnf for a DNF.";
+        setZoneState(null);
+        typeInput.focus();
+      } else {
+        display.classList.remove("hidden");
+        typeInput.classList.add("hidden");
+        manualBtn.classList.remove("hidden");
+        inspectionLabel.classList.remove("hidden");
+        typeModeBtn.textContent = "⌨️ Type a time instead";
+        hint.textContent = "Hold SPACE (or press & hold here on mobile) to start";
+      }
+    }
+    typeModeBtn.addEventListener("click", () => setTypeMode(!typeMode));
+
+    // Turns a raw digit string into a live-formatted time, e.g. "1234" -> "12.34", "10345" -> "1:03.45"
+    function digitsToTimeString(digits) {
+      digits = digits.replace(/\D/g, "");
+      if (digits.length === 0) return "";
+      digits = digits.slice(-7); // cap at a sane length
+      const padded = digits.padStart(3, "0");
+      const cs = padded.slice(-2);
+      let secMin = padded.slice(0, -2).padStart(2, "0");
+      const sec = secMin.slice(-2);
+      const minPart = secMin.slice(0, -2);
+      if (minPart.length > 0) {
+        return `${parseInt(minPart, 10)}:${sec}.${cs}`;
+      }
+      return `${parseInt(sec, 10)}.${cs}`;
+    }
+
+    typeInput.addEventListener("input", () => {
+      const raw = typeInput.value;
+      if (/^dnf$/i.test(raw.trim())) { typeInput.value = raw.trim().toUpperCase(); return; }
+      // let the user freely type letters of "dnf" as they go (d, dn, dnf) without reformatting
+      if (/^[dnf]*$/i.test(raw.trim()) && /[a-z]/i.test(raw)) return;
+      const hasPlus = raw.trim().endsWith("+");
+      const digitsOnly = raw.replace(/[^\d]/g, "");
+      if (digitsOnly.length === 0) { typeInput.value = ""; return; }
+      let formatted = digitsToTimeString(digitsOnly);
+      if (hasPlus) formatted += "+";
+      typeInput.value = formatted;
     });
 
     function parseTypedTime(str) {
@@ -390,11 +490,10 @@
     }
 
     function addTypedTime() {
-      const input = document.getElementById("type-time-input");
-      const parsed = parseTypedTime(input.value);
+      const parsed = parseTypedTime(typeInput.value);
       if (!parsed) {
-        input.classList.add("ring-2");
-        setTimeout(() => input.classList.remove("ring-2"), 400);
+        typeInput.classList.add("ring-2");
+        setTimeout(() => typeInput.classList.remove("ring-2"), 400);
         return;
       }
       addSolve({
@@ -403,11 +502,10 @@
         scramble: scrambleTextEl.textContent,
         at: new Date().toISOString()
       });
-      input.value = "";
+      typeInput.value = "";
       getNewScramble();
     }
-    document.getElementById("type-time-add-btn").addEventListener("click", addTypedTime);
-    document.getElementById("type-time-input").addEventListener("keydown", (e) => {
+    typeInput.addEventListener("keydown", (e) => {
       if (e.key === "Enter") { e.preventDefault(); addTypedTime(); }
     });
 
