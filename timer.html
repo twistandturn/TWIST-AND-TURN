@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Timer - Twist & Turn</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg-base:#101218; --bg-surface:#181B24; --ink:#F2F1ED; --ink-muted:#9297A6;
+    --cube-red:#E8412B; --cube-yellow:#F2B705; --cube-blue:#2F6FE0; --cube-green:#22A35C;
+  }
+  *{ box-sizing:border-box; }
+  body{ font-family:'Inter', sans-serif; background:var(--bg-base); color:var(--ink); overscroll-behavior:none; }
+  .font-display{ font-family:'Space Grotesk', sans-serif; }
+  .font-mono{ font-family:'JetBrains Mono', monospace; }
+  .surface-card{ background:var(--bg-surface); border:1px solid rgba(255,255,255,0.06); }
+  .field{ background:var(--bg-base); border:1px solid rgba(255,255,255,0.12); color:var(--ink); }
+  .field:focus{ outline:none; border-color:var(--cube-blue); }
+  .btn-primary{ background:var(--cube-red); color:#fff; font-family:'Space Grotesk',sans-serif; font-weight:600; }
+  .btn-primary:hover{ filter:brightness(1.08); }
+  .btn-ghost{ border:1px solid rgba(255,255,255,0.15); color:var(--ink-muted); font-family:'JetBrains Mono',monospace; }
+  .btn-ghost:hover{ color:var(--ink); border-color:rgba(255,255,255,0.3); }
+
+  #timer-zone{
+    user-select:none; -webkit-user-select:none; touch-action:none; cursor:pointer;
+    transition:background .15s ease, transform .1s ease;
+  }
+  #timer-zone.state-holding{ background:rgba(232,65,43,0.12); }
+  #timer-zone.state-ready{ background:rgba(34,163,92,0.15); }
+  #timer-zone.state-running{ background:rgba(47,111,224,0.08); }
+  #timer-display{
+    font-family:'JetBrains Mono', monospace; font-weight:700;
+    font-size:clamp(3.2rem, 12vw, 7rem); line-height:1; letter-spacing:0.01em;
+    transition:color .15s ease;
+  }
+  .state-holding #timer-display{ color:var(--cube-red); }
+  .state-ready #timer-display{ color:var(--cube-green); }
+  .state-running #timer-display{ color:var(--cube-blue); }
+
+  .event-tab{ font-family:'Space Grotesk',sans-serif; font-weight:600; }
+  .event-tab.active{ color:#fff; }
+
+  .solve-row:hover .solve-actions{ opacity:1; }
+  .solve-actions{ opacity:0; transition:opacity .15s ease; }
+  @media (hover:none){ .solve-actions{ opacity:1; } }
+</style>
+</head>
+<body class="min-h-screen">
+
+  <nav class="sticky top-0 z-50 border-b border-white/5" style="background:rgba(16,18,24,0.92); backdrop-filter:blur(8px);">
+    <div class="max-w-5xl mx-auto px-4 h-16 flex items-center justify-between">
+      <span class="font-display font-bold text-xl cursor-pointer" onclick="window.location.href='index.html'">Twist &amp; Turn</span>
+      <a href="index.html" class="font-mono text-sm px-4 py-2 rounded-lg" style="border:1px solid rgba(255,255,255,0.15); color:var(--ink-muted);">← Home</a>
+    </div>
+  </nav>
+
+  <main class="max-w-3xl mx-auto px-4 py-10">
+
+    <p class="font-mono text-xs tracking-widest uppercase mb-2 text-center" style="color:var(--ink-muted);">Practice</p>
+    <h1 class="font-display text-3xl font-bold mb-8 text-center">⏱️ Timer</h1>
+
+    <!-- Event tabs -->
+    <div id="event-tabs" class="flex flex-wrap gap-2 justify-center mb-6"></div>
+
+    <!-- Scramble -->
+    <div class="surface-card rounded-2xl p-5 md:p-6 mb-5">
+      <div class="flex items-center justify-between mb-3">
+        <p class="font-mono text-xs uppercase tracking-widest" style="color:var(--ink-muted);">WCA-style Scramble</p>
+        <button id="new-scramble-btn" class="btn-ghost text-xs px-3 py-1.5 rounded-lg">🔄 New</button>
+      </div>
+      <p id="scramble-text" class="font-mono text-lg md:text-xl text-center leading-relaxed" style="letter-spacing:0.03em;">Loading…</p>
+    </div>
+
+    <!-- Timer zone -->
+    <div id="timer-zone" class="surface-card rounded-2xl py-14 px-4 text-center mb-4 select-none">
+      <div id="timer-display" class="font-mono">0.00</div>
+      <p id="timer-hint" class="text-sm mt-4" style="color:var(--ink-muted);">Hold SPACE (or press &amp; hold here on mobile) to start</p>
+    </div>
+
+    <!-- Controls -->
+    <div class="flex flex-wrap items-center justify-center gap-3 mb-6">
+      <button id="manual-start-btn" class="btn-primary px-6 py-2.5 rounded-lg">Start / Stop</button>
+      <label class="flex items-center gap-2 font-mono text-xs" style="color:var(--ink-muted);">
+        <input type="checkbox" id="inspection-toggle" class="accent-[--cube-blue]">
+        15s Inspection (WCA)
+      </label>
+      <button id="toggle-type-mode-btn" class="btn-ghost text-xs px-3 py-2 rounded-lg">⌨️ Type a time instead</button>
+    </div>
+
+    <!-- Manual type entry -->
+    <div id="type-mode-box" class="hidden surface-card rounded-2xl p-5 mb-6">
+      <p class="text-xs mb-2" style="color:var(--ink-muted);">Type your time (e.g. <span class="font-mono">12.34</span> or <span class="font-mono">1:05.67</span>) and press Enter. You can also type <span class="font-mono">dnf</span>.</p>
+      <div class="flex gap-2">
+        <input id="type-time-input" type="text" placeholder="12.34" class="field flex-grow rounded-lg px-4 py-3 font-mono">
+        <button id="type-time-add-btn" class="btn-primary px-5 rounded-lg">Add</button>
+      </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="grid grid-cols-2 md:grid-cols-5 gap-3 mb-6">
+      <div class="surface-card rounded-xl p-3 text-center">
+        <p class="font-mono text-[10px] uppercase tracking-widest" style="color:var(--ink-muted);">Solves</p>
+        <p id="stat-count" class="font-display font-bold text-lg mt-1">0</p>
+      </div>
+      <div class="surface-card rounded-xl p-3 text-center">
+        <p class="font-mono text-[10px] uppercase tracking-widest" style="color:var(--ink-muted);">Best</p>
+        <p id="stat-best" class="font-display font-bold text-lg mt-1" style="color:var(--cube-green);">—</p>
+      </div>
+      <div class="surface-card rounded-xl p-3 text-center">
+        <p class="font-mono text-[10px] uppercase tracking-widest" style="color:var(--ink-muted);">Ao5</p>
+        <p id="stat-ao5" class="font-display font-bold text-lg mt-1">—</p>
+      </div>
+      <div class="surface-card rounded-xl p-3 text-center">
+        <p class="font-mono text-[10px] uppercase tracking-widest" style="color:var(--ink-muted);">Ao12</p>
+        <p id="stat-ao12" class="font-display font-bold text-lg mt-1">—</p>
+      </div>
+      <div class="surface-card rounded-xl p-3 text-center">
+        <p class="font-mono text-[10px] uppercase tracking-widest" style="color:var(--ink-muted);">Mean</p>
+        <p id="stat-mean" class="font-display font-bold text-lg mt-1">—</p>
+      </div>
+    </div>
+
+    <!-- Solve list -->
+    <div class="flex items-center justify-between mb-3">
+      <h2 class="font-display font-bold text-lg">Session</h2>
+      <button id="clear-session-btn" class="btn-ghost text-xs px-3 py-1.5 rounded-lg">🗑️ Clear Session</button>
+    </div>
+    <div id="solve-list" class="surface-card rounded-2xl overflow-hidden divide-y divide-white/5">
+      <p class="p-6 text-center text-sm" style="color:var(--ink-muted);">No solves yet — do your first solve!</p>
+    </div>
+
+  </main>
+
+  <script type="module">
+    import { randomScrambleForEvent } from "https://cdn.cubing.net/v0/js/cubing/scramble";
+
+    // ==========================================================
+    // Events
+    // ==========================================================
+    const EVENTS = [
+      { id: "333", label: "3x3", color: "var(--cube-red)" },
+      { id: "222", label: "2x2", color: "var(--cube-yellow)" },
+      { id: "pyram", label: "Pyraminx", color: "var(--cube-green)" },
+      { id: "skewb", label: "Skewb", color: "var(--cube-blue)" },
+      { id: "clock", label: "Clock", color: "var(--cube-yellow)" },
+    ];
+
+    let currentEvent = localStorage.getItem("tt-timer-event") || "333";
+    if (!EVENTS.some(e => e.id === currentEvent)) currentEvent = "333";
+
+    const tabsEl = document.getElementById("event-tabs");
+    function renderTabs() {
+      tabsEl.innerHTML = EVENTS.map(ev => `
+        <button type="button" data-ev="${ev.id}" class="event-tab text-sm px-4 py-2 rounded-full transition-colors ${ev.id === currentEvent ? "active" : ""}"
+          style="${ev.id === currentEvent ? `background:${ev.color};` : "background:var(--bg-surface); color:var(--ink-muted); border:1px solid rgba(255,255,255,0.1);"}">
+          ${ev.label}
+        </button>`).join("");
+      tabsEl.querySelectorAll(".event-tab").forEach(btn => {
+        btn.addEventListener("click", () => {
+          if (state !== "idle") return; // don't switch mid-solve
+          currentEvent = btn.dataset.ev;
+          localStorage.setItem("tt-timer-event", currentEvent);
+          renderTabs();
+          renderSolves();
+          renderStats();
+          getNewScramble();
+        });
+      });
+    }
+
+    // ==========================================================
+    // Scramble
+    // ==========================================================
+    const scrambleTextEl = document.getElementById("scramble-text");
+    let scrambleLoading = false;
+
+    async function getNewScramble() {
+      scrambleLoading = true;
+      scrambleTextEl.textContent = "Generating scramble…";
+      try {
+        const scramble = await randomScrambleForEvent(currentEvent);
+        scrambleTextEl.textContent = scramble.toString();
+      } catch (err) {
+        scrambleTextEl.textContent = "Couldn't generate a scramble (check your internet connection).";
+        console.error(err);
+      }
+      scrambleLoading = false;
+    }
+    document.getElementById("new-scramble-btn").addEventListener("click", () => { if (!scrambleLoading) getNewScramble(); });
+
+    // ==========================================================
+    // Storage — solves are kept per event
+    // ==========================================================
+    function storageKey(ev) { return "tt-timer-solves-" + ev; }
+    function loadSolves() {
+      try { return JSON.parse(localStorage.getItem(storageKey(currentEvent)) || "[]"); }
+      catch { return []; }
+    }
+    function saveSolves(solves) {
+      localStorage.setItem(storageKey(currentEvent), JSON.stringify(solves));
+    }
+
+    // ==========================================================
+    // Timer state machine
+    // ==========================================================
+    const zone = document.getElementById("timer-zone");
+    const display = document.getElementById("timer-display");
+    const hint = document.getElementById("timer-hint");
+    const inspectionToggle = document.getElementById("inspection-toggle");
+
+    let state = "idle"; // idle | inspecting | holding | ready | running
+    let holdStartAt = 0;
+    let holdTimeout = null;
+    let inspectionStartAt = 0;
+    let inspectionInterval = null;
+    let runStartAt = 0;
+    let runInterval = null;
+    let pendingPenalty = null; // null | "+2" | "DNF"
+    const HOLD_THRESHOLD_MS = 300;
+
+    function fmt(ms) {
+      if (ms == null) return "—";
+      const totalCs = Math.round(ms / 10);
+      const cs = totalCs % 100;
+      const totalSec = Math.floor(totalCs / 100);
+      const sec = totalSec % 60;
+      const min = Math.floor(totalSec / 60);
+      const csStr = String(cs).padStart(2, "0");
+      if (min > 0) return `${min}:${String(sec).padStart(2, "0")}.${csStr}`;
+      return `${sec}.${csStr}`;
+    }
+
+    function setZoneState(s) {
+      zone.classList.remove("state-holding", "state-ready", "state-running");
+      if (s) zone.classList.add("state-" + s);
+    }
+
+    function isTypingInField() {
+      const el = document.activeElement;
+      return el && (el.tagName === "INPUT" || el.tagName === "TEXTAREA");
+    }
+
+    // ---- begin sequence (keydown / touchstart / manual button) ----
+    function beginPress() {
+      if (isTypingInField()) return;
+      if (state === "running") { stopTimer(); return; }
+      if (state !== "idle") return; // already holding/inspecting
+
+      if (inspectionToggle.checked) {
+        state = "inspecting";
+        inspectionStartAt = performance.now();
+        setZoneState(null);
+        hint.textContent = "Inspecting… keep holding to get ready";
+        inspectionInterval = setInterval(() => {
+          const elapsed = (performance.now() - inspectionStartAt) / 1000;
+          const remain = Math.max(0, 15 - elapsed);
+          display.textContent = elapsed <= 15 ? remain.toFixed(0) + "s" : (elapsed <= 17 ? "+2" : "DNF");
+        }, 100);
+      } else {
+        state = "holding";
+        holdStartAt = performance.now();
+        setZoneState("holding");
+        hint.textContent = "Keep holding…";
+      }
+
+      holdTimeout = setTimeout(() => {
+        if (state === "holding" || state === "inspecting") {
+          state = "ready";
+          setZoneState("ready");
+          hint.textContent = "Release to start!";
+          display.textContent = "0.00";
+        }
+      }, HOLD_THRESHOLD_MS);
+    }
+
+    // ---- end sequence (keyup / touchend) ----
+    function endPress() {
+      if (isTypingInField()) return;
+
+      if (state === "ready") {
+        // compute inspection penalty if applicable
+        pendingPenalty = null;
+        if (inspectionToggle.checked && inspectionInterval) {
+          const elapsed = (performance.now() - inspectionStartAt) / 1000;
+          if (elapsed > 17) pendingPenalty = "DNF";
+          else if (elapsed > 15) pendingPenalty = "+2";
+        }
+        clearInterval(inspectionInterval); inspectionInterval = null;
+        clearTimeout(holdTimeout);
+        startTimer();
+        return;
+      }
+
+      if (state === "holding" || state === "inspecting") {
+        // released too early — cancel
+        clearTimeout(holdTimeout);
+        clearInterval(inspectionInterval); inspectionInterval = null;
+        state = "idle";
+        setZoneState(null);
+        display.textContent = "0.00";
+        hint.textContent = "Hold SPACE (or press & hold here on mobile) to start";
+      }
+    }
+
+    function startTimer() {
+      state = "running";
+      setZoneState("running");
+      hint.textContent = "Tap / press SPACE to stop";
+      runStartAt = performance.now();
+      runInterval = setInterval(() => {
+        display.textContent = fmt(performance.now() - runStartAt);
+      }, 30);
+    }
+
+    function stopTimer() {
+      clearInterval(runInterval);
+      const elapsed = performance.now() - runStartAt;
+      display.textContent = fmt(elapsed);
+      state = "idle";
+      setZoneState(null);
+      hint.textContent = "Hold SPACE (or press & hold here on mobile) to start";
+
+      addSolve({
+        ms: Math.round(elapsed),
+        penalty: pendingPenalty,
+        scramble: scrambleTextEl.textContent,
+        at: new Date().toISOString()
+      });
+      pendingPenalty = null;
+      getNewScramble();
+    }
+
+    // Keyboard
+    document.addEventListener("keydown", (e) => {
+      if (e.code !== "Space" || e.repeat) return;
+      if (isTypingInField()) return;
+      e.preventDefault();
+      beginPress();
+    });
+    document.addEventListener("keyup", (e) => {
+      if (e.code !== "Space") return;
+      if (isTypingInField()) return;
+      e.preventDefault();
+      endPress();
+    });
+
+    // Touch / click on the zone itself
+    zone.addEventListener("touchstart", (e) => { e.preventDefault(); beginPress(); }, { passive: false });
+    zone.addEventListener("touchend", (e) => { e.preventDefault(); endPress(); }, { passive: false });
+    zone.addEventListener("mousedown", (e) => { beginPress(); });
+    zone.addEventListener("mouseup", (e) => { endPress(); });
+
+    // Dedicated Start/Stop button — good for accessibility / no keyboard
+    const manualBtn = document.getElementById("manual-start-btn");
+    manualBtn.addEventListener("click", () => {
+      if (state === "running") { stopTimer(); return; }
+      if (state === "idle") {
+        // simulate an instant "hold then release" for click users
+        beginPress();
+        setTimeout(() => { if (state === "holding" || state === "ready" || state === "inspecting") endPress(); }, HOLD_THRESHOLD_MS + 20);
+      }
+    });
+
+    // ==========================================================
+    // Type-a-time mode
+    // ==========================================================
+    const typeBox = document.getElementById("type-mode-box");
+    document.getElementById("toggle-type-mode-btn").addEventListener("click", () => {
+      typeBox.classList.toggle("hidden");
+      if (!typeBox.classList.contains("hidden")) document.getElementById("type-time-input").focus();
+    });
+
+    function parseTypedTime(str) {
+      str = str.trim().toLowerCase();
+      if (str === "dnf") return { ms: null, penalty: "DNF" };
+      let penalty = null;
+      if (str.endsWith("+2") || str.endsWith("+")) {
+        penalty = "+2";
+        str = str.replace(/\+2$|\+$/, "").trim();
+      }
+      // formats: 12.34  |  1:05.67  |  65.4  |  1:05
+      const m = str.match(/^(?:(\d+):)?(\d+(?:\.\d+)?)$/);
+      if (!m) return null;
+      const min = m[1] ? parseInt(m[1], 10) : 0;
+      const sec = parseFloat(m[2]);
+      const ms = Math.round((min * 60 + sec) * 1000);
+      return { ms, penalty };
+    }
+
+    function addTypedTime() {
+      const input = document.getElementById("type-time-input");
+      const parsed = parseTypedTime(input.value);
+      if (!parsed) {
+        input.classList.add("ring-2");
+        setTimeout(() => input.classList.remove("ring-2"), 400);
+        return;
+      }
+      addSolve({
+        ms: parsed.ms,
+        penalty: parsed.penalty,
+        scramble: scrambleTextEl.textContent,
+        at: new Date().toISOString()
+      });
+      input.value = "";
+      getNewScramble();
+    }
+    document.getElementById("type-time-add-btn").addEventListener("click", addTypedTime);
+    document.getElementById("type-time-input").addEventListener("keydown", (e) => {
+      if (e.key === "Enter") { e.preventDefault(); addTypedTime(); }
+    });
+
+    // ==========================================================
+    // Solves — storage, list, stats
+    // ==========================================================
+    function solveEffectiveMs(solve) {
+      if (solve.penalty === "DNF") return Infinity;
+      if (solve.penalty === "+2") return solve.ms + 2000;
+      return solve.ms;
+    }
+    function solveDisplay(solve) {
+      if (solve.penalty === "DNF") return "DNF";
+      const base = fmt(solve.ms);
+      return solve.penalty === "+2" ? base + "+" : base;
+    }
+
+    function addSolve(solve) {
+      const solves = loadSolves();
+      solves.unshift(solve);
+      saveSolves(solves);
+      renderSolves();
+      renderStats();
+    }
+
+    function deleteSolve(index) {
+      const solves = loadSolves();
+      solves.splice(index, 1);
+      saveSolves(solves);
+      renderSolves();
+      renderStats();
+    }
+
+    function cyclePenalty(index) {
+      const solves = loadSolves();
+      const s = solves[index];
+      s.penalty = s.penalty === null ? "+2" : s.penalty === "+2" ? "DNF" : null;
+      saveSolves(solves);
+      renderSolves();
+      renderStats();
+    }
+
+    function renderSolves() {
+      const solves = loadSolves();
+      const listEl = document.getElementById("solve-list");
+      if (solves.length === 0) {
+        listEl.innerHTML = `<p class="p-6 text-center text-sm" style="color:var(--ink-muted);">No solves yet — do your first solve!</p>`;
+        return;
+      }
+      listEl.innerHTML = solves.map((s, i) => {
+        const n = solves.length - i;
+        return `
+        <div class="solve-row flex items-center justify-between px-4 py-3 gap-3">
+          <div class="flex items-center gap-3 min-w-0">
+            <span class="font-mono text-xs w-6 text-right flex-shrink-0" style="color:var(--ink-muted);">${n}</span>
+            <span class="font-mono font-bold text-base flex-shrink-0" style="${s.penalty === "DNF" ? "color:var(--cube-red);" : ""}">${solveDisplay(s)}</span>
+            <span class="font-mono text-xs truncate hidden sm:inline" style="color:var(--ink-muted);" title="${s.scramble}">${s.scramble}</span>
+          </div>
+          <div class="solve-actions flex items-center gap-1 flex-shrink-0">
+            <button data-i="${i}" class="penalty-btn text-xs px-2 py-1 rounded" style="color:var(--ink-muted); border:1px solid rgba(255,255,255,0.1);">+2/DNF</button>
+            <button data-i="${i}" class="delete-btn text-xs px-2 py-1 rounded" style="color:var(--cube-red); border:1px solid rgba(255,255,255,0.1);">✕</button>
+          </div>
+        </div>`;
+      }).join("");
+      listEl.querySelectorAll(".penalty-btn").forEach(b => b.addEventListener("click", () => cyclePenalty(parseInt(b.dataset.i))));
+      listEl.querySelectorAll(".delete-btn").forEach(b => b.addEventListener("click", () => deleteSolve(parseInt(b.dataset.i))));
+    }
+
+    function average(msArray) {
+      // WCA-style: drop best & worst, average the rest. DNF counts as worst possible.
+      if (msArray.length === 0) return null;
+      const dnfCount = msArray.filter(v => v === Infinity).length;
+      if (dnfCount >= 2) return "DNF";
+      const sorted = [...msArray].sort((a, b) => a - b);
+      const trimmed = sorted.slice(1, -1);
+      if (trimmed.some(v => v === Infinity)) return "DNF";
+      const sum = trimmed.reduce((a, b) => a + b, 0);
+      return sum / trimmed.length;
+    }
+
+    function renderStats() {
+      const solves = loadSolves();
+      document.getElementById("stat-count").textContent = solves.length;
+
+      const valid = solves.map(solveEffectiveMs).filter(v => v !== Infinity);
+      const best = valid.length ? Math.min(...valid) : null;
+      document.getElementById("stat-best").textContent = best != null ? fmt(best) : "—";
+
+      function renderAvg(id, n) {
+        const el = document.getElementById(id);
+        if (solves.length < n) { el.textContent = "—"; return; }
+        const last = solves.slice(0, n).map(solveEffectiveMs);
+        const avg = average(last);
+        el.textContent = avg === "DNF" ? "DNF" : avg == null ? "—" : fmt(avg);
+      }
+      renderAvg("stat-ao5", 5);
+      renderAvg("stat-ao12", 12);
+
+      const meanEl = document.getElementById("stat-mean");
+      if (valid.length === 0) meanEl.textContent = "—";
+      else meanEl.textContent = fmt(valid.reduce((a, b) => a + b, 0) / valid.length);
+    }
+
+    document.getElementById("clear-session-btn").addEventListener("click", () => {
+      if (!confirm("Clear all solves for this event? This can't be undone.")) return;
+      saveSolves([]);
+      renderSolves();
+      renderStats();
+    });
+
+    // ==========================================================
+    // Init
+    // ==========================================================
+    renderTabs();
+    renderSolves();
+    renderStats();
+    getNewScramble();
+  </script>
+</body>
+</html>
