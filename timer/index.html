@@ -45,21 +45,57 @@
   .solve-row:hover .solve-actions{ opacity:1; }
   .solve-actions{ opacity:0; transition:opacity .15s ease; }
   @media (hover:none){ .solve-actions{ opacity:1; } }
+
+  /* ---------- Light theme ---------- */
+  html[data-theme="light"]{ --bg-base:#F4F3EF; --bg-surface:#FFFFFF; --ink:#15171C; --ink-muted:#5B6070; }
+  html[data-theme="light"] .surface-card{ border-color:rgba(0,0,0,0.08); }
+  html[data-theme="light"] .field{ border-color:rgba(0,0,0,0.15); }
+  html[data-theme="light"] .btn-ghost{ border-color:rgba(0,0,0,0.15); color:#5B6070; }
+  html[data-theme="light"] .btn-ghost:hover{ color:#15171C; border-color:rgba(0,0,0,0.3); }
+  html[data-theme="light"] .event-tab:not(.active){ background:#fff !important; border-color:rgba(0,0,0,0.1) !important; }
+  html[data-theme="light"] #site-nav{ background:rgba(244,243,239,0.92); }
+  html[data-theme="light"] .toggle-switch-input{ background:rgba(0,0,0,0.15); }
+
+  /* ---------- Nav ---------- */
+  #site-nav{ background:rgba(16,18,24,0.92); backdrop-filter:blur(8px); }
+
+  /* ---------- Fullscreen practice mode ---------- */
+  body.fs-active #brand-title, body.fs-active #home-link{ display:none; }
+  body.fs-active #page-intro{ display:none; }
+  body.fs-active main{ max-width:100%; }
+  body.fs-active #timer-zone{ min-height:58vh; display:flex; flex-direction:column; justify-content:center; }
+  body.fs-active #timer-display{ font-size:clamp(4rem, 17vw, 11rem); }
+  body.fs-active #type-time-input{ font-size:clamp(4rem, 17vw, 11rem) !important; }
+  body.fs-active #scramble-text{ font-size:1.4rem; }
+
+  /* ---------- Toggle switches (settings) ---------- */
+  .toggle-switch-input{ appearance:none; -webkit-appearance:none; width:42px; height:24px; background:rgba(255,255,255,0.15); border-radius:999px; position:relative; cursor:pointer; transition:background .15s ease; flex-shrink:0; }
+  .toggle-switch-input::before{ content:""; position:absolute; top:2px; left:2px; width:20px; height:20px; background:#fff; border-radius:50%; transition:transform .15s ease; }
+  .toggle-switch-input:checked{ background:var(--cube-blue); }
+  .toggle-switch-input:checked::before{ transform:translateX(18px); }
+
+  #settings-drawer{ transition:transform .2s ease; }
 </style>
 </head>
 <body class="min-h-screen">
 
-  <nav class="sticky top-0 z-50 border-b border-white/5" style="background:rgba(16,18,24,0.92); backdrop-filter:blur(8px);">
+  <nav id="site-nav" class="sticky top-0 z-50 border-b border-white/5">
     <div class="max-w-5xl mx-auto px-4 h-16 flex items-center justify-between">
-      <span class="font-display font-bold text-xl cursor-pointer" onclick="window.location.href='index.html'">Twist &amp; Turn</span>
-      <a href="index.html" class="font-mono text-sm px-4 py-2 rounded-lg" style="border:1px solid rgba(255,255,255,0.15); color:var(--ink-muted);">← Home</a>
+      <span id="brand-title" class="font-display font-bold text-xl cursor-pointer" onclick="window.location.href='index.html'">Twist &amp; Turn</span>
+      <div class="flex items-center gap-2">
+        <a id="home-link" href="index.html" class="font-mono text-sm px-4 py-2 rounded-lg" style="border:1px solid rgba(255,255,255,0.15); color:var(--ink-muted);">← Home</a>
+        <button id="settings-btn" type="button" class="btn-ghost w-10 h-10 flex items-center justify-center rounded-lg text-base" title="Settings">⚙️</button>
+        <button id="fullscreen-btn" type="button" class="btn-ghost w-10 h-10 flex items-center justify-center rounded-lg text-base" title="Fullscreen">⛶</button>
+      </div>
     </div>
   </nav>
 
   <main class="max-w-3xl mx-auto px-4 py-10">
 
-    <p class="font-mono text-xs tracking-widest uppercase mb-2 text-center" style="color:var(--ink-muted);">Practice</p>
-    <h1 class="font-display text-3xl font-bold mb-8 text-center">⏱️ Timer</h1>
+    <div id="page-intro">
+      <p class="font-mono text-xs tracking-widest uppercase mb-2 text-center" style="color:var(--ink-muted);">Practice</p>
+      <h1 class="font-display text-3xl font-bold mb-8 text-center">⏱️ Timer</h1>
+    </div>
 
     <!-- Event tabs -->
     <div id="event-tabs" class="flex flex-wrap gap-2 justify-center mb-6"></div>
@@ -82,45 +118,34 @@
       <p id="timer-hint" class="text-sm mt-4" style="color:var(--ink-muted);">Hold SPACE (or press &amp; hold here on mobile) to start</p>
 
       <!-- Post-solve penalty panel -->
-      <div id="post-solve-panel" class="hidden items-center justify-center gap-2 mt-5">
+      <div id="post-solve-panel" class="hidden items-center justify-center gap-2 mt-5 flex-wrap">
         <button data-p="ok" class="post-penalty-btn font-mono text-sm px-4 py-2 rounded-lg" style="background:rgba(34,163,92,0.15); color:var(--cube-green); border:1px solid rgba(34,163,92,0.4);">OK</button>
         <button data-p="+2" class="post-penalty-btn font-mono text-sm px-4 py-2 rounded-lg" style="background:rgba(242,183,5,0.12); color:var(--cube-yellow); border:1px solid rgba(242,183,5,0.4);">+2</button>
         <button data-p="dnf" class="post-penalty-btn font-mono text-sm px-4 py-2 rounded-lg" style="background:rgba(232,65,43,0.12); color:var(--cube-red); border:1px solid rgba(232,65,43,0.4);">DNF</button>
+        <button id="post-solve-share-btn" class="hidden font-mono text-sm px-4 py-2 rounded-lg" style="background:rgba(47,111,224,0.12); color:var(--cube-blue); border:1px solid rgba(47,111,224,0.4);">🎉 PB! Share</button>
       </div>
     </div>
 
     <!-- Controls -->
     <div class="flex flex-wrap items-center justify-center gap-3 mb-6">
       <button id="manual-start-btn" class="btn-primary px-6 py-2.5 rounded-lg">Start / Stop</button>
-      <label id="inspection-label" class="flex items-center gap-2 font-mono text-xs" style="color:var(--ink-muted);">
-        <input type="checkbox" id="inspection-toggle" class="accent-[--cube-blue]">
-        15s Inspection (WCA)
-      </label>
-      <button id="toggle-type-mode-btn" class="btn-ghost text-xs px-3 py-2 rounded-lg">⌨️ Type a time instead</button>
     </div>
 
     <!-- Stats -->
-    <div class="grid grid-cols-2 md:grid-cols-5 gap-3 mb-6">
-      <div class="surface-card rounded-xl p-3 text-center">
+    <div class="flex flex-wrap gap-3 mb-6 justify-center">
+      <div class="surface-card rounded-xl p-3 text-center w-24">
         <p class="font-mono text-[10px] uppercase tracking-widest" style="color:var(--ink-muted);">Solves</p>
         <p id="stat-count" class="font-display font-bold text-lg mt-1">0</p>
       </div>
-      <div class="surface-card rounded-xl p-3 text-center">
+      <div class="surface-card rounded-xl p-3 text-center w-24">
         <p class="font-mono text-[10px] uppercase tracking-widest" style="color:var(--ink-muted);">Best</p>
         <p id="stat-best" class="font-display font-bold text-lg mt-1" style="color:var(--cube-green);">—</p>
       </div>
-      <div class="surface-card rounded-xl p-3 text-center">
-        <p class="font-mono text-[10px] uppercase tracking-widest" style="color:var(--ink-muted);">Ao5</p>
-        <p id="stat-ao5" class="font-display font-bold text-lg mt-1">—</p>
-      </div>
-      <div class="surface-card rounded-xl p-3 text-center">
-        <p class="font-mono text-[10px] uppercase tracking-widest" style="color:var(--ink-muted);">Ao12</p>
-        <p id="stat-ao12" class="font-display font-bold text-lg mt-1">—</p>
-      </div>
-      <div class="surface-card rounded-xl p-3 text-center">
+      <div class="surface-card rounded-xl p-3 text-center w-24">
         <p class="font-mono text-[10px] uppercase tracking-widest" style="color:var(--ink-muted);">Mean</p>
         <p id="stat-mean" class="font-display font-bold text-lg mt-1">—</p>
       </div>
+      <div id="stat-avgs-grid" class="contents"></div>
     </div>
 
     <!-- Solve list -->
@@ -133,6 +158,59 @@
     </div>
 
   </main>
+
+  <!-- Settings drawer -->
+  <div id="settings-backdrop" class="hidden fixed inset-0 z-[70]" style="background:rgba(0,0,0,0.5);"></div>
+  <aside id="settings-drawer" class="fixed top-0 right-0 h-full w-full max-w-sm z-[71] surface-card overflow-y-auto" style="transform:translateX(100%);">
+    <div class="flex items-center justify-between px-5 py-4 border-b border-white/5">
+      <h2 class="font-display font-bold text-lg">⚙️ Settings</h2>
+      <button id="settings-close-btn" type="button" class="btn-ghost text-sm px-3 py-1.5 rounded-lg">✕</button>
+    </div>
+    <div class="p-5 space-y-7">
+      <div>
+        <p class="font-mono text-xs uppercase tracking-widest mb-3" style="color:var(--ink-muted);">Timer Mode</p>
+        <label class="flex items-center justify-between py-2">
+          <span class="text-sm">Manual Time Entry</span>
+          <input type="checkbox" id="setting-manual" class="toggle-switch-input">
+        </label>
+        <label class="flex items-center justify-between py-2">
+          <span class="text-sm">15s WCA Inspection</span>
+          <input type="checkbox" id="setting-inspection" class="toggle-switch-input">
+        </label>
+      </div>
+      <div>
+        <p class="font-mono text-xs uppercase tracking-widest mb-3" style="color:var(--ink-muted);">Appearance</p>
+        <div class="flex gap-2">
+          <button type="button" data-theme-btn="dark" class="theme-btn flex-1 py-2 rounded-lg text-sm font-mono">🌙 Dark</button>
+          <button type="button" data-theme-btn="light" class="theme-btn flex-1 py-2 rounded-lg text-sm font-mono">☀️ Light</button>
+        </div>
+      </div>
+      <div>
+        <p class="font-mono text-xs uppercase tracking-widest mb-3" style="color:var(--ink-muted);">Extra Averages</p>
+        <p class="text-xs mb-2" style="color:var(--ink-muted);">Ao5 and Ao12 always show. Turn on the ones you want tracked too:</p>
+        <label class="flex items-center justify-between py-2"><span class="text-sm">Ao100</span><input type="checkbox" data-avg="100" class="toggle-switch-input avg-toggle"></label>
+        <label class="flex items-center justify-between py-2"><span class="text-sm">Ao200</span><input type="checkbox" data-avg="200" class="toggle-switch-input avg-toggle"></label>
+        <label class="flex items-center justify-between py-2"><span class="text-sm">Ao500</span><input type="checkbox" data-avg="500" class="toggle-switch-input avg-toggle"></label>
+        <label class="flex items-center justify-between py-2"><span class="text-sm">Ao1000</span><input type="checkbox" data-avg="1000" class="toggle-switch-input avg-toggle"></label>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Share modal -->
+  <div id="share-backdrop" class="hidden fixed inset-0 z-[80] items-center justify-center p-4" style="background:rgba(0,0,0,0.6);">
+    <div class="surface-card rounded-2xl p-5 w-full max-w-sm">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="font-display font-bold text-lg">🎉 Share Result</h3>
+        <button id="share-close-btn" type="button" class="btn-ghost text-sm px-3 py-1.5 rounded-lg">✕</button>
+      </div>
+      <pre id="share-preview" class="font-mono text-xs whitespace-pre-wrap p-3 rounded-lg mb-4" style="background:var(--bg-base); border:1px solid rgba(255,255,255,0.08); max-height:180px; overflow-y:auto;"></pre>
+      <div class="grid grid-cols-2 gap-2">
+        <button id="share-native-btn" type="button" class="btn-primary py-2.5 rounded-lg text-sm col-span-2">📤 Share…</button>
+        <a id="share-whatsapp-btn" target="_blank" rel="noopener" class="btn-ghost py-2.5 rounded-lg text-sm text-center">WhatsApp</a>
+        <button id="share-copy-btn" type="button" class="btn-ghost py-2.5 rounded-lg text-sm">📋 Copy</button>
+      </div>
+    </div>
+  </div>
 
   <script type="module">
     import { randomScrambleForEvent } from "https://cdn.cubing.net/v0/js/cubing/scramble";
@@ -290,30 +368,24 @@
     }
 
     // Puzzle-appropriate LAST-RESORT fallbacks only — used only if cubing.js fails
-    // repeatedly (e.g. CDN/WASM hiccup). Each fallback matches the puzzle's own
-    // move notation so it never hands out invalid moves (this is what was
-    // breaking Square-1: it used to fall back to plain cube moves like "R U2 F'",
-    // which a Square-1 can't apply, so the scramble got stuck mid-way).
+    // repeatedly (e.g. CDN/WASM hiccup).
+    //
+    // IMPORTANT: WCA Regulation 4b3 requires scrambles to be "random-state" for
+    // every event EXCEPT big cubes (5x5 and up) and Megaminx, which are allowed to
+    // be "random-moves". Our local functions below only do random-MOVES, so they
+    // are only WCA-legit for 555/555bf/666/777/minx. For every other event (2x2,
+    // 3x3, 4x4, OH, BLD, Pyraminx, Skewb, Clock, MBLD, Square-1) a random-moves
+    // scramble is NOT a valid WCA scramble even though it "looks" fine — this was
+    // exactly the bug reported for 2x2 (and the earlier Square-1 issue). So those
+    // events get NO local fallback: if cubing.js can't be reached, we tell the
+    // user to retry instead of quietly handing them a non-compliant scramble.
     const FALLBACK_SCRAMBLERS = {
-      "222": () => cubeScramble(["U", "R", "F"], randInt(9, 11), null, false),
-      "333": () => cubeScramble(["U", "D", "L", "R", "F", "B"], 20, null, true),
-      "444": () => cubeScramble(["U", "D", "L", "R", "F", "B"], randInt(40, 45), "simple", true),
-      "444bf": () => cubeScramble(["U", "D", "L", "R", "F", "B"], randInt(40, 45), "simple", true),
       "555": () => cubeScramble(["U", "D", "L", "R", "F", "B"], 60, "simple", true),
       "555bf": () => cubeScramble(["U", "D", "L", "R", "F", "B"], 60, "simple", true),
       "666": () => cubeScramble(["U", "D", "L", "R", "F", "B"], 80, "deep", true),
       "777": () => cubeScramble(["U", "D", "L", "R", "F", "B"], 100, "deep", true),
-      "333oh": () => cubeScramble(["U", "D", "L", "R", "F", "B"], 20, null, true),
-      "333bf": () => cubeScramble(["U", "D", "L", "R", "F", "B"], 20, null, true),
-      "333mbf": () => mbldScramble(3),
-      "pyram": pyraminxScramble,
-      "skewb": skewbScramble,
-      "clock": clockScramble,
       "minx": megaminxScramble,
-      "fto": ftoScramble,
-      // sq1 and 333fm intentionally have NO fallback — there's no safe way to fake
-      // a valid Square-1 slice sequence or an FMC scramble locally, so on repeated
-      // failure we ask the user to retry instead of feeding the cube a broken scramble.
+      "fto": ftoScramble, // not an official WCA event, so no regulation applies — safe to keep
     };
 
     // All 18 events: always use cubing.js for true WCA-legal random-state scrambles.
@@ -368,7 +440,6 @@
     const zone = document.getElementById("timer-zone");
     const display = document.getElementById("timer-display");
     const hint = document.getElementById("timer-hint");
-    const inspectionToggle = document.getElementById("inspection-toggle");
 
     let state = "idle"; // idle | inspecting | holding | ready | running
     let holdStartAt = 0;
@@ -410,7 +481,7 @@
       if (state === "running") { stopTimer(); return; }
       if (state !== "idle") return; // already holding/inspecting
 
-      if (inspectionToggle.checked) {
+      if (settings.inspection) {
         state = "inspecting";
         inspectionStartAt = performance.now();
         setZoneState(null);
@@ -444,7 +515,7 @@
       if (state === "ready") {
         // compute inspection penalty if applicable
         pendingPenalty = null;
-        if (inspectionToggle.checked && inspectionInterval) {
+        if (settings.inspection && inspectionInterval) {
           const elapsed = (performance.now() - inspectionStartAt) / 1000;
           if (elapsed > 17) pendingPenalty = "DNF";
           else if (elapsed > 15) pendingPenalty = "+2";
@@ -484,14 +555,19 @@
       setZoneState(null);
       hint.textContent = "Hold SPACE (or press & hold here on mobile) to start";
 
-      addSolve({
+      const prevBest = currentBestMs();
+      const newSolve = {
         ms: Math.round(elapsed),
         penalty: pendingPenalty,
         scramble: scrambleTextEl.textContent,
         at: new Date().toISOString()
-      });
+      };
+      addSolve(newSolve);
       pendingPenalty = null;
-      showPostSolvePanel();
+
+      const newMs = solveEffectiveMs(newSolve);
+      const isPb = newMs !== Infinity && (prevBest === null || newMs < prevBest);
+      showPostSolvePanel(isPb ? newSolve : null);
       getNewScramble();
     }
 
@@ -499,11 +575,18 @@
     // Post-solve penalty panel (OK / +2 / DNF)
     // ==========================================================
     const postSolvePanel = document.getElementById("post-solve-panel");
+    const postSolveShareBtn = document.getElementById("post-solve-share-btn");
     let postSolveHideTimeout = null;
 
-    function showPostSolvePanel() {
+    function showPostSolvePanel(pbSolve) {
       postSolvePanel.classList.remove("hidden");
       postSolvePanel.classList.add("flex");
+      if (pbSolve) {
+        postSolveShareBtn.classList.remove("hidden");
+        postSolveShareBtn.onclick = () => openShareModal(buildShareText(pbSolve));
+      } else {
+        postSolveShareBtn.classList.add("hidden");
+      }
       clearTimeout(postSolveHideTimeout);
       postSolveHideTimeout = setTimeout(hidePostSolvePanel, 8000);
     }
@@ -561,8 +644,6 @@
     // ==========================================================
     let typeMode = false;
     const typeInput = document.getElementById("type-time-input");
-    const typeModeBtn = document.getElementById("toggle-type-mode-btn");
-    const inspectionLabel = document.getElementById("inspection-label");
 
     function setTypeMode(on) {
       typeMode = on;
@@ -571,8 +652,6 @@
         display.classList.add("hidden");
         typeInput.classList.remove("hidden");
         manualBtn.classList.add("hidden");
-        inspectionLabel.classList.add("hidden");
-        typeModeBtn.textContent = "⏱️ Use Stopwatch instead";
         typeInput.value = "";
         hint.textContent = "Type digits (e.g. 1234 → 12.34, 10345 → 1:03.45) and press Enter. Type dnf for a DNF.";
         setZoneState(null);
@@ -581,13 +660,10 @@
         display.classList.remove("hidden");
         typeInput.classList.add("hidden");
         manualBtn.classList.remove("hidden");
-        inspectionLabel.classList.remove("hidden");
-        typeModeBtn.textContent = "⌨️ Type a time instead";
         hint.textContent = "Hold SPACE (or press & hold here on mobile) to start";
       }
     }
-    typeModeBtn.addEventListener("click", () => setTypeMode(!typeMode));
-                                
+
     // Turns a raw digit string into a live-formatted time, e.g. "1234" -> "12.34", "10345" -> "1:03.45"
     function digitsToTimeString(digits) {
       digits = digits.replace(/\D/g, "");
@@ -602,7 +678,7 @@
         return `${parseInt(minPart, 10)}:${sec}.${cs}`;
       }
       return `${parseInt(sec, 10)}.${cs}`;
-    }                                                                                                  
+    }
 
     typeInput.addEventListener("input", () => {
       const raw = typeInput.value;
@@ -641,12 +717,17 @@
         setTimeout(() => typeInput.classList.remove("ring-2"), 400);
         return;
       }
-      addSolve({
+      const prevBest = currentBestMs();
+      const newSolve = {
         ms: parsed.ms,
         penalty: parsed.penalty,
         scramble: scrambleTextEl.textContent,
         at: new Date().toISOString()
-      });
+      };
+      addSolve(newSolve);
+      const newMs = solveEffectiveMs(newSolve);
+      const isPb = newMs !== Infinity && (prevBest === null || newMs < prevBest);
+      showPostSolvePanel(isPb ? newSolve : null);
       typeInput.value = "";
       getNewScramble();
     }
@@ -661,6 +742,30 @@
       if (solve.penalty === "DNF") return Infinity;
       if (solve.penalty === "+2") return solve.ms + 2000;
       return solve.ms;
+    }
+    function currentBestMs() {
+      const valid = loadSolves().map(solveEffectiveMs).filter(v => v !== Infinity);
+      return valid.length ? Math.min(...valid) : null;
+    }
+    // Which solves (by index in the newest-first array) were a PB at the time they were set
+    function computePbFlags(solves) {
+      const flags = new Array(solves.length).fill(false);
+      let runningBest = Infinity;
+      for (let i = solves.length - 1; i >= 0; i--) {
+        const ms = solveEffectiveMs(solves[i]);
+        if (ms !== Infinity && ms < runningBest) {
+          runningBest = ms;
+          flags[i] = true;
+        }
+      }
+      return flags;
+    }
+    function buildShareText(solve) {
+      const d = new Date(solve.at);
+      const dateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+      const timeStr = solveDisplay(solve);
+      const eventLabel = (EVENTS.find(e => e.id === currentEvent) || {}).label || currentEvent;
+      return `Generated By Twist & Turn on ${dateStr}\n${eventLabel}: ${timeStr}\nTime List:\n1. ${timeStr}   ${solve.scramble}`;
     }
     function solveDisplay(solve) {
       if (solve.penalty === "DNF") return "DNF";
@@ -700,6 +805,7 @@
         listEl.innerHTML = `<p class="p-6 text-center text-sm" style="color:var(--ink-muted);">No solves yet — do your first solve!</p>`;
         return;
       }
+      const pbFlags = computePbFlags(solves);
       listEl.innerHTML = solves.map((s, i) => {
         const n = solves.length - i;
         return `
@@ -707,9 +813,11 @@
           <div class="flex items-center gap-3 min-w-0">
             <span class="font-mono text-xs w-6 text-right flex-shrink-0" style="color:var(--ink-muted);">${n}</span>
             <span class="font-mono font-bold text-base flex-shrink-0" style="${s.penalty === "DNF" ? "color:var(--cube-red);" : ""}">${solveDisplay(s)}</span>
+            ${pbFlags[i] ? `<span class="text-xs flex-shrink-0" title="Personal best at the time">🏆</span>` : ""}
             <span class="font-mono text-xs truncate hidden sm:inline" style="color:var(--ink-muted);" title="${s.scramble}">${s.scramble}</span>
           </div>
           <div class="solve-actions flex items-center gap-1 flex-shrink-0">
+            <button data-i="${i}" class="share-btn text-xs px-2 py-1 rounded" style="color:var(--cube-blue); border:1px solid rgba(255,255,255,0.1);">📤</button>
             <button data-i="${i}" class="penalty-btn text-xs px-2 py-1 rounded" style="color:var(--ink-muted); border:1px solid rgba(255,255,255,0.1);">+2/DNF</button>
             <button data-i="${i}" class="delete-btn text-xs px-2 py-1 rounded" style="color:var(--cube-red); border:1px solid rgba(255,255,255,0.1);">✕</button>
           </div>
@@ -717,6 +825,7 @@
       }).join("");
       listEl.querySelectorAll(".penalty-btn").forEach(b => b.addEventListener("click", () => cyclePenalty(parseInt(b.dataset.i))));
       listEl.querySelectorAll(".delete-btn").forEach(b => b.addEventListener("click", () => deleteSolve(parseInt(b.dataset.i))));
+      listEl.querySelectorAll(".share-btn").forEach(b => b.addEventListener("click", () => openShareModal(buildShareText(solves[parseInt(b.dataset.i)]))));
     }
 
     function average(msArray) {
@@ -739,19 +848,24 @@
       const best = valid.length ? Math.min(...valid) : null;
       document.getElementById("stat-best").textContent = best != null ? fmt(best) : "—";
 
-      function renderAvg(id, n) {
-        const el = document.getElementById(id);
-        if (solves.length < n) { el.textContent = "—"; return; }
-        const last = solves.slice(0, n).map(solveEffectiveMs);
-        const avg = average(last);
-        el.textContent = avg === "DNF" ? "DNF" : avg == null ? "—" : fmt(avg);
-      }
-      renderAvg("stat-ao5", 5);
-      renderAvg("stat-ao12", 12);
-
       const meanEl = document.getElementById("stat-mean");
       if (valid.length === 0) meanEl.textContent = "—";
       else meanEl.textContent = fmt(valid.reduce((a, b) => a + b, 0) / valid.length);
+
+      const avgsGrid = document.getElementById("stat-avgs-grid");
+      const avgs = [...settings.avgs].sort((a, b) => a - b);
+      avgsGrid.innerHTML = avgs.map(n => {
+        let text = "—";
+        if (solves.length >= n) {
+          const last = solves.slice(0, n).map(solveEffectiveMs);
+          const avg = average(last);
+          text = avg === "DNF" ? "DNF" : avg == null ? "—" : fmt(avg);
+        }
+        return `<div class="surface-card rounded-xl p-3 text-center w-24">
+          <p class="font-mono text-[10px] uppercase tracking-widest" style="color:var(--ink-muted);">Ao${n}</p>
+          <p class="font-display font-bold text-lg mt-1">${text}</p>
+        </div>`;
+      }).join("");
     }
 
     document.getElementById("clear-session-btn").addEventListener("click", () => {
@@ -762,8 +876,135 @@
     });
 
     // ==========================================================
+    // Settings
+    // ==========================================================
+    const SETTINGS_KEY = "tt-timer-settings";
+    const DEFAULT_SETTINGS = { manualMode: false, inspection: false, theme: "dark", avgs: [5, 12] };
+    function loadSettings() {
+      try { return { ...DEFAULT_SETTINGS, ...JSON.parse(localStorage.getItem(SETTINGS_KEY)) }; }
+      catch { return { ...DEFAULT_SETTINGS }; }
+    }
+    function saveSettings(s) { localStorage.setItem(SETTINGS_KEY, JSON.stringify(s)); }
+    let settings = loadSettings();
+
+    function applyTheme(theme) {
+      document.documentElement.setAttribute("data-theme", theme);
+      document.querySelectorAll(".theme-btn").forEach(b => {
+        const active = b.dataset.themeBtn === theme;
+        b.style.background = active ? "var(--cube-blue)" : "var(--bg-base)";
+        b.style.color = active ? "#fff" : "var(--ink-muted)";
+        b.style.border = active ? "none" : "1px solid rgba(255,255,255,0.1)";
+      });
+    }
+    document.querySelectorAll(".theme-btn").forEach(b => {
+      b.addEventListener("click", () => {
+        settings.theme = b.dataset.themeBtn;
+        saveSettings(settings);
+        applyTheme(settings.theme);
+      });
+    });
+
+    const settingsBtn = document.getElementById("settings-btn");
+    const settingsDrawer = document.getElementById("settings-drawer");
+    const settingsBackdrop = document.getElementById("settings-backdrop");
+    const settingsCloseBtn = document.getElementById("settings-close-btn");
+    function openSettings() { settingsBackdrop.classList.remove("hidden"); settingsDrawer.style.transform = "translateX(0)"; }
+    function closeSettings() { settingsBackdrop.classList.add("hidden"); settingsDrawer.style.transform = "translateX(100%)"; }
+    settingsBtn.addEventListener("click", openSettings);
+    settingsCloseBtn.addEventListener("click", closeSettings);
+    settingsBackdrop.addEventListener("click", closeSettings);
+
+    const settingManual = document.getElementById("setting-manual");
+    const settingInspection = document.getElementById("setting-inspection");
+    settingManual.checked = settings.manualMode;
+    settingInspection.checked = settings.inspection;
+    settingManual.addEventListener("change", () => {
+      if (state !== "idle") { settingManual.checked = settings.manualMode; return; } // don't switch mid-solve
+      settings.manualMode = settingManual.checked;
+      saveSettings(settings);
+      setTypeMode(settings.manualMode);
+    });
+    settingInspection.addEventListener("change", () => {
+      settings.inspection = settingInspection.checked;
+      saveSettings(settings);
+    });
+
+    document.querySelectorAll(".avg-toggle").forEach(cb => {
+      const n = parseInt(cb.dataset.avg, 10);
+      cb.checked = settings.avgs.includes(n);
+      cb.addEventListener("change", () => {
+        if (cb.checked) { if (!settings.avgs.includes(n)) settings.avgs.push(n); }
+        else { settings.avgs = settings.avgs.filter(v => v !== n); }
+        saveSettings(settings);
+        renderStats();
+      });
+    });
+
+    // ==========================================================
+    // Fullscreen practice mode
+    // ==========================================================
+    const fsBtn = document.getElementById("fullscreen-btn");
+    async function enterFullscreen() {
+      try { await document.documentElement.requestFullscreen(); } catch (e) { /* fullscreen API may be blocked — CSS focus mode still applies */ }
+      document.body.classList.add("fs-active");
+      fsBtn.textContent = "✕";
+      fsBtn.title = "Exit Fullscreen";
+    }
+    async function exitFullscreen() {
+      if (document.fullscreenElement) { try { await document.exitFullscreen(); } catch (e) { } }
+      document.body.classList.remove("fs-active");
+      fsBtn.textContent = "⛶";
+      fsBtn.title = "Fullscreen";
+    }
+    fsBtn.addEventListener("click", () => {
+      document.body.classList.contains("fs-active") ? exitFullscreen() : enterFullscreen();
+    });
+    document.addEventListener("fullscreenchange", () => {
+      if (!document.fullscreenElement) { document.body.classList.remove("fs-active"); fsBtn.textContent = "⛶"; fsBtn.title = "Fullscreen"; }
+    });
+
+    // ==========================================================
+    // Share modal
+    // ==========================================================
+    const shareBackdrop = document.getElementById("share-backdrop");
+    const sharePreview = document.getElementById("share-preview");
+    const shareNativeBtn = document.getElementById("share-native-btn");
+    const shareWhatsappBtn = document.getElementById("share-whatsapp-btn");
+    const shareCopyBtn = document.getElementById("share-copy-btn");
+    let currentShareText = "";
+
+    function openShareModal(text) {
+      currentShareText = text;
+      sharePreview.textContent = text;
+      shareWhatsappBtn.href = "https://wa.me/?text=" + encodeURIComponent(text);
+      shareNativeBtn.classList.toggle("hidden", !navigator.share);
+      shareBackdrop.classList.remove("hidden");
+      shareBackdrop.classList.add("flex");
+    }
+    function closeShareModal() {
+      shareBackdrop.classList.add("hidden");
+      shareBackdrop.classList.remove("flex");
+    }
+    document.getElementById("share-close-btn").addEventListener("click", closeShareModal);
+    shareBackdrop.addEventListener("click", (e) => { if (e.target === shareBackdrop) closeShareModal(); });
+    shareNativeBtn.addEventListener("click", async () => {
+      try { await navigator.share({ text: currentShareText }); } catch (e) { /* user cancelled or unsupported — ignore */ }
+    });
+    shareCopyBtn.addEventListener("click", async () => {
+      try {
+        await navigator.clipboard.writeText(currentShareText);
+        shareCopyBtn.textContent = "✅ Copied";
+      } catch (e) {
+        shareCopyBtn.textContent = "⚠️ Failed";
+      }
+      setTimeout(() => { shareCopyBtn.textContent = "📋 Copy"; }, 1500);
+    });
+
+    // ==========================================================
     // Init
     // ==========================================================
+    applyTheme(settings.theme);
+    setTypeMode(settings.manualMode);
     renderTabs();
     renderSolves();
     renderStats();
