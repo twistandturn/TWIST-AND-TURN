@@ -53,20 +53,7 @@
   html[data-theme="light"] .btn-ghost{ border-color:rgba(0,0,0,0.15); color:#5B6070; }
   html[data-theme="light"] .btn-ghost:hover{ color:#15171C; border-color:rgba(0,0,0,0.3); }
   html[data-theme="light"] .event-tab:not(.active){ background:#fff !important; border-color:rgba(0,0,0,0.1) !important; }
-  html[data-theme="light"] #site-nav{ background:rgba(244,243,239,0.92); }
   html[data-theme="light"] .toggle-switch-input{ background:rgba(0,0,0,0.15); }
-
-  /* ---------- Nav ---------- */
-  #site-nav{ background:rgba(16,18,24,0.92); backdrop-filter:blur(8px); }
-
-  /* ---------- Fullscreen practice mode ---------- */
-  body.fs-active #brand-title, body.fs-active #home-link{ display:none; }
-  body.fs-active #page-intro{ display:none; }
-  body.fs-active main{ max-width:100%; }
-  body.fs-active #timer-zone{ min-height:58vh; display:flex; flex-direction:column; justify-content:center; }
-  body.fs-active #timer-display{ font-size:clamp(4rem, 17vw, 11rem); }
-  body.fs-active #type-time-input{ font-size:clamp(4rem, 17vw, 11rem) !important; }
-  body.fs-active #scramble-text{ font-size:1.4rem; }
 
   /* ---------- Toggle switches (settings) ---------- */
   .toggle-switch-input{ appearance:none; -webkit-appearance:none; width:42px; height:24px; background:rgba(255,255,255,0.15); border-radius:999px; position:relative; cursor:pointer; transition:background .15s ease; flex-shrink:0; }
@@ -75,89 +62,139 @@
   .toggle-switch-input:checked::before{ transform:translateX(18px); }
 
   #settings-drawer{ transition:transform .2s ease; }
+
+  /* ---------- cstimer-style shell ---------- */
+  html, body{ height:100%; }
+  .cs-shell{ display:flex; min-height:100vh; }
+  .cs-sidebar{
+    width:300px; flex-shrink:0; background:var(--bg-surface); border-right:1px solid rgba(255,255,255,0.06);
+    display:flex; flex-direction:column; height:100vh; position:sticky; top:0;
+  }
+  .cs-sidebar-header{ display:flex; align-items:center; justify-content:space-between; padding:0.9rem 1rem; border-bottom:1px solid rgba(255,255,255,0.06); }
+  .cs-icon-btn{ width:34px; height:34px; display:flex; align-items:center; justify-content:center; border-radius:8px; border:1px solid rgba(255,255,255,0.12); color:var(--ink-muted); font-size:0.95rem; flex-shrink:0; background:transparent; cursor:pointer; }
+  .cs-icon-btn:hover{ color:var(--ink); border-color:rgba(255,255,255,0.3); }
+  .cs-session-box{ padding:0.9rem 1rem; border-bottom:1px solid rgba(255,255,255,0.06); }
+  .cs-session-title{ font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:0.95rem; margin-bottom:0.6rem; }
+  .cs-current-best{ display:flex; gap:0; text-align:center; margin-bottom:0.6rem; border:1px solid rgba(255,255,255,0.08); border-radius:10px; overflow:hidden; }
+  .cs-current-best > div{ flex:1; padding:0.5rem 0.25rem; }
+  .cs-current-best > div:first-child{ border-right:1px solid rgba(255,255,255,0.08); }
+  .cs-summary-line{ font-family:'JetBrains Mono',monospace; font-size:0.75rem; color:var(--ink-muted); display:flex; justify-content:space-between; }
+  .cs-table-head{ display:grid; grid-template-columns:1.6rem minmax(3.4rem,1fr) 2.6rem 2.6rem 3.6rem; gap:0.35rem; padding:0.5rem 0.6rem; font-family:'JetBrains Mono',monospace; font-size:0.65rem; text-transform:uppercase; letter-spacing:0.05em; color:var(--ink-muted); border-bottom:1px solid rgba(255,255,255,0.06); position:sticky; top:0; background:var(--bg-surface); }
+  .cs-table-body{ flex:1; overflow-y:auto; }
+  .cs-solve-row{ display:grid; grid-template-columns:1.6rem minmax(3.4rem,1fr) 2.6rem 2.6rem 3.6rem; gap:0.35rem; align-items:center; padding:0.4rem 0.6rem; font-family:'JetBrains Mono',monospace; font-size:0.75rem; border-bottom:1px solid rgba(255,255,255,0.04); }
+  .cs-solve-row:hover{ background:rgba(255,255,255,0.03); }
+  .cs-solve-row .cs-del{ opacity:0; cursor:pointer; color:var(--cube-red); text-align:center; font-size:0.7rem; background:none; border:none; padding:0.1rem 0.15rem; }
+  .cs-solve-row:hover .cs-del{ opacity:1; }
+  @media (hover:none){ .cs-solve-row .cs-del{ opacity:1; } }
+  .cs-clear-btn{ margin:0.75rem; font-family:'JetBrains Mono',monospace; font-size:0.75rem; padding:0.5rem; border-radius:8px; border:1px solid rgba(255,255,255,0.12); color:var(--ink-muted); background:transparent; cursor:pointer; }
+  .cs-clear-btn:hover{ color:var(--cube-red); border-color:var(--cube-red); }
+
+  .cs-main{ flex:1; min-width:0; display:flex; flex-direction:column; }
+  .cs-topbar{ display:flex; align-items:center; gap:0.6rem; padding:0.6rem 1rem; border-bottom:1px solid rgba(255,255,255,0.06); }
+  .cs-event-select{ font-family:'Space Grotesk',sans-serif; font-weight:600; font-size:0.9rem; background:var(--bg-base); border:1px solid rgba(255,255,255,0.12); color:var(--ink); border-radius:8px; padding:0.45rem 0.7rem; }
+  .cs-event-select:focus{ outline:none; border-color:var(--cube-blue); }
+  .cs-scramble-bar{ background:rgba(47,111,224,0.08); border-bottom:1px solid rgba(255,255,255,0.06); padding:0.9rem 1.25rem; text-align:center; }
+  html[data-theme="light"] .cs-scramble-bar{ background:#FDEDEA; }
+  .cs-timer-wrap{ flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:1.5rem 1rem; text-align:center; }
+  .cs-below-avgs{ display:flex; gap:1.5rem; justify-content:center; flex-wrap:wrap; margin-top:0.75rem; font-family:'JetBrains Mono',monospace; }
+  .cs-below-avgs .cs-avg-label{ font-size:0.7rem; text-transform:uppercase; letter-spacing:0.05em; color:var(--ink-muted); }
+  .cs-below-avgs .cs-avg-value{ font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:1.15rem; }
+
+  body.fs-active .cs-sidebar{ display:none; }
+  body.fs-active #home-link{ display:none; }
+  body.fs-active #timer-display{ font-size:clamp(4rem, 17vw, 11rem); }
+  body.fs-active #type-time-input{ font-size:clamp(4rem, 17vw, 11rem) !important; }
+
+  @media (max-width: 860px){
+    .cs-shell{ flex-direction:column; }
+    .cs-sidebar{ width:100%; height:auto; position:static; max-height:38vh; order:2; border-right:none; border-top:1px solid rgba(255,255,255,0.06); }
+    .cs-main{ order:1; }
+    body.fs-active .cs-sidebar{ display:none; }
+  }
 </style>
 </head>
 <body class="min-h-screen">
 
-  <nav id="site-nav" class="sticky top-0 z-50 border-b border-white/5">
-    <div class="max-w-5xl mx-auto px-4 h-16 flex items-center justify-between">
-      <span id="brand-title" class="font-display font-bold text-xl cursor-pointer" onclick="window.location.href='index.html'">Twist &amp; Turn</span>
-      <div class="flex items-center gap-2">
-        <a id="home-link" href="index.html" class="font-mono text-sm px-4 py-2 rounded-lg" style="border:1px solid rgba(255,255,255,0.15); color:var(--ink-muted);">← Home</a>
-        <button id="settings-btn" type="button" class="btn-ghost w-10 h-10 flex items-center justify-center rounded-lg text-base" title="Settings">⚙️</button>
-        <button id="fullscreen-btn" type="button" class="btn-ghost w-10 h-10 flex items-center justify-center rounded-lg text-base" title="Fullscreen">⛶</button>
+  <div class="cs-shell">
+
+    <!-- SIDEBAR -->
+    <aside class="cs-sidebar">
+      <div class="cs-sidebar-header">
+        <span class="font-display font-bold text-base cursor-pointer" onclick="window.location.href='index.html'">Twist &amp; Turn</span>
+        <div class="flex items-center gap-1.5">
+          <a id="home-link" href="index.html" class="cs-icon-btn" title="Home">🏠</a>
+          <button id="settings-btn" type="button" class="cs-icon-btn" title="Settings">⚙️</button>
+          <button id="fullscreen-btn" type="button" class="cs-icon-btn" title="Fullscreen">⛶</button>
+        </div>
       </div>
-    </div>
-  </nav>
 
-  <main class="max-w-3xl mx-auto px-4 py-10">
-
-    <div id="page-intro">
-      <p class="font-mono text-xs tracking-widest uppercase mb-2 text-center" style="color:var(--ink-muted);">Practice</p>
-      <h1 class="font-display text-3xl font-bold mb-8 text-center">⏱️ Timer</h1>
-    </div>
-
-    <!-- Event tabs -->
-    <div id="event-tabs" class="flex flex-wrap gap-2 justify-center mb-6"></div>
-
-    <!-- Scramble -->
-    <div class="surface-card rounded-2xl p-5 md:p-6 mb-5">
-      <div class="flex items-center justify-between mb-3">
-        <p class="font-mono text-xs uppercase tracking-widest" style="color:var(--ink-muted);">WCA-style Scramble</p>
-        <button id="new-scramble-btn" class="btn-ghost text-xs px-3 py-1.5 rounded-lg">🔄 New</button>
+      <div class="cs-session-box">
+        <div class="cs-session-title">Session 1</div>
+        <div class="cs-current-best">
+          <div>
+            <p class="font-mono text-[10px] uppercase tracking-widest" style="color:var(--ink-muted);">current</p>
+            <p id="stat-current" class="font-display font-bold text-base mt-0.5">-</p>
+          </div>
+          <div>
+            <p class="font-mono text-[10px] uppercase tracking-widest" style="color:var(--ink-muted);">best</p>
+            <p id="stat-best" class="font-display font-bold text-base mt-0.5" style="color:var(--cube-green);">-</p>
+          </div>
+        </div>
+        <div class="cs-summary-line">
+          <span>solve: <span id="stat-count">0/0</span></span>
+          <span>mean: <span id="stat-mean">DNF</span></span>
+        </div>
       </div>
-      <p id="scramble-text" class="font-mono text-lg md:text-xl text-center leading-relaxed" style="letter-spacing:0.03em;">Loading…</p>
-    </div>
 
-    <!-- Timer zone -->
-    <div id="timer-zone" class="surface-card rounded-2xl py-14 px-4 text-center mb-4 select-none">
-      <div id="timer-display" class="font-mono">0.00</div>
-      <input id="type-time-input" type="text" inputmode="numeric" autocomplete="off" placeholder="0.00"
-        class="hidden w-full bg-transparent text-center font-mono font-bold outline-none"
-        style="font-size:clamp(3.2rem, 12vw, 7rem); line-height:1; letter-spacing:0.01em; color:var(--ink);">
-      <p id="timer-hint" class="text-sm mt-4" style="color:var(--ink-muted);">Hold SPACE (or press &amp; hold here on mobile) to start</p>
-
-      <!-- Post-solve penalty panel -->
-      <div id="post-solve-panel" class="hidden items-center justify-center gap-2 mt-5 flex-wrap">
-        <button data-p="ok" class="post-penalty-btn font-mono text-sm px-4 py-2 rounded-lg" style="background:rgba(34,163,92,0.15); color:var(--cube-green); border:1px solid rgba(34,163,92,0.4);">OK</button>
-        <button data-p="+2" class="post-penalty-btn font-mono text-sm px-4 py-2 rounded-lg" style="background:rgba(242,183,5,0.12); color:var(--cube-yellow); border:1px solid rgba(242,183,5,0.4);">+2</button>
-        <button data-p="dnf" class="post-penalty-btn font-mono text-sm px-4 py-2 rounded-lg" style="background:rgba(232,65,43,0.12); color:var(--cube-red); border:1px solid rgba(232,65,43,0.4);">DNF</button>
-        <button id="post-solve-share-btn" class="hidden font-mono text-sm px-4 py-2 rounded-lg" style="background:rgba(47,111,224,0.12); color:var(--cube-blue); border:1px solid rgba(47,111,224,0.4);">🎉 PB! Share</button>
+      <div class="cs-table-head">
+        <span>#</span><span>time</span><span>ao5</span><span>ao12</span><span></span>
       </div>
-    </div>
-
-    <!-- Controls -->
-    <div class="flex flex-wrap items-center justify-center gap-3 mb-6">
-      <button id="manual-start-btn" class="btn-primary px-6 py-2.5 rounded-lg">Start / Stop</button>
-    </div>
-
-    <!-- Stats -->
-    <div class="flex flex-wrap gap-3 mb-6 justify-center">
-      <div class="surface-card rounded-xl p-3 text-center w-24">
-        <p class="font-mono text-[10px] uppercase tracking-widest" style="color:var(--ink-muted);">Solves</p>
-        <p id="stat-count" class="font-display font-bold text-lg mt-1">0</p>
+      <div id="solve-list" class="cs-table-body">
+        <p class="p-6 text-center text-xs" style="color:var(--ink-muted);">No solves yet</p>
       </div>
-      <div class="surface-card rounded-xl p-3 text-center w-24">
-        <p class="font-mono text-[10px] uppercase tracking-widest" style="color:var(--ink-muted);">Best</p>
-        <p id="stat-best" class="font-display font-bold text-lg mt-1" style="color:var(--cube-green);">—</p>
-      </div>
-      <div class="surface-card rounded-xl p-3 text-center w-24">
-        <p class="font-mono text-[10px] uppercase tracking-widest" style="color:var(--ink-muted);">Mean</p>
-        <p id="stat-mean" class="font-display font-bold text-lg mt-1">—</p>
-      </div>
-      <div id="stat-avgs-grid" class="contents"></div>
-    </div>
+      <button id="clear-session-btn" class="cs-clear-btn">🗑️ Clear Session</button>
+    </aside>
 
-    <!-- Solve list -->
-    <div class="flex items-center justify-between mb-3">
-      <h2 class="font-display font-bold text-lg">Session</h2>
-      <button id="clear-session-btn" class="btn-ghost text-xs px-3 py-1.5 rounded-lg">🗑️ Clear Session</button>
-    </div>
-    <div id="solve-list" class="surface-card rounded-2xl overflow-hidden divide-y divide-white/5">
-      <p class="p-6 text-center text-sm" style="color:var(--ink-muted);">No solves yet — do your first solve!</p>
-    </div>
+    <!-- MAIN -->
+    <main class="cs-main">
+      <div class="cs-topbar">
+        <select id="event-select" class="cs-event-select"></select>
+        <div class="flex-1"></div>
+        <button id="new-scramble-btn" class="btn-ghost text-xs px-3 py-1.5 rounded-lg flex-shrink-0">🔄 New scramble</button>
+      </div>
 
-  </main>
+      <div class="cs-scramble-bar">
+        <p id="scramble-text" class="font-mono text-base md:text-lg leading-relaxed" style="letter-spacing:0.03em;">Loading…</p>
+      </div>
+
+      <div class="cs-timer-wrap">
+        <div id="timer-zone" class="select-none rounded-2xl py-8 px-6">
+          <div id="timer-display" class="font-mono">0.00</div>
+          <input id="type-time-input" type="text" inputmode="numeric" autocomplete="off" placeholder="0.00"
+            class="hidden w-full bg-transparent text-center font-mono font-bold outline-none"
+            style="font-size:clamp(3.2rem, 12vw, 7rem); line-height:1; letter-spacing:0.01em; color:var(--ink);">
+          <p id="timer-hint" class="text-sm mt-4" style="color:var(--ink-muted);">Hold SPACE (or press &amp; hold here on mobile) to start</p>
+        </div>
+
+        <div class="text-center px-4">
+          <div id="below-timer-avgs" class="cs-below-avgs"></div>
+
+          <!-- Post-solve penalty panel -->
+          <div id="post-solve-panel" class="hidden items-center justify-center gap-2 mt-5 flex-wrap">
+            <button data-p="ok" class="post-penalty-btn font-mono text-sm px-4 py-2 rounded-lg" style="background:rgba(34,163,92,0.15); color:var(--cube-green); border:1px solid rgba(34,163,92,0.4);">OK</button>
+            <button data-p="+2" class="post-penalty-btn font-mono text-sm px-4 py-2 rounded-lg" style="background:rgba(242,183,5,0.12); color:var(--cube-yellow); border:1px solid rgba(242,183,5,0.4);">+2</button>
+            <button data-p="dnf" class="post-penalty-btn font-mono text-sm px-4 py-2 rounded-lg" style="background:rgba(232,65,43,0.12); color:var(--cube-red); border:1px solid rgba(232,65,43,0.4);">DNF</button>
+            <button id="post-solve-share-btn" class="hidden font-mono text-sm px-4 py-2 rounded-lg" style="background:rgba(47,111,224,0.12); color:var(--cube-blue); border:1px solid rgba(47,111,224,0.4);">🎉 PB! Share</button>
+          </div>
+
+          <div class="mt-6">
+            <button id="manual-start-btn" class="btn-primary px-6 py-2.5 rounded-lg">Start / Stop</button>
+          </div>
+        </div>
+      </div>
+    </main>
+
+  </div>
 
   <!-- Settings drawer -->
   <div id="settings-backdrop" class="hidden fixed inset-0 z-[70]" style="background:rgba(0,0,0,0.5);"></div>
@@ -243,25 +280,20 @@
     let currentEvent = localStorage.getItem("tt-timer-event") || "333";
     if (!EVENTS.some(e => e.id === currentEvent)) currentEvent = "333";
 
-    const tabsEl = document.getElementById("event-tabs");
+    const eventSelectEl = document.getElementById("event-select");
     function renderTabs() {
-      tabsEl.innerHTML = EVENTS.map(ev => `
-        <button type="button" data-ev="${ev.id}" class="event-tab text-sm px-4 py-2 rounded-full transition-colors ${ev.id === currentEvent ? "active" : ""}"
-          style="${ev.id === currentEvent ? `background:${ev.color};` : "background:var(--bg-surface); color:var(--ink-muted); border:1px solid rgba(255,255,255,0.1);"}">
-          ${ev.label}
-        </button>`).join("");
-      tabsEl.querySelectorAll(".event-tab").forEach(btn => {
-        btn.addEventListener("click", () => {
-          if (state !== "idle") return; // don't switch mid-solve
-          currentEvent = btn.dataset.ev;
-          localStorage.setItem("tt-timer-event", currentEvent);
-          renderTabs();
-          renderSolves();
-          renderStats();
-          getNewScramble();
-        });
-      });
+      eventSelectEl.innerHTML = EVENTS.map(ev =>
+        `<option value="${ev.id}" ${ev.id === currentEvent ? "selected" : ""}>${ev.label}</option>`
+      ).join("");
     }
+    eventSelectEl.addEventListener("change", () => {
+      if (state !== "idle") { eventSelectEl.value = currentEvent; return; } // don't switch mid-solve
+      currentEvent = eventSelectEl.value;
+      localStorage.setItem("tt-timer-event", currentEvent);
+      renderSolves();
+      renderStats();
+      getNewScramble();
+    });
 
     // ==========================================================
     // Scramble
@@ -802,25 +834,31 @@
       const solves = loadSolves();
       const listEl = document.getElementById("solve-list");
       if (solves.length === 0) {
-        listEl.innerHTML = `<p class="p-6 text-center text-sm" style="color:var(--ink-muted);">No solves yet — do your first solve!</p>`;
+        listEl.innerHTML = `<p class="p-6 text-center text-xs" style="color:var(--ink-muted);">No solves yet</p>`;
         return;
       }
       const pbFlags = computePbFlags(solves);
       listEl.innerHTML = solves.map((s, i) => {
         const n = solves.length - i;
+        // Running ao5/ao12 as of this solve: this solve + the (up to) 4/11 solves right after it in the array (i.e. the ones right before it chronologically, since index 0 = newest)
+        const ao5win = solves.slice(i, i + 5).map(solveEffectiveMs);
+        const ao12win = solves.slice(i, i + 12).map(solveEffectiveMs);
+        const ao5 = ao5win.length === 5 ? average(ao5win) : null;
+        const ao12 = ao12win.length === 12 ? average(ao12win) : null;
+        const fmtAvg = v => v == null ? "-" : v === "DNF" ? "DNF" : fmt(v);
         return `
-        <div class="solve-row flex items-center justify-between px-4 py-3 gap-3">
-          <div class="flex items-center gap-3 min-w-0">
-            <span class="font-mono text-xs w-6 text-right flex-shrink-0" style="color:var(--ink-muted);">${n}</span>
-            <span class="font-mono font-bold text-base flex-shrink-0" style="${s.penalty === "DNF" ? "color:var(--cube-red);" : ""}">${solveDisplay(s)}</span>
-            ${pbFlags[i] ? `<span class="text-xs flex-shrink-0" title="Personal best at the time">🏆</span>` : ""}
-            <span class="font-mono text-xs truncate hidden sm:inline" style="color:var(--ink-muted);" title="${s.scramble}">${s.scramble}</span>
-          </div>
-          <div class="solve-actions flex items-center gap-1 flex-shrink-0">
-            <button data-i="${i}" class="share-btn text-xs px-2 py-1 rounded" style="color:var(--cube-blue); border:1px solid rgba(255,255,255,0.1);">📤</button>
-            <button data-i="${i}" class="penalty-btn text-xs px-2 py-1 rounded" style="color:var(--ink-muted); border:1px solid rgba(255,255,255,0.1);">+2/DNF</button>
-            <button data-i="${i}" class="delete-btn text-xs px-2 py-1 rounded" style="color:var(--cube-red); border:1px solid rgba(255,255,255,0.1);">✕</button>
-          </div>
+        <div class="cs-solve-row" title="${s.scramble}">
+          <span style="color:var(--ink-muted);">${n}</span>
+          <span class="truncate flex items-center gap-1" style="${s.penalty === "DNF" ? "color:var(--cube-red);" : ""}">
+            ${solveDisplay(s)}${pbFlags[i] ? ` <span title="Personal best at the time">🏆</span>` : ""}
+          </span>
+          <span style="color:var(--ink-muted);">${fmtAvg(ao5)}</span>
+          <span style="color:var(--ink-muted);">${fmtAvg(ao12)}</span>
+          <span class="flex items-center gap-1">
+            <button data-i="${i}" class="share-btn cs-del" style="color:var(--cube-blue);" title="Share">📤</button>
+            <button data-i="${i}" class="penalty-btn cs-del" style="color:var(--ink-muted);" title="+2 / DNF">⚑</button>
+            <button data-i="${i}" class="delete-btn cs-del" title="Delete">✕</button>
+          </span>
         </div>`;
       }).join("");
       listEl.querySelectorAll(".penalty-btn").forEach(b => b.addEventListener("click", () => cyclePenalty(parseInt(b.dataset.i))));
@@ -842,29 +880,28 @@
 
     function renderStats() {
       const solves = loadSolves();
-      document.getElementById("stat-count").textContent = solves.length;
+      const validCount = solves.filter(s => s.penalty !== "DNF").length;
+      document.getElementById("stat-count").textContent = `${validCount}/${solves.length}`;
+
+      document.getElementById("stat-current").textContent = solves.length ? solveDisplay(solves[0]) : "-";
 
       const valid = solves.map(solveEffectiveMs).filter(v => v !== Infinity);
       const best = valid.length ? Math.min(...valid) : null;
-      document.getElementById("stat-best").textContent = best != null ? fmt(best) : "—";
+      document.getElementById("stat-best").textContent = best != null ? fmt(best) : "-";
 
       const meanEl = document.getElementById("stat-mean");
-      if (valid.length === 0) meanEl.textContent = "—";
-      else meanEl.textContent = fmt(valid.reduce((a, b) => a + b, 0) / valid.length);
+      meanEl.textContent = valid.length === 0 ? "DNF" : fmt(valid.reduce((a, b) => a + b, 0) / valid.length);
 
-      const avgsGrid = document.getElementById("stat-avgs-grid");
-      const avgs = [...settings.avgs].sort((a, b) => a - b);
-      avgsGrid.innerHTML = avgs.map(n => {
-        let text = "—";
+      const avgsEl = document.getElementById("below-timer-avgs");
+      const avgs = [5, 12, ...settings.avgs.filter(n => n !== 5 && n !== 12)].sort((a, b) => a - b);
+      avgsEl.innerHTML = avgs.map(n => {
+        let text = "-";
         if (solves.length >= n) {
           const last = solves.slice(0, n).map(solveEffectiveMs);
           const avg = average(last);
-          text = avg === "DNF" ? "DNF" : avg == null ? "—" : fmt(avg);
+          text = avg === "DNF" ? "DNF" : avg == null ? "-" : fmt(avg);
         }
-        return `<div class="surface-card rounded-xl p-3 text-center w-24">
-          <p class="font-mono text-[10px] uppercase tracking-widest" style="color:var(--ink-muted);">Ao${n}</p>
-          <p class="font-display font-bold text-lg mt-1">${text}</p>
-        </div>`;
+        return `<div><span class="cs-avg-label">Ao${n}: </span><span class="cs-avg-value">${text}</span></div>`;
       }).join("");
     }
 
