@@ -145,7 +145,12 @@
       </div>
 
       <div class="cs-session-box">
-        <div class="cs-session-title">Session 1</div>
+        <div class="cs-session-title" style="display:flex; align-items:center; gap:0.35rem; margin-bottom:0.6rem;">
+          <select id="session-select" class="field text-sm rounded-md" style="flex:1; min-width:0; padding:0.35rem 0.4rem; font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:0.9rem;"></select>
+          <button id="session-rename-btn" type="button" class="cs-icon-btn" style="width:28px;height:28px;font-size:0.7rem;flex-shrink:0;" title="Rename session">✏️</button>
+          <button id="session-add-btn" type="button" class="cs-icon-btn" style="width:28px;height:28px;font-size:0.8rem;flex-shrink:0;" title="New session">➕</button>
+          <button id="session-delete-btn" type="button" class="cs-icon-btn" style="width:28px;height:28px;font-size:0.7rem;flex-shrink:0;" title="Delete session">🗑️</button>
+        </div>
         <div class="cs-current-best">
           <div>
             <p class="font-mono text-[10px] uppercase tracking-widest" style="color:var(--ink-muted);">current</p>
@@ -160,6 +165,7 @@
         <div class="cs-summary-line">
           <span>solve: <span id="stat-count">0/0</span></span>
           <span>mean: <span id="stat-mean">DNF</span></span>
+          <span>σ: <span id="stat-stddev">-</span></span>
         </div>
       </div>
 
@@ -170,6 +176,7 @@
         <p class="p-6 text-center text-xs" style="color:var(--ink-muted);">No solves yet</p>
       </div>
       <button id="clear-session-btn" class="cs-clear-btn">🗑️ Clear Session</button>
+      <p class="font-mono text-center px-3 pb-3" style="font-size:0.65rem; color:var(--ink-muted); margin-top:-0.5rem;">⌫ delete last · 2 flag +2 · D flag DNF</p>
     </aside>
 
     <!-- MAIN -->
@@ -186,6 +193,8 @@
 
       <div class="cs-scramble-bar">
         <p id="scramble-text" class="font-mono text-base md:text-lg leading-relaxed" style="letter-spacing:0.03em;">Loading…</p>
+        <twisty-player id="scramble-preview" visualization="2D" background="none" control-panel="none"
+          style="display:none; width:100%; max-width:220px; height:140px; margin:0.5rem auto 0;"></twisty-player>
       </div>
 
       <div class="cs-timer-wrap">
@@ -234,6 +243,10 @@
         <label class="flex items-center justify-between py-2">
           <span class="text-sm">15s WCA Inspection</span>
           <input type="checkbox" id="setting-inspection" class="toggle-switch-input">
+        </label>
+        <label class="flex items-center justify-between py-2">
+          <span class="text-sm">Scramble Image Preview</span>
+          <input type="checkbox" id="setting-preview" class="toggle-switch-input">
         </label>
       </div>
       <div>
@@ -287,6 +300,7 @@
 
   <script type="module">
     import { randomScrambleForEvent } from "https://cdn.cubing.net/v0/js/cubing/scramble";
+    import "https://cdn.cubing.net/v0/js/cubing/twisty"; // registers <twisty-player> for the scramble image preview
 
     // ==========================================================
     // Events
@@ -313,6 +327,16 @@
       { id: "fto", label: "FTO ⭐" },
     ].map((ev, i) => ({ ...ev, color: PALETTE[i % PALETTE.length] }));
 
+    // Maps our WCA event ids to the puzzle ids <twisty-player> understands.
+    // Events left out (333mbf has multiple scrambles at once, fto isn't a
+    // twisty-player puzzle) simply don't get an image preview.
+    const TWISTY_PUZZLE = {
+      "333": "3x3x3", "222": "2x2x2", "444": "4x4x4", "555": "5x5x5", "666": "6x6x6", "777": "7x7x7",
+      "333bf": "3x3x3", "333fm": "3x3x3", "333oh": "3x3x3",
+      "444bf": "4x4x4", "555bf": "5x5x5",
+      "clock": "clock", "minx": "megaminx", "pyram": "pyraminx", "skewb": "skewb", "sq1": "square1",
+    };
+
     let currentEvent = localStorage.getItem("tt-timer-event") || "333";
     if (!EVENTS.some(e => e.id === currentEvent)) currentEvent = "333";
 
@@ -326,6 +350,8 @@
       if (state !== "idle") { eventSelectEl.value = currentEvent; return; } // don't switch mid-solve
       currentEvent = eventSelectEl.value;
       localStorage.setItem("tt-timer-event", currentEvent);
+      currentSessionId = getActiveSessionId(currentEvent);
+      renderSessionSelect();
       renderSolves();
       renderStats();
       getNewScramble();
@@ -335,7 +361,24 @@
     // Scramble
     // ==========================================================
     const scrambleTextEl = document.getElementById("scramble-text");
+    const scramblePreviewEl = document.getElementById("scramble-preview");
     let scrambleLoading = false;
+
+    function updateScramblePreview(scrambleStr) {
+      const puzzle = TWISTY_PUZZLE[currentEvent];
+      if (!settings.showPreview || !puzzle || !scrambleStr || scrambleStr.includes("\n")) {
+        scramblePreviewEl.style.display = "none";
+        return;
+      }
+      try {
+        scramblePreviewEl.setAttribute("puzzle", puzzle);
+        scramblePreviewEl.setAttribute("alg", scrambleStr);
+        scramblePreviewEl.style.display = "block";
+      } catch (err) {
+        console.error("[preview] couldn't render scramble image:", err);
+        scramblePreviewEl.style.display = "none";
+      }
+    }
 
     // ---- generic helpers ----
     function randInt(min, maxIncl) { return min + Math.floor(Math.random() * (maxIncl - min + 1)); }
@@ -476,9 +519,11 @@
     async function getNewScramble() {
       scrambleLoading = true;
       scrambleTextEl.textContent = "Generating scramble…";
+      scramblePreviewEl.style.display = "none";
 
       if (LOCAL_PRIMARY_SCRAMBLERS[currentEvent]) {
         scrambleTextEl.textContent = LOCAL_PRIMARY_SCRAMBLERS[currentEvent]();
+        updateScramblePreview(scrambleTextEl.textContent);
         scrambleLoading = false;
         return;
       }
@@ -488,6 +533,7 @@
         try {
           const scramble = await randomScrambleForEvent(currentEvent);
           scrambleTextEl.textContent = scramble.toString();
+          updateScramblePreview(scrambleTextEl.textContent);
           scrambleLoading = false;
           return;
         } catch (err) {
@@ -502,6 +548,7 @@
       if (FALLBACK_SCRAMBLERS[currentEvent]) {
         try {
           scrambleTextEl.textContent = FALLBACK_SCRAMBLERS[currentEvent]();
+          updateScramblePreview(scrambleTextEl.textContent);
         } catch (err) {
           scrambleTextEl.textContent = `Couldn't generate a scramble — check your connection and hit "New".`;
         }
@@ -514,15 +561,111 @@
 
     // ==========================================================
     // Storage — solves are kept per event
+    // Solves are kept per event AND per session within that event.
     // ==========================================================
-    function storageKey(ev) { return "tt-timer-solves-" + ev; }
+    const SESSIONS_KEY = "tt-timer-sessions"; // { [eventId]: [{id, name}, ...] }
+    function escapeHtml(s) {
+      return String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+    }
+    function loadSessionsMap() {
+      try { return JSON.parse(localStorage.getItem(SESSIONS_KEY)) || {}; }
+      catch { return {}; }
+    }
+    function saveSessionsMap(map) { localStorage.setItem(SESSIONS_KEY, JSON.stringify(map)); }
+    // Guarantees every event has at least one session, creating "Session 1" the
+    // first time an event is touched.
+    function ensureSessionsForEvent(ev) {
+      const map = loadSessionsMap();
+      if (!map[ev] || map[ev].length === 0) {
+        map[ev] = [{ id: "s1", name: "Session 1" }];
+        saveSessionsMap(map);
+      }
+      return map[ev];
+    }
+    function activeSessionStorageKey(ev) { return "tt-timer-active-session-" + ev; }
+    function getActiveSessionId(ev) {
+      const sessions = ensureSessionsForEvent(ev);
+      let id = localStorage.getItem(activeSessionStorageKey(ev));
+      if (!id || !sessions.some(s => s.id === id)) id = sessions[0].id;
+      return id;
+    }
+    function setActiveSessionId(ev, id) { localStorage.setItem(activeSessionStorageKey(ev), id); }
+
+    let currentSessionId = getActiveSessionId(currentEvent);
+
+    function storageKey(ev, sessionId) { return "tt-timer-solves-" + ev + "-" + sessionId; }
     function loadSolves() {
-      try { return JSON.parse(localStorage.getItem(storageKey(currentEvent)) || "[]"); }
+      const key = storageKey(currentEvent, currentSessionId);
+      let raw = localStorage.getItem(key);
+      // One-time migration: solves saved before sessions existed lived under a
+      // plain per-event key. Bring them into Session 1 instead of losing them.
+      if (raw == null && currentSessionId === "s1") {
+        const legacy = localStorage.getItem("tt-timer-solves-" + currentEvent);
+        if (legacy != null) { raw = legacy; localStorage.setItem(key, legacy); }
+      }
+      try { return JSON.parse(raw || "[]"); }
       catch { return []; }
     }
     function saveSolves(solves) {
-      localStorage.setItem(storageKey(currentEvent), JSON.stringify(solves));
+      localStorage.setItem(storageKey(currentEvent, currentSessionId), JSON.stringify(solves));
     }
+
+    function renderSessionSelect() {
+      const sessions = ensureSessionsForEvent(currentEvent);
+      const sel = document.getElementById("session-select");
+      sel.innerHTML = sessions.map(s =>
+        `<option value="${s.id}" ${s.id === currentSessionId ? "selected" : ""}>${escapeHtml(s.name)}</option>`
+      ).join("");
+      document.getElementById("session-delete-btn").disabled = sessions.length <= 1;
+      document.getElementById("session-delete-btn").style.opacity = sessions.length <= 1 ? "0.35" : "1";
+    }
+    document.getElementById("session-select").addEventListener("change", (e) => {
+      if (state !== "idle") { e.target.value = currentSessionId; return; } // don't switch mid-solve
+      currentSessionId = e.target.value;
+      setActiveSessionId(currentEvent, currentSessionId);
+      renderSolves();
+      renderStats();
+    });
+    document.getElementById("session-add-btn").addEventListener("click", () => {
+      const sessions = ensureSessionsForEvent(currentEvent);
+      const name = prompt("New session name:", "Session " + (sessions.length + 1));
+      if (!name || !name.trim()) return;
+      const map = loadSessionsMap();
+      const id = "s" + Date.now();
+      map[currentEvent] = [...(map[currentEvent] || sessions), { id, name: name.trim().slice(0, 40) }];
+      saveSessionsMap(map);
+      currentSessionId = id;
+      setActiveSessionId(currentEvent, id);
+      renderSessionSelect();
+      renderSolves();
+      renderStats();
+    });
+    document.getElementById("session-rename-btn").addEventListener("click", () => {
+      const sessions = ensureSessionsForEvent(currentEvent);
+      const cur = sessions.find(s => s.id === currentSessionId);
+      const name = prompt("Rename session:", cur ? cur.name : "");
+      if (!name || !name.trim()) return;
+      const map = loadSessionsMap();
+      map[currentEvent] = (map[currentEvent] || sessions).map(s =>
+        s.id === currentSessionId ? { ...s, name: name.trim().slice(0, 40) } : s
+      );
+      saveSessionsMap(map);
+      renderSessionSelect();
+    });
+    document.getElementById("session-delete-btn").addEventListener("click", () => {
+      const sessions = ensureSessionsForEvent(currentEvent);
+      if (sessions.length <= 1) return; // always keep at least one session
+      if (!confirm("Delete this session and all its solves? This can't be undone.")) return;
+      localStorage.removeItem(storageKey(currentEvent, currentSessionId));
+      const map = loadSessionsMap();
+      map[currentEvent] = (map[currentEvent] || sessions).filter(s => s.id !== currentSessionId);
+      saveSessionsMap(map);
+      currentSessionId = map[currentEvent][0].id;
+      setActiveSessionId(currentEvent, currentSessionId);
+      renderSessionSelect();
+      renderSolves();
+      renderStats();
+    });
 
     // ==========================================================
     // Timer state machine
@@ -710,6 +853,31 @@
       if (isTypingInField()) return;
       e.preventDefault();
       endPress();
+    });
+
+    // Quick-edit shortcuts for the most recent solve — only active when the
+    // timer is idle (not holding/inspecting/running), so they never fight
+    // with the timing gesture.
+    function setLastSolvePenalty(penalty) {
+      const solves = loadSolves();
+      if (solves.length === 0) return;
+      solves[0].penalty = solves[0].penalty === penalty ? null : penalty; // press again to undo
+      saveSolves(solves);
+      renderSolves();
+      renderStats();
+    }
+    document.addEventListener("keydown", (e) => {
+      if (isTypingInField() || state !== "idle" || e.repeat) return;
+      if (e.code === "Backspace" || e.code === "Delete") {
+        const solves = loadSolves();
+        if (solves.length === 0) return;
+        e.preventDefault();
+        deleteSolve(0);
+      } else if (e.key === "2") {
+        setLastSolvePenalty("+2");
+      } else if (e.key === "d" || e.key === "D") {
+        setLastSolvePenalty("DNF");
+      }
     });
 
     // Touch / click on the zone itself
@@ -988,7 +1156,16 @@
       document.getElementById("stat-best").textContent = best != null ? fmt(best) : "-";
 
       const meanEl = document.getElementById("stat-mean");
-      meanEl.textContent = valid.length === 0 ? "DNF" : fmt(valid.reduce((a, b) => a + b, 0) / valid.length);
+      const meanMs = valid.length ? valid.reduce((a, b) => a + b, 0) / valid.length : null;
+      meanEl.textContent = valid.length === 0 ? "DNF" : fmt(meanMs);
+
+      const stddevEl = document.getElementById("stat-stddev");
+      if (valid.length < 2) {
+        stddevEl.textContent = "-";
+      } else {
+        const variance = valid.reduce((a, v) => a + (v - meanMs) ** 2, 0) / valid.length;
+        stddevEl.textContent = fmt(Math.sqrt(variance));
+      }
 
       // Ao5 / Ao12 stay right below the timer, each with its own share icon
       const belowEl = document.getElementById("below-timer-avgs");
@@ -1037,7 +1214,7 @@
     }
 
     document.getElementById("clear-session-btn").addEventListener("click", () => {
-      if (!confirm("Clear all solves for this event? This can't be undone.")) return;
+      if (!confirm("Clear all solves in this session? This can't be undone.")) return;
       saveSolves([]);
       renderSolves();
       renderStats();
@@ -1047,7 +1224,7 @@
     // Settings
     // ==========================================================
     const SETTINGS_KEY = "tt-timer-settings";
-    const DEFAULT_SETTINGS = { manualMode: false, inspection: false, theme: "dark", avgs: [5, 12] };
+    const DEFAULT_SETTINGS = { manualMode: false, inspection: false, theme: "dark", avgs: [5, 12], showPreview: true };
     function loadSettings() {
       try { return { ...DEFAULT_SETTINGS, ...JSON.parse(localStorage.getItem(SETTINGS_KEY)) }; }
       catch { return { ...DEFAULT_SETTINGS }; }
@@ -1095,6 +1272,14 @@
     settingInspection.addEventListener("change", () => {
       settings.inspection = settingInspection.checked;
       saveSettings(settings);
+    });
+
+    const settingPreview = document.getElementById("setting-preview");
+    settingPreview.checked = settings.showPreview;
+    settingPreview.addEventListener("change", () => {
+      settings.showPreview = settingPreview.checked;
+      saveSettings(settings);
+      updateScramblePreview(scrambleTextEl.textContent);
     });
 
     document.querySelectorAll(".avg-toggle").forEach(cb => {
@@ -1487,9 +1672,10 @@
     applyTheme(settings.theme);
     setTypeMode(settings.manualMode);
     renderTabs();
+    renderSessionSelect();
     renderSolves();
     renderStats();
     getNewScramble();
   </script>
 </body>
-</html>\
+</html>
