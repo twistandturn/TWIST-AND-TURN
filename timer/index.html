@@ -79,6 +79,10 @@
   .cs-current-best > div{ flex:1; padding:0.5rem 0.25rem; }
   .cs-current-best > div:first-child{ border-right:1px solid rgba(255,255,255,0.08); }
   .cs-summary-line{ font-family:'JetBrains Mono',monospace; font-size:0.75rem; color:var(--ink-muted); display:flex; justify-content:space-between; }
+  .cs-sidebar-avgs{ margin:0.4rem 0; }
+  .cs-sidebar-avg-row{ display:flex; align-items:center; justify-content:space-between; font-family:'JetBrains Mono',monospace; font-size:0.78rem; padding:0.25rem 0; }
+  .cs-avg-share-btn{ cursor:pointer; color:var(--cube-blue); background:none; border:none; font-size:0.75rem; padding:0.1rem 0.35rem; flex-shrink:0; }
+  .cs-below-avgs .cs-avg-share-btn{ font-size:0.85rem; margin-left:0.3rem; }
   .cs-table-head{ display:grid; grid-template-columns:1.6rem minmax(3.4rem,1fr) 2.6rem 2.6rem 3.6rem; gap:0.35rem; padding:0.5rem 0.6rem; font-family:'JetBrains Mono',monospace; font-size:0.65rem; text-transform:uppercase; letter-spacing:0.05em; color:var(--ink-muted); border-bottom:1px solid rgba(255,255,255,0.06); position:sticky; top:0; background:var(--bg-surface); }
   .cs-table-body{ flex:1; overflow-y:auto; }
   .cs-solve-row{ display:grid; grid-template-columns:1.6rem minmax(3.4rem,1fr) 2.6rem 2.6rem 3.6rem; gap:0.35rem; align-items:center; padding:0.4rem 0.6rem; font-family:'JetBrains Mono',monospace; font-size:0.75rem; border-bottom:1px solid rgba(255,255,255,0.04); }
@@ -152,6 +156,7 @@
             <p id="stat-best" class="font-display font-bold text-base mt-0.5" style="color:var(--cube-green);">-</p>
           </div>
         </div>
+        <div id="sidebar-extra-avgs" class="cs-sidebar-avgs"></div>
         <div class="cs-summary-line">
           <span>solve: <span id="stat-count">0/0</span></span>
           <span>mean: <span id="stat-mean">DNF</span></span>
@@ -241,6 +246,7 @@
       <div>
         <p class="font-mono text-xs uppercase tracking-widest mb-3" style="color:var(--ink-muted);">Extra Averages</p>
         <p class="text-xs mb-2" style="color:var(--ink-muted);">Ao5 and Ao12 always show. Turn on the ones you want tracked too:</p>
+        <label class="flex items-center justify-between py-2"><span class="text-sm">Ao50</span><input type="checkbox" data-avg="50" class="toggle-switch-input avg-toggle"></label>
         <label class="flex items-center justify-between py-2"><span class="text-sm">Ao100</span><input type="checkbox" data-avg="100" class="toggle-switch-input avg-toggle"></label>
         <label class="flex items-center justify-between py-2"><span class="text-sm">Ao200</span><input type="checkbox" data-avg="200" class="toggle-switch-input avg-toggle"></label>
         <label class="flex items-center justify-between py-2"><span class="text-sm">Ao500</span><input type="checkbox" data-avg="500" class="toggle-switch-input avg-toggle"></label>
@@ -916,6 +922,12 @@
       return sum / trimmed.length;
     }
 
+    function computeAvgText(solves, n) {
+      if (solves.length < n) return "-";
+      const avg = average(solves.slice(0, n).map(solveEffectiveMs));
+      return avg === "DNF" ? "DNF" : avg == null ? "-" : fmt(avg);
+    }
+
     function renderStats() {
       const solves = loadSolves();
       const validCount = solves.filter(s => s.penalty !== "DNF").length;
@@ -930,17 +942,40 @@
       const meanEl = document.getElementById("stat-mean");
       meanEl.textContent = valid.length === 0 ? "DNF" : fmt(valid.reduce((a, b) => a + b, 0) / valid.length);
 
-      const avgsEl = document.getElementById("below-timer-avgs");
-      const avgs = [5, 12, ...settings.avgs.filter(n => n !== 5 && n !== 12)].sort((a, b) => a - b);
-      avgsEl.innerHTML = avgs.map(n => {
-        let text = "-";
-        if (solves.length >= n) {
-          const last = solves.slice(0, n).map(solveEffectiveMs);
-          const avg = average(last);
-          text = avg === "DNF" ? "DNF" : avg == null ? "-" : fmt(avg);
-        }
-        return `<div><span class="cs-avg-label">Ao${n}: </span><span class="cs-avg-value">${text}</span></div>`;
-      }).join("");
+      // Ao5 / Ao12 stay right below the timer, each with its own share icon
+      const belowEl = document.getElementById("below-timer-avgs");
+      belowEl.innerHTML = [5, 12].map(n => `
+        <div>
+          <span class="cs-avg-label">Ao${n}: </span><span class="cs-avg-value">${computeAvgText(solves, n)}</span>
+          <button type="button" class="cs-avg-share-btn share-avg-btn" data-n="${n}" title="Share Ao${n}">📤</button>
+        </div>`).join("");
+      belowEl.querySelectorAll(".share-avg-btn").forEach(b => b.addEventListener("click", () => shareAverage(parseInt(b.dataset.n))));
+
+      // Extra averages the user turned on (Ao50/100/200/500/1000) live in the
+      // sidebar under current/best, each with its own share icon
+      const extraEl = document.getElementById("sidebar-extra-avgs");
+      const extras = [...settings.avgs].filter(n => n !== 5 && n !== 12).sort((a, b) => a - b);
+      extraEl.innerHTML = extras.map(n => `
+        <div class="cs-sidebar-avg-row">
+          <span>Ao${n}: <b>${computeAvgText(solves, n)}</b></span>
+          <button type="button" class="cs-avg-share-btn share-avg-btn" data-n="${n}" title="Share Ao${n}">📤</button>
+        </div>`).join("");
+      extraEl.querySelectorAll(".share-avg-btn").forEach(b => b.addEventListener("click", () => shareAverage(parseInt(b.dataset.n))));
+    }
+
+    function shareAverage(n) {
+      const solves = loadSolves();
+      if (solves.length < n) return; // not enough solves yet — button shouldn't really be clickable in this state
+      const windowSolves = solves.slice(0, n); // most recent n, newest first
+      const avg = average(windowSolves.map(solveEffectiveMs));
+      const avgStr = avg === "DNF" ? "DNF" : avg == null ? "-" : fmt(avg);
+      const d = new Date();
+      const dateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+      const eventLabel = (EVENTS.find(e => e.id === currentEvent) || {}).label || currentEvent;
+      const chronological = [...windowSolves].reverse(); // oldest -> newest, like a real round
+      const lines = chronological.map((s, i) => `${i + 1}. ${solveDisplay(s)}   ${s.scramble}`);
+      const text = `Generated By Twist & Turn on ${dateStr}\n${eventLabel} - Ao${n}: ${avgStr}\nTime List:\n${lines.join("\n")}`;
+      openShareModal(text);
     }
 
     document.getElementById("clear-session-btn").addEventListener("click", () => {
