@@ -10,7 +10,10 @@
   :root{
     --bg-base:#101218; --bg-surface:#181B24; --ink:#F2F1ED; --ink-muted:#9297A6;
     --cube-red:#E8412B; --cube-yellow:#F2B705; --cube-blue:#2F6FE0; --cube-green:#22A35C;
+    --timer-running-color: var(--cube-blue);
   }
+  .timer-color-btn{ height:30px; border:2px solid transparent; cursor:pointer; }
+  .timer-color-btn.selected{ border-color:var(--ink); }
   *{ box-sizing:border-box; }
   body{ font-family:'Inter', sans-serif; background:var(--bg-base); color:var(--ink); overscroll-behavior:none; }
   .font-display{ font-family:'Space Grotesk', sans-serif; }
@@ -30,6 +33,9 @@
   #timer-zone.state-holding{ background:rgba(232,65,43,0.12); }
   #timer-zone.state-ready{ background:rgba(34,163,92,0.15); }
   #timer-zone.state-running{ background:rgba(47,111,224,0.08); }
+  .cs-main.state-holding{ background:rgba(232,65,43,0.05); transition:background .15s ease; }
+  .cs-main.state-ready{ background:rgba(34,163,92,0.06); transition:background .15s ease; }
+  .cs-main.state-running{ background:rgba(47,111,224,0.04); transition:background .15s ease; }
   #timer-display{
     font-family:'JetBrains Mono', monospace; font-weight:700;
     font-size:clamp(3.2rem, 12vw, 7rem); line-height:1; letter-spacing:0.01em;
@@ -37,7 +43,7 @@
   }
   .state-holding #timer-display{ color:var(--cube-red); }
   .state-ready #timer-display{ color:var(--cube-green); }
-  .state-running #timer-display{ color:var(--cube-blue); }
+  .state-running #timer-display{ color:var(--timer-running-color); }
 
   .event-tab{ font-family:'Space Grotesk',sans-serif; font-weight:600; }
   .event-tab.active{ color:#fff; }
@@ -128,6 +134,8 @@
     .cs-scramble-bar{ padding:0.7rem 0.9rem; }
     #scramble-text{ font-size:0.95rem !important; }
     #settings-drawer{ max-width:100%; }
+    #scramble-preview-box{ bottom:0.5rem; right:0.5rem; padding:0.35rem; }
+    #scramble-preview-box scramble-display{ width:80px !important; height:80px !important; }
   }
 </style>
 </head>
@@ -193,8 +201,6 @@
 
       <div class="cs-scramble-bar">
         <p id="scramble-text" class="font-mono text-base md:text-lg leading-relaxed" style="letter-spacing:0.03em;">Loading…</p>
-        <twisty-player id="scramble-preview" visualization="2D" background="none" control-panel="none"
-          style="display:none; width:100%; max-width:220px; height:140px; margin:0.5rem auto 0;"></twisty-player>
       </div>
 
       <div class="cs-timer-wrap">
@@ -250,6 +256,32 @@
         </label>
       </div>
       <div>
+        <p class="font-mono text-xs uppercase tracking-widest mb-3" style="color:var(--ink-muted);">Timer Customization</p>
+        <label class="flex items-center justify-between py-2">
+          <span class="text-sm">Hold Time</span>
+          <select id="setting-hold-time" class="field text-sm rounded-lg px-2 py-1.5">
+            <option value="0">None</option>
+            <option value="300">0.3s (default)</option>
+            <option value="500">0.5s</option>
+            <option value="800">0.8s</option>
+            <option value="1000">1.0s</option>
+          </select>
+        </label>
+        <label class="flex items-center justify-between py-2">
+          <span class="text-sm">Hide Time While Solving</span>
+          <input type="checkbox" id="setting-hide-running" class="toggle-switch-input">
+        </label>
+        <p class="text-xs mt-1 mb-2" style="color:var(--ink-muted);">Timer Color</p>
+        <div class="flex gap-2" id="timer-color-swatches">
+          <button type="button" data-color="var(--cube-blue)" class="timer-color-btn flex-1 py-2 rounded-lg" style="background:var(--cube-blue);" title="Blue"></button>
+          <button type="button" data-color="var(--cube-green)" class="timer-color-btn flex-1 py-2 rounded-lg" style="background:var(--cube-green);" title="Green"></button>
+          <button type="button" data-color="var(--cube-red)" class="timer-color-btn flex-1 py-2 rounded-lg" style="background:var(--cube-red);" title="Red"></button>
+          <button type="button" data-color="var(--cube-yellow)" class="timer-color-btn flex-1 py-2 rounded-lg" style="background:var(--cube-yellow);" title="Yellow"></button>
+          <button type="button" data-color="#9B59B6" class="timer-color-btn flex-1 py-2 rounded-lg" style="background:#9B59B6;" title="Purple"></button>
+          <button type="button" data-color="#F2F1ED" class="timer-color-btn flex-1 py-2 rounded-lg" style="background:#F2F1ED; border:1px solid rgba(0,0,0,0.15);" title="White"></button>
+        </div>
+      </div>
+      <div>
         <p class="font-mono text-xs uppercase tracking-widest mb-3" style="color:var(--ink-muted);">Appearance</p>
         <div class="flex gap-2">
           <button type="button" data-theme-btn="dark" class="theme-btn flex-1 py-2 rounded-lg text-sm font-mono">🌙 Dark</button>
@@ -282,6 +314,11 @@
     </div>
   </aside>
 
+  <!-- Scramble image preview — floating, bottom-right, out of the touch/hold zone -->
+  <div id="scramble-preview-box" class="surface-card" style="display:none; position:fixed; bottom:1rem; right:1rem; z-index:40; padding:0.5rem; border-radius:12px; box-shadow:0 6px 24px rgba(0,0,0,0.35);">
+    <scramble-display id="scramble-preview" style="width:130px; height:130px; display:block;"></scramble-display>
+  </div>
+
   <!-- Share modal -->
   <div id="share-backdrop" class="hidden fixed inset-0 z-[80] items-center justify-center p-4" style="background:rgba(0,0,0,0.6);">
     <div class="surface-card rounded-2xl p-5 w-full max-w-sm">
@@ -300,7 +337,7 @@
 
   <script type="module">
     import { randomScrambleForEvent } from "https://cdn.cubing.net/v0/js/cubing/scramble";
-    import "https://cdn.cubing.net/v0/js/cubing/twisty"; // registers <twisty-player> for the scramble image preview
+    import "https://cdn.cubing.net/v0/js/scramble-display"; // registers <scramble-display> for the scramble image preview
 
     // ==========================================================
     // Events
@@ -327,16 +364,6 @@
       { id: "fto", label: "FTO ⭐" },
     ].map((ev, i) => ({ ...ev, color: PALETTE[i % PALETTE.length] }));
 
-    // Maps our WCA event ids to the puzzle ids <twisty-player> understands.
-    // Events left out (333mbf has multiple scrambles at once, fto isn't a
-    // twisty-player puzzle) simply don't get an image preview.
-    const TWISTY_PUZZLE = {
-      "333": "3x3x3", "222": "2x2x2", "444": "4x4x4", "555": "5x5x5", "666": "6x6x6", "777": "7x7x7",
-      "333bf": "3x3x3", "333fm": "3x3x3", "333oh": "3x3x3",
-      "444bf": "4x4x4", "555bf": "5x5x5",
-      "clock": "clock", "minx": "megaminx", "pyram": "pyraminx", "skewb": "skewb", "sq1": "square1",
-    };
-
     let currentEvent = localStorage.getItem("tt-timer-event") || "333";
     if (!EVENTS.some(e => e.id === currentEvent)) currentEvent = "333";
 
@@ -361,22 +388,24 @@
     // Scramble
     // ==========================================================
     const scrambleTextEl = document.getElementById("scramble-text");
+    const scramblePreviewBox = document.getElementById("scramble-preview-box");
     const scramblePreviewEl = document.getElementById("scramble-preview");
     let scrambleLoading = false;
 
     function updateScramblePreview(scrambleStr) {
-      const puzzle = TWISTY_PUZZLE[currentEvent];
-      if (!settings.showPreview || !puzzle || !scrambleStr || scrambleStr.includes("\n")) {
-        scramblePreviewEl.style.display = "none";
+      // 333mbf shows several scrambles at once (one per line) — an image
+      // preview doesn't make sense there, so we just skip it.
+      if (!settings.showPreview || currentEvent === "333mbf" || !scrambleStr || scrambleStr.includes("\n")) {
+        scramblePreviewBox.style.display = "none";
         return;
       }
       try {
-        scramblePreviewEl.setAttribute("puzzle", puzzle);
-        scramblePreviewEl.setAttribute("alg", scrambleStr);
-        scramblePreviewEl.style.display = "block";
+        scramblePreviewEl.setAttribute("event", currentEvent);
+        scramblePreviewEl.setAttribute("scramble", scrambleStr);
+        scramblePreviewBox.style.display = "block";
       } catch (err) {
         console.error("[preview] couldn't render scramble image:", err);
-        scramblePreviewEl.style.display = "none";
+        scramblePreviewBox.style.display = "none";
       }
     }
 
@@ -519,7 +548,7 @@
     async function getNewScramble() {
       scrambleLoading = true;
       scrambleTextEl.textContent = "Generating scramble…";
-      scramblePreviewEl.style.display = "none";
+      scramblePreviewBox.style.display = "none";
 
       if (LOCAL_PRIMARY_SCRAMBLERS[currentEvent]) {
         scrambleTextEl.textContent = LOCAL_PRIMARY_SCRAMBLERS[currentEvent]();
@@ -682,7 +711,7 @@
     let runStartAt = 0;
     let runInterval = null;
     let pendingPenalty = null; // null | "+2" | "DNF"
-    const HOLD_THRESHOLD_MS = 300;
+    let HOLD_THRESHOLD_MS = 300; // overridden by settings.holdTimeMs once settings load
 
     function fmt(ms) {
       if (ms == null) return "—";
@@ -696,9 +725,11 @@
       return `${sec}.${csStr}`;
     }
 
+    const csMain = document.querySelector(".cs-main");
     function setZoneState(s) {
       zone.classList.remove("state-holding", "state-ready", "state-running");
-      if (s) zone.classList.add("state-" + s);
+      csMain.classList.remove("state-holding", "state-ready", "state-running");
+      if (s) { zone.classList.add("state-" + s); csMain.classList.add("state-" + s); }
     }
 
     function isTypingInField() {
@@ -776,7 +807,7 @@
       hint.textContent = "Tap / press SPACE to stop";
       runStartAt = performance.now();
       runInterval = setInterval(() => {
-        display.textContent = fmt(performance.now() - runStartAt);
+        display.textContent = settings.hideRunningTime ? "●" : fmt(performance.now() - runStartAt);
       }, 30);
     }
 
@@ -880,11 +911,36 @@
       }
     });
 
-    // Touch / click on the zone itself
-    zone.addEventListener("touchstart", (e) => { e.preventDefault(); beginPress(); }, { passive: false });
-    zone.addEventListener("touchend", (e) => { e.preventDefault(); endPress(); }, { passive: false });
-    zone.addEventListener("mousedown", (e) => { beginPress(); });
-    zone.addEventListener("mouseup", (e) => { endPress(); });
+    // Touch / click anywhere on screen starts the timer — except over
+    // interactive or informational regions (scramble, stats, buttons,
+    // sidebar, settings, share, scramble preview, etc).
+    const TOUCH_ZONE_EXCLUDE_SELECTOR = [
+      ".cs-topbar", ".cs-scramble-bar", ".cs-sidebar", "#below-timer-avgs",
+      "#post-solve-panel", "#settings-drawer", "#settings-backdrop",
+      "#sidebar-backdrop", "#share-backdrop", "#scramble-preview-box",
+      "button", "select", "input", "textarea", "a", "scramble-display"
+    ].join(", ");
+    function isExcludedFromTimerZone(target) {
+      return !!(target && target.closest && target.closest(TOUCH_ZONE_EXCLUDE_SELECTOR));
+    }
+    document.addEventListener("touchstart", (e) => {
+      if (isExcludedFromTimerZone(e.target)) return;
+      e.preventDefault();
+      beginPress();
+    }, { passive: false });
+    document.addEventListener("touchend", (e) => {
+      if (isExcludedFromTimerZone(e.target)) return;
+      e.preventDefault();
+      endPress();
+    }, { passive: false });
+    document.addEventListener("mousedown", (e) => {
+      if (isExcludedFromTimerZone(e.target)) return;
+      beginPress();
+    });
+    document.addEventListener("mouseup", (e) => {
+      if (isExcludedFromTimerZone(e.target)) return;
+      endPress();
+    });
 
     // Dedicated Start/Stop button — good for accessibility / no keyboard
     const manualBtn = document.getElementById("manual-start-btn");
@@ -1224,7 +1280,7 @@
     // Settings
     // ==========================================================
     const SETTINGS_KEY = "tt-timer-settings";
-    const DEFAULT_SETTINGS = { manualMode: false, inspection: false, theme: "dark", avgs: [5, 12], showPreview: true };
+    const DEFAULT_SETTINGS = { manualMode: false, inspection: false, theme: "dark", avgs: [5, 12], showPreview: true, holdTimeMs: 300, hideRunningTime: false, timerColor: "var(--cube-blue)" };
     function loadSettings() {
       try { return { ...DEFAULT_SETTINGS, ...JSON.parse(localStorage.getItem(SETTINGS_KEY)) }; }
       catch { return { ...DEFAULT_SETTINGS }; }
@@ -1280,6 +1336,37 @@
       settings.showPreview = settingPreview.checked;
       saveSettings(settings);
       updateScramblePreview(scrambleTextEl.textContent);
+    });
+
+    const settingHoldTime = document.getElementById("setting-hold-time");
+    settingHoldTime.value = String(settings.holdTimeMs);
+    HOLD_THRESHOLD_MS = settings.holdTimeMs;
+    settingHoldTime.addEventListener("change", () => {
+      settings.holdTimeMs = parseInt(settingHoldTime.value, 10);
+      saveSettings(settings);
+      HOLD_THRESHOLD_MS = settings.holdTimeMs;
+    });
+
+    const settingHideRunning = document.getElementById("setting-hide-running");
+    settingHideRunning.checked = settings.hideRunningTime;
+    settingHideRunning.addEventListener("change", () => {
+      settings.hideRunningTime = settingHideRunning.checked;
+      saveSettings(settings);
+    });
+
+    function applyTimerColor(color) {
+      document.documentElement.style.setProperty("--timer-running-color", color);
+      document.querySelectorAll(".timer-color-btn").forEach(b => {
+        b.classList.toggle("selected", b.dataset.color === color);
+      });
+    }
+    applyTimerColor(settings.timerColor);
+    document.querySelectorAll(".timer-color-btn").forEach(b => {
+      b.addEventListener("click", () => {
+        settings.timerColor = b.dataset.color;
+        saveSettings(settings);
+        applyTimerColor(settings.timerColor);
+      });
     });
 
     document.querySelectorAll(".avg-toggle").forEach(cb => {
