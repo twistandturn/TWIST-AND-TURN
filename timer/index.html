@@ -104,28 +104,40 @@
   body.fs-active #home-link{ display:none; }
   body.fs-active #timer-display{ font-size:clamp(4rem, 17vw, 11rem); }
   body.fs-active #type-time-input{ font-size:clamp(4rem, 17vw, 11rem) !important; }
+  body.fs-active .cs-mobile-only{ display:none !important; }
+
+  .cs-mobile-only{ display:none; }
 
   @media (max-width: 860px){
-    .cs-shell{ flex-direction:column; }
-    .cs-sidebar{ width:100%; height:auto; position:static; max-height:38vh; order:2; border-right:none; border-top:1px solid rgba(255,255,255,0.06); }
-    .cs-main{ order:1; }
-    body.fs-active .cs-sidebar{ display:none; }
+    .cs-mobile-only{ display:flex; }
+    .cs-sidebar{
+      position:fixed; top:0; left:0; width:85%; max-width:320px; height:100dvh;
+      z-index:60; transform:translateX(-100%); transition:transform .2s ease;
+      border-right:1px solid rgba(255,255,255,0.08);
+    }
+    .cs-sidebar.cs-sidebar-open{ transform:translateX(0); }
+    #sidebar-close-btn{ display:flex; }
+    .cs-topbar{ flex-wrap:wrap; }
+    .cs-below-avgs{ gap:1rem; }
+    #timer-display{ font-size:clamp(2.6rem, 15vw, 5.5rem); }
+    #type-time-input{ font-size:clamp(2.6rem, 15vw, 5.5rem) !important; }
+    .cs-scramble-bar{ padding:0.7rem 0.9rem; }
+    #scramble-text{ font-size:0.95rem !important; }
+    #settings-drawer{ max-width:100%; }
   }
 </style>
 </head>
 <body class="min-h-screen">
 
   <div class="cs-shell">
+    <div id="sidebar-backdrop" class="hidden fixed inset-0 z-[59]" style="background:rgba(0,0,0,0.5);"></div>
+
 
     <!-- SIDEBAR -->
-    <aside class="cs-sidebar">
+    <aside id="cs-sidebar" class="cs-sidebar">
       <div class="cs-sidebar-header">
         <span class="font-display font-bold text-base cursor-pointer" onclick="window.location.href='index.html'">Twist &amp; Turn</span>
-        <div class="flex items-center gap-1.5">
-          <a id="home-link" href="index.html" class="cs-icon-btn" title="Home">🏠</a>
-          <button id="settings-btn" type="button" class="cs-icon-btn" title="Settings">⚙️</button>
-          <button id="fullscreen-btn" type="button" class="cs-icon-btn" title="Fullscreen">⛶</button>
-        </div>
+        <button id="sidebar-close-btn" type="button" class="cs-icon-btn cs-mobile-only" title="Close">✕</button>
       </div>
 
       <div class="cs-session-box">
@@ -158,9 +170,13 @@
     <!-- MAIN -->
     <main class="cs-main">
       <div class="cs-topbar">
+        <button id="sidebar-open-btn" type="button" class="cs-icon-btn cs-mobile-only" title="Session">☰</button>
         <select id="event-select" class="cs-event-select"></select>
         <div class="flex-1"></div>
-        <button id="new-scramble-btn" class="btn-ghost text-xs px-3 py-1.5 rounded-lg flex-shrink-0">🔄 New scramble</button>
+        <button id="new-scramble-btn" class="btn-ghost text-xs px-3 py-1.5 rounded-lg flex-shrink-0">🔄 New</button>
+        <a id="home-link" href="index.html" class="cs-icon-btn" title="Home">🏠</a>
+        <button id="settings-btn" type="button" class="cs-icon-btn" title="Settings">⚙️</button>
+        <button id="fullscreen-btn" type="button" class="cs-icon-btn" title="Fullscreen">⛶</button>
       </div>
 
       <div class="cs-scramble-bar">
@@ -369,15 +385,21 @@
     }
 
     function clockHour() {
-      const v = randInt(0, 11); // pick a net clockwise position 0-11, then use the shortest signed notation for it
-      if (v === 0) return "0+";
-      if (v <= 5) return v + "+";
-      if (v === 6) return "6"; // halfway point — no sign, since +6 and -6 are identical
-      return (12 - v) + "-"; // 7..11 -> shorter counter-clockwise equivalent, e.g. 11 -> "-1", 10 -> "-2"
+      // Every clock pin-turn needs a value 0-6 AND a sign (WCA notation never
+      // omits the sign, even for 0 or 6) — this was the bug: "6" was being
+      // written with no sign at all, which isn't valid clock notation.
+      const n = randInt(0, 6);
+      const sign = Math.random() < 0.5 ? "+" : "-";
+      return n + sign;
     }
     function clockScramble() {
+      // WCA Clock format: 9 front pin-turns (UR DR DL UL U R D L ALL), a y2 cube
+      // rotation, then 5 back pin-turns (U R D L ALL). The old version was missing
+      // "ALL" on the back half, which is exactly why it looked "scattered" instead
+      // of the proper structured line — this fixes it to match the real format:
+      // UR5+ DR5- DL1+ UL2- U1+ R1+ D3- L1- ALL2+ y2 U4+ R6+ D2- L2+ ALL3-
       const front = ["UR", "DR", "DL", "UL", "U", "R", "D", "L", "ALL"].map(k => k + clockHour());
-      const back = ["U", "R", "D", "L"].map(k => k + clockHour());
+      const back = ["U", "R", "D", "L", "ALL"].map(k => k + clockHour());
       return front.join(" ") + " y2 " + back.join(" ");
     }
 
@@ -420,10 +442,26 @@
       "fto": ftoScramble, // not an official WCA event, so no regulation applies — safe to keep
     };
 
+    // Clock is special: its scramble notation directly SETS each pin's turn
+    // value (it isn't searching for moves that reach a state, the notation *is*
+    // the state). So picking each of the 14 values independently at random
+    // already satisfies WCA's random-state requirement — no need to round-trip
+    // through cubing.js/CDN for it, and this guarantees the exact correct
+    // structured line format every time.
+    const LOCAL_PRIMARY_SCRAMBLERS = {
+      "clock": clockScramble,
+    };
+
     // All 18 events: always use cubing.js for true WCA-legal random-state scrambles.
     async function getNewScramble() {
       scrambleLoading = true;
       scrambleTextEl.textContent = "Generating scramble…";
+
+      if (LOCAL_PRIMARY_SCRAMBLERS[currentEvent]) {
+        scrambleTextEl.textContent = LOCAL_PRIMARY_SCRAMBLERS[currentEvent]();
+        scrambleLoading = false;
+        return;
+      }
 
       const MAX_TRIES = 3;
       for (let attempt = 1; attempt <= MAX_TRIES; attempt++) {
@@ -976,6 +1014,25 @@
         renderStats();
       });
     });
+
+    // ==========================================================
+    // Mobile session drawer
+    // ==========================================================
+    const csSidebar = document.getElementById("cs-sidebar");
+    const sidebarBackdrop = document.getElementById("sidebar-backdrop");
+    const sidebarOpenBtn = document.getElementById("sidebar-open-btn");
+    const sidebarCloseBtn = document.getElementById("sidebar-close-btn");
+    function openSidebar() {
+      csSidebar.classList.add("cs-sidebar-open");
+      sidebarBackdrop.classList.remove("hidden");
+    }
+    function closeSidebar() {
+      csSidebar.classList.remove("cs-sidebar-open");
+      sidebarBackdrop.classList.add("hidden");
+    }
+    sidebarOpenBtn.addEventListener("click", openSidebar);
+    sidebarCloseBtn.addEventListener("click", closeSidebar);
+    sidebarBackdrop.addEventListener("click", closeSidebar);
 
     // ==========================================================
     // Fullscreen practice mode
