@@ -55,52 +55,6 @@
   html[data-theme="light"] .event-tab:not(.active){ background:#fff !important; border-color:rgba(0,0,0,0.1) !important; }
   html[data-theme="light"] .toggle-switch-input{ background:rgba(0,0,0,0.15); }
 
-  /* ---------- Theme controls ---------- */
-  .theme-grid{ display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:0.5rem; }
-  .theme-btn{
-    min-height:2.75rem;
-    border:1px solid rgba(255,255,255,0.12);
-    background:var(--bg-base);
-    color:var(--ink-muted);
-    transition:transform .15s ease, background .15s ease, border-color .15s ease, color .15s ease, box-shadow .15s ease;
-  }
-  .theme-btn:hover{ transform:translateY(-1px); color:var(--ink); border-color:rgba(255,255,255,0.28); }
-  .theme-btn.active{
-    background:var(--cube-blue);
-    color:#fff;
-    border-color:transparent;
-    box-shadow:0 0 0 1px rgba(255,255,255,0.04) inset;
-  }
-  .accent-control{ display:flex; align-items:center; gap:0.75rem; }
-  .accent-picker{
-    width:3.2rem; height:2.5rem; padding:0.2rem; border-radius:0.75rem;
-    background:var(--bg-base); border:1px solid rgba(255,255,255,0.12); cursor:pointer;
-  }
-  .accent-picker::-webkit-color-swatch-wrapper{ padding:0; }
-  .accent-picker::-webkit-color-swatch{ border:none; border-radius:0.5rem; }
-  .accent-picker::-moz-color-swatch{ border:none; border-radius:0.5rem; }
-
-  html[data-theme="amoled"]{ --bg-base:#000000; --bg-surface:#09090D; --ink:#F4F7FF; --ink-muted:#8A90A3; }
-  html[data-theme="ocean"]{ --bg-base:#071521; --bg-surface:#0B1C2A; --ink:#EEF6FF; --ink-muted:#8AA0B5; }
-  html[data-theme="purple"]{ --bg-base:#120F1E; --bg-surface:#171A2B; --ink:#F5F0FF; --ink-muted:#A899C5; }
-  html[data-theme="forest"]{ --bg-base:#0E1A14; --bg-surface:#14231B; --ink:#EEF8F1; --ink-muted:#8CA595; }
-  html[data-theme="amoled"] .surface-card,
-  html[data-theme="ocean"] .surface-card,
-  html[data-theme="purple"] .surface-card,
-  html[data-theme="forest"] .surface-card{ border-color:rgba(255,255,255,0.08); }
-  html[data-theme="amoled"] .field,
-  html[data-theme="ocean"] .field,
-  html[data-theme="purple"] .field,
-  html[data-theme="forest"] .field{ border-color:rgba(255,255,255,0.14); }
-  html[data-theme="amoled"] .btn-ghost,
-  html[data-theme="ocean"] .btn-ghost,
-  html[data-theme="purple"] .btn-ghost,
-  html[data-theme="forest"] .btn-ghost{ border-color:rgba(255,255,255,0.14); color:var(--ink-muted); }
-  html[data-theme="amoled"] .btn-ghost:hover,
-  html[data-theme="ocean"] .btn-ghost:hover,
-  html[data-theme="purple"] .btn-ghost:hover,
-  html[data-theme="forest"] .btn-ghost:hover{ color:var(--ink); border-color:rgba(255,255,255,0.28); }
-
   /* ---------- Toggle switches (settings) ---------- */
   .toggle-switch-input{ appearance:none; -webkit-appearance:none; width:42px; height:24px; background:rgba(255,255,255,0.15); border-radius:999px; position:relative; cursor:pointer; transition:background .15s ease; flex-shrink:0; }
   .toggle-switch-input::before{ content:""; position:absolute; top:2px; left:2px; width:20px; height:20px; background:#fff; border-radius:50%; transition:transform .15s ease; }
@@ -284,20 +238,9 @@
       </div>
       <div>
         <p class="font-mono text-xs uppercase tracking-widest mb-3" style="color:var(--ink-muted);">Appearance</p>
-        <div class="theme-grid">
-          <button type="button" data-theme-btn="dark" class="theme-btn py-2 rounded-lg text-sm font-mono">🌙 Dark</button>
-          <button type="button" data-theme-btn="light" class="theme-btn py-2 rounded-lg text-sm font-mono">☀️ Light</button>
-          <button type="button" data-theme-btn="amoled" class="theme-btn py-2 rounded-lg text-sm font-mono">⬛ AMOLED</button>
-          <button type="button" data-theme-btn="ocean" class="theme-btn py-2 rounded-lg text-sm font-mono">🌊 Ocean</button>
-          <button type="button" data-theme-btn="purple" class="theme-btn py-2 rounded-lg text-sm font-mono">💜 Purple</button>
-          <button type="button" data-theme-btn="forest" class="theme-btn py-2 rounded-lg text-sm font-mono">🌿 Forest</button>
-        </div>
-        <div class="mt-4 space-y-2">
-          <label class="flex items-center justify-between gap-3 py-2">
-            <span class="text-sm">Accent Color</span>
-            <input type="color" id="setting-accent" class="accent-picker">
-          </label>
-          <p class="text-xs" style="color:var(--ink-muted);">Buttons, highlights and active states follow this color.</p>
+        <div class="flex gap-2">
+          <button type="button" data-theme-btn="dark" class="theme-btn flex-1 py-2 rounded-lg text-sm font-mono">🌙 Dark</button>
+          <button type="button" data-theme-btn="light" class="theme-btn flex-1 py-2 rounded-lg text-sm font-mono">☀️ Light</button>
         </div>
       </div>
       <div>
@@ -999,6 +942,40 @@
       return avg === "DNF" ? "DNF" : avg == null ? "-" : fmt(avg);
     }
 
+    // ---- BPA / WPA (Best/Worst Possible Average) ----
+    // Once (n-1) of the n solves for an AoN are in, the last solve gets
+    // trimmed away as either the new best or the new worst (WCA trim rule),
+    // so the final AoN is bounded no matter what that last solve turns out
+    // to be. BPA = average if the next solve is the best possible (so it
+    // gets trimmed as "best", leaving the worst of the existing n-1 trimmed
+    // instead). WPA = average if the next solve is the worst possible / DNF
+    // (so it gets trimmed as "worst", leaving the best of the existing n-1
+    // trimmed instead).
+    function bpaFromWindow(msArray) {
+      if (msArray.length === 0) return null;
+      const trimmed = [...msArray].sort((a, b) => a - b).slice(0, -1); // drop current worst
+      if (trimmed.length === 0) return null;
+      if (trimmed.some(v => v === Infinity)) return "DNF";
+      return trimmed.reduce((a, b) => a + b, 0) / trimmed.length;
+    }
+    function wpaFromWindow(msArray) {
+      if (msArray.length === 0) return null;
+      const trimmed = [...msArray].sort((a, b) => a - b).slice(1); // drop current best
+      if (trimmed.length === 0) return null;
+      if (trimmed.some(v => v === Infinity)) return "DNF";
+      return trimmed.reduce((a, b) => a + b, 0) / trimmed.length;
+    }
+    function computeBpaWpaText(solves, n) {
+      if (solves.length < n - 1) return { bpa: "-", wpa: "-" };
+      const win = solves.slice(0, n - 1).map(solveEffectiveMs);
+      const bpa = bpaFromWindow(win);
+      const wpa = wpaFromWindow(win);
+      return {
+        bpa: bpa === "DNF" ? "DNF" : bpa == null ? "-" : fmt(bpa),
+        wpa: wpa === "DNF" ? "DNF" : wpa == null ? "-" : fmt(wpa)
+      };
+    }
+
     function renderStats() {
       const solves = loadSolves();
       const validCount = solves.filter(s => s.penalty !== "DNF").length;
@@ -1015,22 +992,32 @@
 
       // Ao5 / Ao12 stay right below the timer, each with its own share icon
       const belowEl = document.getElementById("below-timer-avgs");
-      belowEl.innerHTML = [5, 12].map(n => `
+      belowEl.innerHTML = [5, 12].map(n => {
+        const { bpa, wpa } = computeBpaWpaText(solves, n);
+        return `
         <div>
           <span class="cs-avg-label">Ao${n}: </span><span class="cs-avg-value">${computeAvgText(solves, n)}</span>
           <button type="button" class="cs-avg-share-btn share-avg-btn" data-n="${n}" title="Share Ao${n}">📤</button>
-        </div>`).join("");
+          <div class="font-mono" style="font-size:0.65rem; color:var(--ink-muted); margin-top:0.15rem;">BPA ${bpa} · WPA ${wpa}</div>
+        </div>`;
+      }).join("");
       belowEl.querySelectorAll(".share-avg-btn").forEach(b => b.addEventListener("click", () => shareAverage(parseInt(b.dataset.n))));
 
       // Extra averages the user turned on (Ao50/100/200/500/1000) live in the
       // sidebar under current/best, each with its own share icon
       const extraEl = document.getElementById("sidebar-extra-avgs");
       const extras = [...settings.avgs].filter(n => n !== 5 && n !== 12).sort((a, b) => a - b);
-      extraEl.innerHTML = extras.map(n => `
-        <div class="cs-sidebar-avg-row">
-          <span>Ao${n}: <b>${computeAvgText(solves, n)}</b></span>
+      extraEl.innerHTML = extras.map(n => {
+        const { bpa, wpa } = computeBpaWpaText(solves, n);
+        return `
+        <div class="cs-sidebar-avg-row" style="align-items:flex-start;">
+          <div style="display:flex; flex-direction:column; gap:0.15rem;">
+            <span>Ao${n}: <b>${computeAvgText(solves, n)}</b></span>
+            <span style="font-size:0.65rem; color:var(--ink-muted);">BPA ${bpa} · WPA ${wpa}</span>
+          </div>
           <button type="button" class="cs-avg-share-btn share-avg-btn" data-n="${n}" title="Share Ao${n}">📤</button>
-        </div>`).join("");
+        </div>`;
+      }).join("");
       extraEl.querySelectorAll(".share-avg-btn").forEach(b => b.addEventListener("click", () => shareAverage(parseInt(b.dataset.n))));
     }
 
@@ -1060,40 +1047,22 @@
     // Settings
     // ==========================================================
     const SETTINGS_KEY = "tt-timer-settings";
-    const DEFAULT_SETTINGS = { manualMode: false, inspection: false, theme: "dark", accentColor: "#2F6FE0", avgs: [5, 12] };
-    const THEME_PRESETS = {
-      dark:   { bgBase: "#101218", bgSurface: "#181B24", ink: "#F2F1ED", inkMuted: "#9297A6" },
-      light:  { bgBase: "#F4F3EF", bgSurface: "#FFFFFF", ink: "#15171C", inkMuted: "#5B6070" },
-      amoled: { bgBase: "#000000", bgSurface: "#09090D", ink: "#F4F7FF", inkMuted: "#8A90A3" },
-      ocean:  { bgBase: "#071521", bgSurface: "#0B1C2A", ink: "#EEF6FF", inkMuted: "#8AA0B5" },
-      purple: { bgBase: "#120F1E", bgSurface: "#171A2B", ink: "#F5F0FF", inkMuted: "#A899C5" },
-      forest: { bgBase: "#0E1A14", bgSurface: "#14231B", ink: "#EEF8F1", inkMuted: "#8CA595" },
-    };
+    const DEFAULT_SETTINGS = { manualMode: false, inspection: false, theme: "dark", avgs: [5, 12] };
     function loadSettings() {
-      try {
-        const loaded = JSON.parse(localStorage.getItem(SETTINGS_KEY) || "{}");
-        return { ...DEFAULT_SETTINGS, ...loaded, accentColor: loaded.accentColor || DEFAULT_SETTINGS.accentColor };
-      } catch {
-        return { ...DEFAULT_SETTINGS };
-      }
+      try { return { ...DEFAULT_SETTINGS, ...JSON.parse(localStorage.getItem(SETTINGS_KEY)) }; }
+      catch { return { ...DEFAULT_SETTINGS }; }
     }
     function saveSettings(s) { localStorage.setItem(SETTINGS_KEY, JSON.stringify(s)); }
     let settings = loadSettings();
 
     function applyTheme(theme) {
-      const safeTheme = THEME_PRESETS[theme] ? theme : "dark";
-      const preset = THEME_PRESETS[safeTheme];
-      document.documentElement.setAttribute("data-theme", safeTheme);
-      document.documentElement.style.setProperty("--bg-base", preset.bgBase);
-      document.documentElement.style.setProperty("--bg-surface", preset.bgSurface);
-      document.documentElement.style.setProperty("--ink", preset.ink);
-      document.documentElement.style.setProperty("--ink-muted", preset.inkMuted);
+      document.documentElement.setAttribute("data-theme", theme);
       document.querySelectorAll(".theme-btn").forEach(b => {
-        b.classList.toggle("active", b.dataset.themeBtn === safeTheme);
+        const active = b.dataset.themeBtn === theme;
+        b.style.background = active ? "var(--cube-blue)" : "var(--bg-base)";
+        b.style.color = active ? "#fff" : "var(--ink-muted)";
+        b.style.border = active ? "none" : "1px solid rgba(255,255,255,0.1)";
       });
-    }
-    function applyAccent(color) {
-      document.documentElement.style.setProperty("--cube-blue", color);
     }
     document.querySelectorAll(".theme-btn").forEach(b => {
       b.addEventListener("click", () => {
@@ -1127,17 +1096,6 @@
       settings.inspection = settingInspection.checked;
       saveSettings(settings);
     });
-
-    const settingAccent = document.getElementById("setting-accent");
-    settingAccent.value = settings.accentColor;
-    settingAccent.addEventListener("input", () => {
-      settings.accentColor = settingAccent.value;
-      saveSettings(settings);
-      applyAccent(settings.accentColor);
-    });
-
-    applyTheme(settings.theme);
-    applyAccent(settings.accentColor);
 
     document.querySelectorAll(".avg-toggle").forEach(cb => {
       const n = parseInt(cb.dataset.avg, 10);
@@ -1534,4 +1492,4 @@
     getNewScramble();
   </script>
 </body>
-</html>
+</html>\
