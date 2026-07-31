@@ -252,6 +252,20 @@
         <label class="flex items-center justify-between py-2"><span class="text-sm">Ao500</span><input type="checkbox" data-avg="500" class="toggle-switch-input avg-toggle"></label>
         <label class="flex items-center justify-between py-2"><span class="text-sm">Ao1000</span><input type="checkbox" data-avg="1000" class="toggle-switch-input avg-toggle"></label>
       </div>
+      <div>
+        <p class="font-mono text-xs uppercase tracking-widest mb-3" style="color:var(--ink-muted);">Hardware Timer</p>
+        <p class="text-xs mb-3" style="color:var(--ink-muted);">Connect a Bluetooth smart timer. Hands-ready, start and stop will drive the timer automatically.</p>
+        <select id="hw-brand-select" class="field w-full rounded-lg text-sm px-3 py-2 mb-3">
+          <option value="gan">GAN Smart Timer</option>
+          <option value="qiyi">QiYi Smart Timer</option>
+          <option value="moyu">MoYu Smart Timer</option>
+        </select>
+        <p id="hw-timer-status" class="text-xs mb-3" style="color:var(--ink-muted);">Not connected</p>
+        <div class="flex gap-2">
+          <button type="button" id="hw-connect-btn" class="btn-primary flex-1 py-2 rounded-lg text-sm">🔗 Connect Smart Timer</button>
+          <button type="button" id="hw-disconnect-btn" class="hidden btn-ghost py-2 px-3 rounded-lg text-sm">Disconnect</button>
+        </div>
+      </div>
     </div>
   </aside>
 
@@ -1127,6 +1141,300 @@
         shareCopyBtn.textContent = "⚠️ Failed";
       }
       setTimeout(() => { shareCopyBtn.textContent = "📋 Copy"; }, 1500);
+    });
+
+    // ==========================================================
+    // Hardware Timer Support (Web Bluetooth) — NEW, purely additive
+    // ==========================================================
+    // This whole block only ADDS behavior. It never edits state, startTimer,
+    // stopTimer, etc. — it reuses startTimer() as-is, and for stopping it
+    // mirrors stopTimer()'s tail (so the original stopTimer stays untouched)
+    // but substitutes the authoritative elapsed time reported by the hardware
+    // instead of a performance.now() delta.
+    //
+    // Driver registry: each driver exposes { name, connect(handlers) }.
+    // connect() must return a Promise that resolves to a live connection
+    // object exposing { disconnect() }. Adding Stackmat later is just adding
+    // another entry here — nothing else in this block needs to change.
+    // ==========================================================
+
+    // ---- CRC-16/CCITT-FALSE (poly 0x1021, init 0xFFFF), per GAN's protocol ----
+    function crc16CcittFalse(bytes) {
+      let crc = 0xFFFF;
+      for (let i = 0; i < bytes.length; i++) {
+        crc ^= (bytes[i] << 8);
+        for (let b = 0; b < 8; b++) {
+          crc = (crc & 0x8000) ? ((crc << 1) ^ 0x1021) & 0xFFFF : (crc << 1) & 0xFFFF;
+        }
+      }
+      return crc;
+    }
+
+    // GAN Smart Timer state codes (from the timer-state notify characteristic)
+    const GAN_STATE = {
+      GET_SET: 0x01,   // grace delay expired, ready to start
+      HANDS_OFF: 0x02, // hands removed before grace delay expired (cancel)
+      RUNNING: 0x03,   // timer started running
+      STOPPED: 0x04,   // timer stopped — includes recorded time
+      IDLE: 0x05,      // reset via the timer's own button
+      HANDS_ON: 0x06,  // both hands placed on the timer
+      FINISHED: 0x07,  // automatic, right after STOPPED
+    };
+
+    // Parses one Timer State characteristic notification.
+    // Frame: [0xFE][len][0x01][stateCode][timestamp?4 bytes][crc16le 2 bytes]
+    // `len` = byte-length of everything after itself (data + 2-byte CRC).
+    function parseGanTimerFrame(dataView) {
+      const bytes = new Uint8Array(dataView.buffer, dataView.byteOffset, dataView.byteLength);
+      if (bytes.length < 4 || bytes[0] !== 0xFE) return null;
+      const len = bytes[1];
+      if (bytes.length < 2 + len || len < 4) return null;
+      const dataAndCrc = bytes.slice(2, 2 + len);
+      const dataPart = dataAndCrc.slice(0, dataAndCrc.length - 2);
+      const crcBytes = dataAndCrc.slice(dataAndCrc.length - 2);
+      const expectedCrc = crcBytes[0] | (crcBytes[1] << 8); // uint16le
+      if (crc16CcittFalse(dataPart) !== expectedCrc) {
+        console.warn("[HardwareTimer] CRC mismatch, dropping frame:", bytes);
+        return null;
+      }
+      if (dataPart[0] !== 0x01) return null; // data prefix
+      const stateCode = dataPart[1];
+      let elapsedMs = null;
+      if (dataPart.length >= 6 && (stateCode === GAN_STATE.STOPPED || stateCode === GAN_STATE.IDLE)) {
+        const minutes = dataPart[2], seconds = dataPart[3];
+        const millis = dataPart[4] | (dataPart[5] << 8); // uint16le
+        elapsedMs = (minutes * 60 + seconds) * 1000 + millis;
+      }
+      return { stateCode, elapsedMs };
+    }
+
+    // Mirrors stopTimer()'s tail so the original stopTimer() never has to
+    // change. Uses the hardware-reported elapsed time as the source of truth.
+    function finalizeSolveFromHardware(elapsedMs) {
+      clearInterval(runInterval);
+      display.textContent = fmt(elapsedMs);
+      state = "idle";
+      setZoneState(null);
+      hint.textContent = "Hold SPACE (or press & hold here on mobile) to start";
+
+      const prevBest = currentBestMs();
+      const newSolve = {
+        ms: Math.round(elapsedMs),
+        penalty: pendingPenalty,
+        scramble: scrambleTextEl.textContent,
+        at: new Date().toISOString()
+      };
+      addSolve(newSolve);
+      pendingPenalty = null;
+
+      const newMs = solveEffectiveMs(newSolve);
+      const isPb = newMs !== Infinity && (prevBest === null || newMs < prevBest);
+      showPostSolvePanel(isPb ? newSolve : null);
+      getNewScramble();
+    }
+
+    // Routes a parsed hardware state into the existing state machine, only
+    // acting when the app's current `state` makes the transition sensible —
+    // this keeps keyboard/touch input and the hardware timer from fighting.
+    function routeHardwareState(stateCode, elapsedMs) {
+      if (typeMode) return; // manual entry mode active — hardware input ignored
+
+      switch (stateCode) {
+        case GAN_STATE.HANDS_ON:
+          if (state === "idle") {
+            hidePostSolvePanel();
+            state = "holding";
+            setZoneState("holding");
+            hint.textContent = "Hardware: hands on — keep them on the timer…";
+          }
+          break;
+
+        case GAN_STATE.HANDS_OFF:
+          if (state === "holding" || state === "ready") {
+            state = "idle";
+            setZoneState(null);
+            display.textContent = "0.00";
+            hint.textContent = "Hold SPACE (or press & hold here on mobile) to start";
+          }
+          break;
+
+        case GAN_STATE.GET_SET:
+          if (state === "holding") {
+            state = "ready";
+            setZoneState("ready");
+            hint.textContent = "Hardware ready — lift hands to start!";
+            display.textContent = "0.00";
+          }
+          break;
+
+        case GAN_STATE.RUNNING:
+          if (state === "ready" || state === "idle" || state === "holding") {
+            startTimer(); // reuses the existing, untouched function
+          }
+          break;
+
+        case GAN_STATE.STOPPED:
+          if (state === "running") {
+            const ms = elapsedMs != null ? elapsedMs : (performance.now() - runStartAt);
+            finalizeSolveFromHardware(ms);
+          }
+          break;
+
+        case GAN_STATE.IDLE:
+        case GAN_STATE.FINISHED:
+        default:
+          break; // no app-state action needed
+      }
+    }
+
+    // ---- GAN Smart Timer driver ----
+    const GAN_SERVICE_UUID = "0000fff0-0000-1000-8000-00805f9b34fb";
+    const GAN_TIMER_STATE_CHAR_UUID = "0000fff5-0000-1000-8000-00805f9b34fb";
+
+    const ganDriver = {
+      name: "GAN Smart Timer",
+      async connect({ onEvent, onDisconnect }) {
+        if (!navigator.bluetooth) throw new Error("Web Bluetooth isn't supported in this browser.");
+
+        const device = await navigator.bluetooth.requestDevice({
+          filters: [{ services: [GAN_SERVICE_UUID] }],
+          optionalServices: [GAN_SERVICE_UUID],
+        });
+
+        const handleGattDisconnect = () => { if (onDisconnect) onDisconnect(); };
+        device.addEventListener("gattserverdisconnected", handleGattDisconnect);
+
+        const server = await device.gatt.connect();
+        const service = await server.getPrimaryService(GAN_SERVICE_UUID);
+        const stateChar = await service.getCharacteristic(GAN_TIMER_STATE_CHAR_UUID);
+
+        const handleNotify = (e) => {
+          const parsed = parseGanTimerFrame(e.target.value);
+          if (parsed) onEvent(parsed.stateCode, parsed.elapsedMs);
+        };
+        await stateChar.startNotifications();
+        stateChar.addEventListener("characteristicvaluechanged", handleNotify);
+
+        return {
+          disconnect() {
+            try { stateChar.removeEventListener("characteristicvaluechanged", handleNotify); } catch (e) {}
+            try { device.removeEventListener("gattserverdisconnected", handleGattDisconnect); } catch (e) {}
+            try { if (device.gatt && device.gatt.connected) device.gatt.disconnect(); } catch (e) {}
+          }
+        };
+      }
+    };
+
+    // ---- Stackmat driver — reserved slot for future support ----
+    // Stackmat timers report time over the 3.5mm audio jack (an analog tone
+    // protocol), not Bluetooth, so this will eventually need a Web Audio API
+    // based driver rather than navigator.bluetooth. The slot exists now so
+    // the rest of this module (registry, UI, routing) doesn't need to change
+    // when that lands — only this driver's `connect` gets implemented.
+    const stackmatDriver = {
+      name: "Stackmat Timer",
+      async connect() {
+        throw new Error("Stackmat support is coming soon.");
+      }
+    };
+
+    // ---- QiYi Smart Timer — reserved slot ----
+    // Unlike the GAN Smart Timer, QiYi has not published (and no one has
+    // publicly reverse-engineered) the Bluetooth GATT service/characteristic
+    // layout for its Smart Timer — it only talks to QiYi's own "Smart Player
+    // Pro" app. Faking a service UUID here would just fail silently and look
+    // "connected-but-broken", so this stays a clear, honest stub until the
+    // real protocol is known. If you can sniff the GATT service UUID +
+    // notification bytes (e.g. with the nRF Connect app while paired to
+    // Smart Player Pro), drop them in and this becomes a real driver — same
+    // shape as ganDriver above.
+    const qiyiDriver = {
+      name: "QiYi Smart Timer",
+      async connect() {
+        throw new Error("QiYi Smart Timer isn't supported yet — its Bluetooth protocol isn't publicly documented. It currently only pairs with QiYi's own Smart Player Pro app.");
+      }
+    };
+
+    // ---- MoYu Smart Timer — reserved slot ----
+    // Same situation as QiYi: MoYu's Smart/AI Timer only pairs with its own
+    // WCU Cube app, and no public GATT spec exists for it yet. Reserved slot,
+    // same shape as ganDriver, ready to fill in once the protocol is known.
+    const moyuDriver = {
+      name: "MoYu Smart Timer",
+      async connect() {
+        throw new Error("MoYu Smart Timer isn't supported yet — its Bluetooth protocol isn't publicly documented. It currently only pairs with MoYu's own WCU Cube app.");
+      }
+    };
+
+    const HARDWARE_DRIVERS = { gan: ganDriver, qiyi: qiyiDriver, moyu: moyuDriver, stackmat: stackmatDriver };
+
+    const HardwareTimer = (function () {
+      let activeConnection = null;
+      let activeDriverKey = null;
+
+      async function connect(driverKey, { onDisconnect } = {}) {
+        const driver = HARDWARE_DRIVERS[driverKey];
+        if (!driver) throw new Error("Unknown hardware timer driver: " + driverKey);
+        if (activeConnection) disconnect();
+        activeConnection = await driver.connect({
+          onEvent: routeHardwareState,
+          onDisconnect: () => {
+            activeConnection = null;
+            activeDriverKey = null;
+            if (onDisconnect) onDisconnect();
+          }
+        });
+        activeDriverKey = driverKey;
+        return driver.name;
+      }
+
+      function disconnect() {
+        if (activeConnection) { try { activeConnection.disconnect(); } catch (e) {} }
+        activeConnection = null;
+        activeDriverKey = null;
+      }
+
+      function isConnected() { return activeConnection !== null; }
+
+      return { connect, disconnect, isConnected };
+    })();
+
+    // ---- Settings drawer wiring for "Connect Smart Timer" ----
+    const hwConnectBtn = document.getElementById("hw-connect-btn");
+    const hwDisconnectBtn = document.getElementById("hw-disconnect-btn");
+    const hwStatusEl = document.getElementById("hw-timer-status");
+    const hwBrandSelect = document.getElementById("hw-brand-select");
+
+    function setHwStatus(text, connected) {
+      hwStatusEl.textContent = text;
+      hwConnectBtn.classList.toggle("hidden", connected);
+      hwDisconnectBtn.classList.toggle("hidden", !connected);
+    }
+
+    hwConnectBtn.addEventListener("click", async () => {
+      if (!navigator.bluetooth) {
+        setHwStatus("Web Bluetooth isn't supported in this browser — try Chrome or Edge on desktop/Android.", false);
+        return;
+      }
+      const driverKey = hwBrandSelect.value;
+      hwConnectBtn.disabled = true;
+      setHwStatus("Connecting…", false);
+      try {
+        const name = await HardwareTimer.connect(driverKey, {
+          onDisconnect: () => setHwStatus("Disconnected (device out of range or turned off)", false)
+        });
+        setHwStatus("✅ Connected: " + name, true);
+      } catch (err) {
+        console.error("[HardwareTimer] connect failed:", err);
+        setHwStatus("Connection failed: " + (err && err.message ? err.message : "unknown error"), false);
+      } finally {
+        hwConnectBtn.disabled = false;
+      }
+    });
+
+    hwDisconnectBtn.addEventListener("click", () => {
+      HardwareTimer.disconnect();
+      setHwStatus("Not connected", false);
     });
 
     // ==========================================================
