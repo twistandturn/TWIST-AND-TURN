@@ -19,6 +19,8 @@
     --bg-base:#101218; --bg-surface:#181B24; --ink:#F2F1ED; --ink-muted:#9297A6;
     --cube-red:#E8412B; --cube-yellow:#F2B705; --cube-blue:#2F6FE0; --cube-green:#22A35C;
     --timer-running-color: var(--cube-blue);
+    --scramble-bg-color: rgba(47,111,224,0.08);
+    --board-bg-color: transparent;
   }
   .timer-color-btn{ height:30px; border:2px solid transparent; cursor:pointer; }
   .timer-color-btn.selected{ border-color:var(--ink); }
@@ -112,9 +114,10 @@
   .cs-topbar{ display:flex; align-items:center; gap:0.6rem; padding:0.6rem 1rem; border-bottom:1px solid rgba(255,255,255,0.06); }
   .cs-event-select{ font-family:'Space Grotesk',sans-serif; font-weight:600; font-size:0.9rem; background:var(--bg-base); border:1px solid rgba(255,255,255,0.12); color:var(--ink); border-radius:8px; padding:0.45rem 0.7rem; }
   .cs-event-select:focus{ outline:none; border-color:var(--cube-blue); }
-  .cs-scramble-bar{ background:rgba(47,111,224,0.08); border-bottom:1px solid rgba(255,255,255,0.06); padding:0.9rem 1.25rem; text-align:center; }
-  html[data-theme="light"] .cs-scramble-bar{ background:#FDEDEA; }
+  .cs-scramble-bar{ background:var(--scramble-bg-color); border-bottom:1px solid rgba(255,255,255,0.06); padding:0.9rem 1.25rem; text-align:center; }
+  html[data-theme="light"]{ --scramble-bg-color:#FDEDEA; }
   .cs-timer-wrap{ flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:1.5rem 1rem; text-align:center; }
+  #timer-zone{ background-color:var(--board-bg-color); }
   .cs-below-avgs{ display:flex; gap:1.5rem; justify-content:center; flex-wrap:wrap; margin-top:0.75rem; font-family:'JetBrains Mono',monospace; }
   .cs-below-avgs .cs-avg-label{ font-size:0.7rem; text-transform:uppercase; letter-spacing:0.05em; color:var(--ink-muted); }
   .cs-below-avgs .cs-avg-value{ font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:1.15rem; }
@@ -146,17 +149,6 @@
     #scramble-preview-box{ bottom:0.5rem; right:0.5rem; padding:0.35rem; }
     #scramble-preview-box scramble-display{ width:80px !important; height:80px !important; }
   }
-
-  /* ---------- Corner customization ---------- */
-  .tz-corner{
-    position:absolute; font-family:'JetBrains Mono',monospace; font-size:0.72rem;
-    color:var(--ink-muted); pointer-events:none; line-height:1.3; white-space:nowrap;
-  }
-  .tz-corner b{ font-family:'Space Grotesk',sans-serif; }
-  .tz-corner-tl{ top:0.6rem; left:0.8rem; text-align:left; }
-  .tz-corner-tr{ top:0.6rem; right:0.8rem; text-align:right; }
-  .tz-corner-bl{ bottom:0.6rem; left:0.8rem; text-align:left; }
-  .tz-corner-br{ bottom:0.6rem; right:0.8rem; text-align:right; }
 
   /* ---------- Custom scramble edit ---------- */
   #scramble-edit-btn{ background:none; border:none; cursor:pointer; color:var(--ink-muted); font-size:0.85rem; vertical-align:middle; margin-left:0.35rem; }
@@ -246,10 +238,6 @@
 
       <div class="cs-timer-wrap">
         <div id="timer-zone" class="select-none rounded-2xl py-8 px-6">
-          <div id="tz-corner-tl" class="tz-corner tz-corner-tl"></div>
-          <div id="tz-corner-tr" class="tz-corner tz-corner-tr"></div>
-          <div id="tz-corner-bl" class="tz-corner tz-corner-bl"></div>
-          <div id="tz-corner-br" class="tz-corner tz-corner-br"></div>
           <div id="timer-display" class="font-mono">0.00</div>
           <input id="type-time-input" type="text" inputmode="numeric" autocomplete="off" placeholder="0.00"
             class="hidden w-full bg-transparent text-center font-mono font-bold outline-none"
@@ -348,26 +336,31 @@
       </div>
 
       <div>
-        <p class="font-mono text-xs uppercase tracking-widest mb-3" style="color:var(--ink-muted);">Corner Customization</p>
-        <p class="text-xs mb-2" style="color:var(--ink-muted);">Timer ke chaaron corners pe jo dikhana hai wo chuno:</p>
-        <div class="space-y-2">
+        <p class="font-mono text-xs uppercase tracking-widest mb-3" style="color:var(--ink-muted);">Full Color Customization</p>
+        <p class="text-xs mb-3" style="color:var(--ink-muted);">Har area ka apna color set karo — jo chahiye badlo, baaki theme default pe rahega.</p>
+        <div class="space-y-3">
           <label class="flex items-center justify-between py-1">
-            <span class="text-sm">Top-Left</span>
-            <select id="corner-tl" class="field text-sm rounded-lg px-2 py-1.5 corner-select" data-corner="tl"></select>
+            <span class="text-sm">Board / Timer Area</span>
+            <input type="color" id="color-board" class="color-pick" data-target="board" value="#101218">
           </label>
           <label class="flex items-center justify-between py-1">
-            <span class="text-sm">Top-Right</span>
-            <select id="corner-tr" class="field text-sm rounded-lg px-2 py-1.5 corner-select" data-corner="tr"></select>
+            <span class="text-sm">Scramble Area</span>
+            <input type="color" id="color-scramble" class="color-pick" data-target="scramble" value="#182a4d">
           </label>
           <label class="flex items-center justify-between py-1">
-            <span class="text-sm">Bottom-Left</span>
-            <select id="corner-bl" class="field text-sm rounded-lg px-2 py-1.5 corner-select" data-corner="bl"></select>
+            <span class="text-sm">Sidebar / Panels</span>
+            <input type="color" id="color-sidebar" class="color-pick" data-target="sidebar" value="#181B24">
           </label>
           <label class="flex items-center justify-between py-1">
-            <span class="text-sm">Bottom-Right</span>
-            <select id="corner-br" class="field text-sm rounded-lg px-2 py-1.5 corner-select" data-corner="br"></select>
+            <span class="text-sm">Page Background</span>
+            <input type="color" id="color-page" class="color-pick" data-target="page" value="#101218">
+          </label>
+          <label class="flex items-center justify-between py-1">
+            <span class="text-sm">Text Color</span>
+            <input type="color" id="color-text" class="color-pick" data-target="text" value="#F2F1ED">
           </label>
         </div>
+        <button type="button" id="color-reset-btn" class="btn-ghost text-xs px-3 py-1.5 rounded-lg mt-3">↺ Reset to theme default</button>
       </div>
 
       <div>
@@ -1309,55 +1302,6 @@
       };
     }
 
-    // ---- corner customization helpers ----
-    const CORNER_OPTIONS = [
-      { id: "none", label: "None" },
-      { id: "ao5", label: "Ao5" },
-      { id: "ao12", label: "Ao12" },
-      { id: "ao25", label: "Ao25" },
-      { id: "best", label: "Best" },
-      { id: "mean", label: "Mean" },
-      { id: "count", label: "Solve Count" },
-      { id: "session", label: "Session Name" },
-      { id: "event", label: "Event" },
-      { id: "date", label: "Today's Date" },
-    ];
-    function cornerValueText(id, solves) {
-      switch (id) {
-        case "ao5": return "Ao5 " + computeAvgText(solves, 5);
-        case "ao12": return "Ao12 " + computeAvgText(solves, 12);
-        case "ao25": return "Ao25 " + computeAvgText(solves, 25);
-        case "best": {
-          const valid = solves.map(solveEffectiveMs).filter(v => v !== Infinity);
-          return "Best " + (valid.length ? fmt(Math.min(...valid)) : "-");
-        }
-        case "mean": {
-          const valid = solves.map(solveEffectiveMs).filter(v => v !== Infinity);
-          return "Mean " + (valid.length ? fmt(valid.reduce((a, b) => a + b, 0) / valid.length) : "-");
-        }
-        case "count": return solves.length + " solves";
-        case "session": {
-          const sessions = ensureSessionsForEvent(currentEvent);
-          const cur = sessions.find(s => s.id === currentSessionId);
-          return cur ? cur.name : "";
-        }
-        case "event": return (EVENTS.find(e => e.id === currentEvent) || {}).label || currentEvent;
-        case "date": {
-          const d = new Date();
-          return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-        }
-        default: return "";
-      }
-    }
-    function renderCorners() {
-      const solves = loadSolves();
-      ["tl", "tr", "bl", "br"].forEach(pos => {
-        const el = document.getElementById("tz-corner-" + pos);
-        const id = settings.corners[pos];
-        el.textContent = (id && id !== "none") ? cornerValueText(id, solves) : "";
-      });
-    }
-
     function renderStats() {
       const solves = loadSolves();
       const validCount = solves.filter(s => s.penalty !== "DNF").length;
@@ -1381,9 +1325,9 @@
         stddevEl.textContent = fmt(Math.sqrt(variance));
       }
 
-      // Ao5 / Ao12 / Ao25 stay right below the timer, each with its own share icon
+      // Ao5 / Ao12 stay right below the timer, each with its own share icon
       const belowEl = document.getElementById("below-timer-avgs");
-      belowEl.innerHTML = [5, 12, 25].map(n => {
+      belowEl.innerHTML = [5, 12].map(n => {
         const { bpa, wpa } = computeBpaWpaText(solves, n);
         return `
         <div>
@@ -1395,7 +1339,7 @@
       belowEl.querySelectorAll(".share-avg-btn").forEach(b => b.addEventListener("click", () => shareAverage(parseInt(b.dataset.n))));
 
       const extraEl = document.getElementById("sidebar-extra-avgs");
-      const extras = [...settings.avgs].filter(n => n !== 5 && n !== 12 && n !== 25).sort((a, b) => a - b);
+      const extras = [...settings.avgs].filter(n => n !== 5 && n !== 12).sort((a, b) => a - b);
       extraEl.innerHTML = extras.map(n => {
         const { bpa, wpa } = computeBpaWpaText(solves, n);
         return `
@@ -1408,8 +1352,6 @@
         </div>`;
       }).join("");
       extraEl.querySelectorAll(".share-avg-btn").forEach(b => b.addEventListener("click", () => shareAverage(parseInt(b.dataset.n))));
-
-      renderCorners();
     }
 
     function shareAverage(n) {
@@ -1442,12 +1384,12 @@
       manualMode: false, inspection: false, theme: "dark", avgs: [5, 12, 25], showPreview: true,
       holdTimeMs: 300, hideRunningTime: false, timerColor: "var(--cube-blue)",
       phasesEnabled: false, phasesCount: 3,
-      corners: { tl: "none", tr: "none", bl: "none", br: "none" }
+      customColors: { board: null, scramble: null, sidebar: null, page: null, text: null }
     };
     function loadSettings() {
       try {
         const s = { ...DEFAULT_SETTINGS, ...JSON.parse(localStorage.getItem(SETTINGS_KEY)) };
-        s.corners = { ...DEFAULT_SETTINGS.corners, ...(s.corners || {}) };
+        s.customColors = { ...DEFAULT_SETTINGS.customColors, ...(s.customColors || {}) };
         if (!s.avgs.includes(25)) s.avgs.push(25);
         return s;
       }
@@ -1564,17 +1506,41 @@
       });
     });
 
-    // ---- Corner customization wiring ----
-    document.querySelectorAll(".corner-select").forEach(sel => {
-      sel.innerHTML = CORNER_OPTIONS.map(o => `<option value="${o.id}">${o.label}</option>`).join("");
-      const pos = sel.dataset.corner;
-      sel.value = settings.corners[pos] || "none";
-      sel.addEventListener("change", () => {
-        settings.corners[pos] = sel.value;
+    // ---- Full color customization wiring ----
+    // Maps each customizable area to the CSS variable it should override.
+    const COLOR_TARGET_VAR = {
+      board: "--board-bg-color",
+      scramble: "--scramble-bg-color",
+      sidebar: "--bg-surface",
+      page: "--bg-base",
+      text: "--ink"
+    };
+    function applyCustomColors() {
+      Object.entries(settings.customColors).forEach(([target, value]) => {
+        const cssVar = COLOR_TARGET_VAR[target];
+        if (!cssVar) return;
+        if (value) document.documentElement.style.setProperty(cssVar, value);
+        else document.documentElement.style.removeProperty(cssVar);
+      });
+    }
+    document.querySelectorAll(".color-pick").forEach(input => {
+      const target = input.dataset.target;
+      if (settings.customColors[target]) input.value = settings.customColors[target];
+      input.addEventListener("input", () => {
+        settings.customColors[target] = input.value;
         saveSettings(settings);
-        renderCorners();
+        applyCustomColors();
       });
     });
+    document.getElementById("color-reset-btn").addEventListener("click", () => {
+      settings.customColors = { ...DEFAULT_SETTINGS.customColors };
+      saveSettings(settings);
+      applyCustomColors();
+      document.querySelectorAll(".color-pick").forEach(input => {
+        input.value = input.getAttribute("value");
+      });
+    });
+    applyCustomColors();
 
     // ==========================================================
     // Mobile session drawer
@@ -1909,10 +1875,25 @@
     const installSettingsBtn = document.getElementById("settings-install-btn");
     const pwaInstallStatus = document.getElementById("pwa-install-status");
 
-    if ("serviceWorker" in navigator) {
+    // Installability requires https (or localhost) — service workers and the
+    // install prompt both refuse to run on file:// or plain http. We detect
+    // that up front so the message the user sees is accurate instead of the
+    // browser's generic "not available" text.
+    const isSecureHost = window.isSecureContext && location.protocol !== "file:";
+    const isStandaloneAlready =
+      window.matchMedia("(display-mode: standalone)").matches || navigator.standalone === true;
+
+    if (isStandaloneAlready) {
+      installTopBtn.classList.add("hidden");
+      pwaInstallStatus.textContent = "✅ Already running as an installed app.";
+    } else if (!isSecureHost) {
+      pwaInstallStatus.textContent = "Install sirf tab kaam karega jab ye file HTTPS pe host ho (jaise GitHub Pages / Netlify / Vercel) — seedha file kholne (file://) ya sirf http pe install available nahi hota, ye browser ki apni requirement hai.";
+    }
+
+    if ("serviceWorker" in navigator && isSecureHost) {
       window.addEventListener("load", () => {
         navigator.serviceWorker.register("./sw.js").catch(err => {
-          console.warn("[PWA] service worker registration failed (fine if not served over http/https):", err);
+          console.warn("[PWA] service worker registration failed:", err);
         });
       });
     }
@@ -1921,12 +1902,16 @@
       e.preventDefault();
       deferredInstallPrompt = e;
       installTopBtn.classList.remove("hidden");
-      pwaInstallStatus.textContent = "";
+      pwaInstallStatus.textContent = "Install ke liye ready hai — button dabao.";
     });
 
     async function triggerInstall() {
+      if (!isSecureHost) {
+        pwaInstallStatus.textContent = "Pehle is folder ko HTTPS pe host karo (GitHub Pages/Netlify/Vercel free hain), tab install button kaam karega.";
+        return;
+      }
       if (!deferredInstallPrompt) {
-        pwaInstallStatus.textContent = "Browser install prompt abhi available nahi hai — Chrome/Edge me 'Add to Home Screen' / address-bar install icon try karo.";
+        pwaInstallStatus.textContent = "Chrome/Edge address bar me install (⊕) icon try karo, ya browser menu me 'Install app' / 'Add to Home Screen' dhoondo.";
         return;
       }
       deferredInstallPrompt.prompt();
