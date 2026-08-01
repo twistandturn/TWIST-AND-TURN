@@ -4,6 +4,14 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Timer - Twist & Turn</title>
+<link rel="manifest" href="./manifest.json">
+<meta name="theme-color" content="#101218">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="TT Timer">
+<link rel="apple-touch-icon" href="./icon-192.png">
+<link rel="icon" href="./icon-192.png">
 <script src="https://cdn.tailwindcss.com"></script>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
@@ -29,6 +37,7 @@
   #timer-zone{
     user-select:none; -webkit-user-select:none; touch-action:none; cursor:pointer;
     transition:background .15s ease, transform .1s ease;
+    position:relative;
   }
   #timer-zone.state-holding{ background:rgba(232,65,43,0.12); }
   #timer-zone.state-ready{ background:rgba(34,163,92,0.15); }
@@ -137,6 +146,26 @@
     #scramble-preview-box{ bottom:0.5rem; right:0.5rem; padding:0.35rem; }
     #scramble-preview-box scramble-display{ width:80px !important; height:80px !important; }
   }
+
+  /* ---------- Corner customization ---------- */
+  .tz-corner{
+    position:absolute; font-family:'JetBrains Mono',monospace; font-size:0.72rem;
+    color:var(--ink-muted); pointer-events:none; line-height:1.3; white-space:nowrap;
+  }
+  .tz-corner b{ font-family:'Space Grotesk',sans-serif; }
+  .tz-corner-tl{ top:0.6rem; left:0.8rem; text-align:left; }
+  .tz-corner-tr{ top:0.6rem; right:0.8rem; text-align:right; }
+  .tz-corner-bl{ bottom:0.6rem; left:0.8rem; text-align:left; }
+  .tz-corner-br{ bottom:0.6rem; right:0.8rem; text-align:right; }
+
+  /* ---------- Custom scramble edit ---------- */
+  #scramble-edit-btn{ background:none; border:none; cursor:pointer; color:var(--ink-muted); font-size:0.85rem; vertical-align:middle; margin-left:0.35rem; }
+  #scramble-edit-btn:hover{ color:var(--cube-blue); }
+  #scramble-edit-area{ width:100%; background:transparent; border:1px dashed rgba(255,255,255,0.25); border-radius:6px; color:var(--ink); font-family:'JetBrains Mono',monospace; font-size:0.95rem; padding:0.4rem; resize:vertical; }
+
+  /* ---------- Phases / splits ---------- */
+  #phase-readout{ display:none; gap:0.75rem; justify-content:center; flex-wrap:wrap; margin-top:0.5rem; font-family:'JetBrains Mono',monospace; font-size:0.8rem; color:var(--ink-muted); }
+  #phase-readout span.ph-current{ color:var(--cube-blue); font-weight:700; }
 </style>
 </head>
 <body class="min-h-screen">
@@ -148,7 +177,10 @@
     <!-- SIDEBAR -->
     <aside id="cs-sidebar" class="cs-sidebar">
       <div class="cs-sidebar-header">
-        <span class="font-display font-bold text-base cursor-pointer" onclick="window.location.href='index.html'">Twist &amp; Turn</span>
+        <span class="flex items-center gap-2 cursor-pointer" onclick="window.location.href='index.html'">
+          <img src="./logo-256.png" alt="Twist & Turn" style="width:28px;height:28px;border-radius:6px;object-fit:cover;">
+          <span class="font-display font-bold text-base">Twist &amp; Turn</span>
+        </span>
         <button id="sidebar-close-btn" type="button" class="cs-icon-btn cs-mobile-only" title="Close">✕</button>
       </div>
 
@@ -194,22 +226,36 @@
         <select id="event-select" class="cs-event-select"></select>
         <div class="flex-1"></div>
         <button id="new-scramble-btn" class="btn-ghost text-xs px-3 py-1.5 rounded-lg flex-shrink-0">🔄 New</button>
+        <button id="install-pwa-btn" type="button" class="hidden btn-ghost text-xs px-3 py-1.5 rounded-lg flex-shrink-0" title="Install Timer as an app">⬇️ Install</button>
         <a id="home-link" href="index.html" class="cs-icon-btn" title="Home">🏠</a>
         <button id="settings-btn" type="button" class="cs-icon-btn" title="Settings">⚙️</button>
         <button id="fullscreen-btn" type="button" class="cs-icon-btn" title="Fullscreen">⛶</button>
       </div>
 
       <div class="cs-scramble-bar">
-        <p id="scramble-text" class="font-mono text-base md:text-lg leading-relaxed" style="letter-spacing:0.03em;">Loading…</p>
+        <p id="scramble-text" class="font-mono text-base md:text-lg leading-relaxed inline" style="letter-spacing:0.03em;">Loading…</p>
+        <button id="scramble-edit-btn" type="button" title="Enter your own scramble">✏️</button>
+        <div id="scramble-edit-wrap" class="hidden mt-2">
+          <textarea id="scramble-edit-area" rows="2" placeholder="Type your own scramble…"></textarea>
+          <div class="mt-1 flex gap-2 justify-center">
+            <button id="scramble-edit-save" type="button" class="btn-ghost text-xs px-3 py-1 rounded-lg">✅ Use this scramble</button>
+            <button id="scramble-edit-cancel" type="button" class="btn-ghost text-xs px-3 py-1 rounded-lg">Cancel</button>
+          </div>
+        </div>
       </div>
 
       <div class="cs-timer-wrap">
         <div id="timer-zone" class="select-none rounded-2xl py-8 px-6">
+          <div id="tz-corner-tl" class="tz-corner tz-corner-tl"></div>
+          <div id="tz-corner-tr" class="tz-corner tz-corner-tr"></div>
+          <div id="tz-corner-bl" class="tz-corner tz-corner-bl"></div>
+          <div id="tz-corner-br" class="tz-corner tz-corner-br"></div>
           <div id="timer-display" class="font-mono">0.00</div>
           <input id="type-time-input" type="text" inputmode="numeric" autocomplete="off" placeholder="0.00"
             class="hidden w-full bg-transparent text-center font-mono font-bold outline-none"
             style="font-size:clamp(3.2rem, 12vw, 7rem); line-height:1; letter-spacing:0.01em; color:var(--ink);">
           <p id="timer-hint" class="text-sm mt-4" style="color:var(--ink-muted);">Hold SPACE (or press &amp; hold here on mobile) to start</p>
+          <div id="phase-readout"></div>
         </div>
 
         <div class="text-center px-4">
@@ -255,6 +301,25 @@
           <input type="checkbox" id="setting-preview" class="toggle-switch-input">
         </label>
       </div>
+
+      <div>
+        <p class="font-mono text-xs uppercase tracking-widest mb-3" style="color:var(--ink-muted);">Phases (Split Times)</p>
+        <label class="flex items-center justify-between py-2">
+          <span class="text-sm">Enable Phases</span>
+          <input type="checkbox" id="setting-phases-enabled" class="toggle-switch-input">
+        </label>
+        <label class="flex items-center justify-between py-2">
+          <span class="text-sm">Number of Phases</span>
+          <select id="setting-phases-count" class="field text-sm rounded-lg px-2 py-1.5">
+            <option value="2">2</option>
+            <option value="3">3</option>
+            <option value="4">4</option>
+            <option value="5">5</option>
+          </select>
+        </label>
+        <p class="text-xs" style="color:var(--ink-muted);">Jab ON ho, running timer ke dauran tap/space se split (phase) mark hota hai — last phase pe solve khatam hoga.</p>
+      </div>
+
       <div>
         <p class="font-mono text-xs uppercase tracking-widest mb-3" style="color:var(--ink-muted);">Timer Customization</p>
         <label class="flex items-center justify-between py-2">
@@ -281,6 +346,30 @@
           <button type="button" data-color="#F2F1ED" class="timer-color-btn flex-1 py-2 rounded-lg" style="background:#F2F1ED; border:1px solid rgba(0,0,0,0.15);" title="White"></button>
         </div>
       </div>
+
+      <div>
+        <p class="font-mono text-xs uppercase tracking-widest mb-3" style="color:var(--ink-muted);">Corner Customization</p>
+        <p class="text-xs mb-2" style="color:var(--ink-muted);">Timer ke chaaron corners pe jo dikhana hai wo chuno:</p>
+        <div class="space-y-2">
+          <label class="flex items-center justify-between py-1">
+            <span class="text-sm">Top-Left</span>
+            <select id="corner-tl" class="field text-sm rounded-lg px-2 py-1.5 corner-select" data-corner="tl"></select>
+          </label>
+          <label class="flex items-center justify-between py-1">
+            <span class="text-sm">Top-Right</span>
+            <select id="corner-tr" class="field text-sm rounded-lg px-2 py-1.5 corner-select" data-corner="tr"></select>
+          </label>
+          <label class="flex items-center justify-between py-1">
+            <span class="text-sm">Bottom-Left</span>
+            <select id="corner-bl" class="field text-sm rounded-lg px-2 py-1.5 corner-select" data-corner="bl"></select>
+          </label>
+          <label class="flex items-center justify-between py-1">
+            <span class="text-sm">Bottom-Right</span>
+            <select id="corner-br" class="field text-sm rounded-lg px-2 py-1.5 corner-select" data-corner="br"></select>
+          </label>
+        </div>
+      </div>
+
       <div>
         <p class="font-mono text-xs uppercase tracking-widest mb-3" style="color:var(--ink-muted);">Appearance</p>
         <div class="flex gap-2">
@@ -290,7 +379,7 @@
       </div>
       <div>
         <p class="font-mono text-xs uppercase tracking-widest mb-3" style="color:var(--ink-muted);">Extra Averages</p>
-        <p class="text-xs mb-2" style="color:var(--ink-muted);">Ao5 and Ao12 always show. Turn on the ones you want tracked too:</p>
+        <p class="text-xs mb-2" style="color:var(--ink-muted);">Ao5, Ao12 aur Ao25 hamesha dikhte hain. Baaki jo track karna hai wo on karo:</p>
         <label class="flex items-center justify-between py-2"><span class="text-sm">Ao50</span><input type="checkbox" data-avg="50" class="toggle-switch-input avg-toggle"></label>
         <label class="flex items-center justify-between py-2"><span class="text-sm">Ao100</span><input type="checkbox" data-avg="100" class="toggle-switch-input avg-toggle"></label>
         <label class="flex items-center justify-between py-2"><span class="text-sm">Ao200</span><input type="checkbox" data-avg="200" class="toggle-switch-input avg-toggle"></label>
@@ -310,6 +399,13 @@
           <button type="button" id="hw-connect-btn" class="btn-primary flex-1 py-2 rounded-lg text-sm">🔗 Connect Smart Timer</button>
           <button type="button" id="hw-disconnect-btn" class="hidden btn-ghost py-2 px-3 rounded-lg text-sm">Disconnect</button>
         </div>
+      </div>
+
+      <div>
+        <p class="font-mono text-xs uppercase tracking-widest mb-3" style="color:var(--ink-muted);">App</p>
+        <p class="text-xs mb-3" style="color:var(--ink-muted);">Timer ko phone/desktop pe alag app ki tarah install karo (offline bhi chalega).</p>
+        <button type="button" id="settings-install-btn" class="btn-primary w-full py-2.5 rounded-lg text-sm">⬇️ Install Timer App</button>
+        <p id="pwa-install-status" class="text-xs mt-2" style="color:var(--ink-muted);"></p>
       </div>
     </div>
   </aside>
@@ -391,6 +487,7 @@
     const scramblePreviewBox = document.getElementById("scramble-preview-box");
     const scramblePreviewEl = document.getElementById("scramble-preview");
     let scrambleLoading = false;
+    let customScrambleActive = false; // true once the user has typed their own scramble — "New" clears it
 
     function updateScramblePreview(scrambleStr) {
       // 333mbf shows several scrambles at once (one per line) — an image
@@ -477,19 +574,11 @@
     }
 
     function clockHour() {
-      // Every clock pin-turn needs a value 0-6 AND a sign (WCA notation never
-      // omits the sign, even for 0 or 6) — this was the bug: "6" was being
-      // written with no sign at all, which isn't valid clock notation.
       const n = randInt(0, 6);
       const sign = Math.random() < 0.5 ? "+" : "-";
       return n + sign;
     }
     function clockScramble() {
-      // WCA Clock format: 9 front pin-turns (UR DR DL UL U R D L ALL), a y2 cube
-      // rotation, then 5 back pin-turns (U R D L ALL). The old version was missing
-      // "ALL" on the back half, which is exactly why it looked "scattered" instead
-      // of the proper structured line — this fixes it to match the real format:
-      // UR5+ DR5- DL1+ UL2- U1+ R1+ D3- L1- ALL2+ y2 U4+ R6+ D2- L2+ ALL3-
       const front = ["UR", "DR", "DL", "UL", "U", "R", "D", "L", "ALL"].map(k => k + clockHour());
       const back = ["U", "R", "D", "L", "ALL"].map(k => k + clockHour());
       return front.join(" ") + " y2 " + back.join(" ");
@@ -513,39 +602,22 @@
       return scrambles.join("\n");
     }
 
-    // Puzzle-appropriate LAST-RESORT fallbacks only — used only if cubing.js fails
-    // repeatedly (e.g. CDN/WASM hiccup).
-    //
-    // IMPORTANT: WCA Regulation 4b3 requires scrambles to be "random-state" for
-    // every event EXCEPT big cubes (5x5 and up) and Megaminx, which are allowed to
-    // be "random-moves". Our local functions below only do random-MOVES, so they
-    // are only WCA-legit for 555/555bf/666/777/minx. For every other event (2x2,
-    // 3x3, 4x4, OH, BLD, Pyraminx, Skewb, Clock, MBLD, Square-1) a random-moves
-    // scramble is NOT a valid WCA scramble even though it "looks" fine — this was
-    // exactly the bug reported for 2x2 (and the earlier Square-1 issue). So those
-    // events get NO local fallback: if cubing.js can't be reached, we tell the
-    // user to retry instead of quietly handing them a non-compliant scramble.
     const FALLBACK_SCRAMBLERS = {
       "555": () => cubeScramble(["U", "D", "L", "R", "F", "B"], 60, "simple", true),
       "555bf": () => cubeScramble(["U", "D", "L", "R", "F", "B"], 60, "simple", true),
       "666": () => cubeScramble(["U", "D", "L", "R", "F", "B"], 80, "deep", true),
       "777": () => cubeScramble(["U", "D", "L", "R", "F", "B"], 100, "deep", true),
       "minx": megaminxScramble,
-      "fto": ftoScramble, // not an official WCA event, so no regulation applies — safe to keep
+      "fto": ftoScramble,
     };
 
-    // Clock is special: its scramble notation directly SETS each pin's turn
-    // value (it isn't searching for moves that reach a state, the notation *is*
-    // the state). So picking each of the 14 values independently at random
-    // already satisfies WCA's random-state requirement — no need to round-trip
-    // through cubing.js/CDN for it, and this guarantees the exact correct
-    // structured line format every time.
     const LOCAL_PRIMARY_SCRAMBLERS = {
       "clock": clockScramble,
     };
 
     // All 18 events: always use cubing.js for true WCA-legal random-state scrambles.
     async function getNewScramble() {
+      customScrambleActive = false; // fresh scramble cancels any custom one
       scrambleLoading = true;
       scrambleTextEl.textContent = "Generating scramble…";
       scramblePreviewBox.style.display = "none";
@@ -571,8 +643,6 @@
         }
       }
 
-      // cubing.js failed repeatedly (network/CDN issue) — use a puzzle-correct
-      // fallback if one exists for this event, never a generic cube fallback.
       console.error(`cubing.js failed repeatedly for "${currentEvent}", using local fallback if available.`);
       if (FALLBACK_SCRAMBLERS[currentEvent]) {
         try {
@@ -588,6 +658,27 @@
     }
     document.getElementById("new-scramble-btn").addEventListener("click", () => { if (!scrambleLoading) getNewScramble(); });
 
+    // ---- Custom scramble input (pencil icon) ----
+    const scrambleEditBtn = document.getElementById("scramble-edit-btn");
+    const scrambleEditWrap = document.getElementById("scramble-edit-wrap");
+    const scrambleEditArea = document.getElementById("scramble-edit-area");
+    scrambleEditBtn.addEventListener("click", () => {
+      scrambleEditArea.value = customScrambleActive ? scrambleTextEl.textContent : "";
+      scrambleEditWrap.classList.remove("hidden");
+      scrambleEditArea.focus();
+    });
+    document.getElementById("scramble-edit-cancel").addEventListener("click", () => {
+      scrambleEditWrap.classList.add("hidden");
+    });
+    document.getElementById("scramble-edit-save").addEventListener("click", () => {
+      const val = scrambleEditArea.value.trim();
+      if (!val) return;
+      scrambleTextEl.textContent = val;
+      customScrambleActive = true;
+      updateScramblePreview(val);
+      scrambleEditWrap.classList.add("hidden");
+    });
+
     // ==========================================================
     // Storage — solves are kept per event
     // Solves are kept per event AND per session within that event.
@@ -601,8 +692,6 @@
       catch { return {}; }
     }
     function saveSessionsMap(map) { localStorage.setItem(SESSIONS_KEY, JSON.stringify(map)); }
-    // Guarantees every event has at least one session, creating "Session 1" the
-    // first time an event is touched.
     function ensureSessionsForEvent(ev) {
       const map = loadSessionsMap();
       if (!map[ev] || map[ev].length === 0) {
@@ -626,8 +715,6 @@
     function loadSolves() {
       const key = storageKey(currentEvent, currentSessionId);
       let raw = localStorage.getItem(key);
-      // One-time migration: solves saved before sessions existed lived under a
-      // plain per-event key. Bring them into Session 1 instead of losing them.
       if (raw == null && currentSessionId === "s1") {
         const legacy = localStorage.getItem("tt-timer-solves-" + currentEvent);
         if (legacy != null) { raw = legacy; localStorage.setItem(key, legacy); }
@@ -649,7 +736,7 @@
       document.getElementById("session-delete-btn").style.opacity = sessions.length <= 1 ? "0.35" : "1";
     }
     document.getElementById("session-select").addEventListener("change", (e) => {
-      if (state !== "idle") { e.target.value = currentSessionId; return; } // don't switch mid-solve
+      if (state !== "idle") { e.target.value = currentSessionId; return; }
       currentSessionId = e.target.value;
       setActiveSessionId(currentEvent, currentSessionId);
       renderSolves();
@@ -683,7 +770,7 @@
     });
     document.getElementById("session-delete-btn").addEventListener("click", () => {
       const sessions = ensureSessionsForEvent(currentEvent);
-      if (sessions.length <= 1) return; // always keep at least one session
+      if (sessions.length <= 1) return;
       if (!confirm("Delete this session and all its solves? This can't be undone.")) return;
       localStorage.removeItem(storageKey(currentEvent, currentSessionId));
       const map = loadSessionsMap();
@@ -702,6 +789,7 @@
     const zone = document.getElementById("timer-zone");
     const display = document.getElementById("timer-display");
     const hint = document.getElementById("timer-hint");
+    const phaseReadout = document.getElementById("phase-readout");
 
     let state = "idle"; // idle | inspecting | holding | ready | running
     let holdStartAt = 0;
@@ -712,6 +800,9 @@
     let runInterval = null;
     let pendingPenalty = null; // null | "+2" | "DNF"
     let HOLD_THRESHOLD_MS = 300; // overridden by settings.holdTimeMs once settings load
+
+    // ---- phases state ----
+    let phaseSplits = []; // ms since runStartAt for each split mark recorded so far
 
     function fmt(ms) {
       if (ms == null) return "—";
@@ -737,12 +828,43 @@
       return el && (el.tagName === "INPUT" || el.tagName === "TEXTAREA");
     }
 
+    function renderPhaseReadout() {
+      if (!settings.phasesEnabled) { phaseReadout.style.display = "none"; return; }
+      phaseReadout.style.display = "flex";
+      const n = settings.phasesCount;
+      let prev = 0;
+      const parts = [];
+      for (let i = 0; i < n; i++) {
+        if (i < phaseSplits.length) {
+          const dur = phaseSplits[i] - prev;
+          parts.push(`<span>P${i + 1}: <b>${fmt(dur)}</b></span>`);
+          prev = phaseSplits[i];
+        } else if (i === phaseSplits.length && state === "running") {
+          parts.push(`<span class="ph-current">P${i + 1}: …</span>`);
+        } else {
+          parts.push(`<span>P${i + 1}: -</span>`);
+        }
+      }
+      phaseReadout.innerHTML = parts.join("");
+    }
+
     // ---- begin sequence (keydown / touchstart / manual button) ----
     function beginPress() {
       if (typeMode) return;
       if (isTypingInField()) return;
       hidePostSolvePanel();
-      if (state === "running") { stopTimer(); return; }
+
+      // While running: if phases are enabled, a tap/press marks a split
+      // instead of stopping — until the final phase is reached, then it stops.
+      if (state === "running") {
+        if (settings.phasesEnabled && phaseSplits.length < settings.phasesCount - 1) {
+          phaseSplits.push(performance.now() - runStartAt);
+          renderPhaseReadout();
+          return;
+        }
+        stopTimer();
+        return;
+      }
       if (state !== "idle") return; // already holding/inspecting
 
       if (settings.inspection) {
@@ -777,7 +899,6 @@
       if (isTypingInField()) return;
 
       if (state === "ready") {
-        // compute inspection penalty if applicable
         pendingPenalty = null;
         if (settings.inspection && inspectionInterval) {
           const elapsed = (performance.now() - inspectionStartAt) / 1000;
@@ -791,7 +912,6 @@
       }
 
       if (state === "holding" || state === "inspecting") {
-        // released too early — cancel
         clearTimeout(holdTimeout);
         clearInterval(inspectionInterval); inspectionInterval = null;
         state = "idle";
@@ -803,8 +923,10 @@
 
     function startTimer() {
       state = "running";
+      phaseSplits = [];
+      renderPhaseReadout();
       setZoneState("running");
-      hint.textContent = "Tap / press SPACE to stop";
+      hint.textContent = settings.phasesEnabled ? "Tap / SPACE to mark each phase" : "Tap / press SPACE to stop";
       runStartAt = performance.now();
       runInterval = setInterval(() => {
         display.textContent = settings.hideRunningTime ? "●" : fmt(performance.now() - runStartAt);
@@ -814,17 +936,20 @@
     function stopTimer() {
       clearInterval(runInterval);
       const elapsed = performance.now() - runStartAt;
+      if (settings.phasesEnabled) phaseSplits.push(elapsed); // final phase boundary = solve end
       display.textContent = fmt(elapsed);
       state = "idle";
       setZoneState(null);
       hint.textContent = "Hold SPACE (or press & hold here on mobile) to start";
+      renderPhaseReadout();
 
       const prevBest = currentBestMs();
       const newSolve = {
         ms: Math.round(elapsed),
         penalty: pendingPenalty,
         scramble: scrambleTextEl.textContent,
-        at: new Date().toISOString()
+        at: new Date().toISOString(),
+        phases: settings.phasesEnabled ? phaseSplits.map(v => Math.round(v)) : null
       };
       addSolve(newSolve);
       pendingPenalty = null;
@@ -886,13 +1011,10 @@
       endPress();
     });
 
-    // Quick-edit shortcuts for the most recent solve — only active when the
-    // timer is idle (not holding/inspecting/running), so they never fight
-    // with the timing gesture.
     function setLastSolvePenalty(penalty) {
       const solves = loadSolves();
       if (solves.length === 0) return;
-      solves[0].penalty = solves[0].penalty === penalty ? null : penalty; // press again to undo
+      solves[0].penalty = solves[0].penalty === penalty ? null : penalty;
       saveSolves(solves);
       renderSolves();
       renderStats();
@@ -911,9 +1033,6 @@
       }
     });
 
-    // Touch / click anywhere on screen starts the timer — except over
-    // interactive or informational regions (scramble, stats, buttons,
-    // sidebar, settings, share, scramble preview, etc).
     const TOUCH_ZONE_EXCLUDE_SELECTOR = [
       ".cs-topbar", ".cs-scramble-bar", ".cs-sidebar", "#below-timer-avgs",
       "#post-solve-panel", "#settings-drawer", "#settings-backdrop",
@@ -942,19 +1061,17 @@
       endPress();
     });
 
-    // Dedicated Start/Stop button — good for accessibility / no keyboard
     const manualBtn = document.getElementById("manual-start-btn");
     manualBtn.addEventListener("click", () => {
-      if (state === "running") { stopTimer(); return; }
+      if (state === "running") { beginPress(); return; } // reuse phase/stop logic
       if (state === "idle") {
-        // simulate an instant "hold then release" for click users
         beginPress();
         setTimeout(() => { if (state === "holding" || state === "ready" || state === "inspecting") endPress(); }, HOLD_THRESHOLD_MS + 20);
       }
     });
 
     // ==========================================================
-    // Type-a-time mode — lives right inside the timer display
+    // Type-a-time mode
     // ==========================================================
     let typeMode = false;
     const typeInput = document.getElementById("type-time-input");
@@ -978,11 +1095,10 @@
       }
     }
 
-    // Turns a raw digit string into a live-formatted time, e.g. "1234" -> "12.34", "10345" -> "1:03.45"
     function digitsToTimeString(digits) {
       digits = digits.replace(/\D/g, "");
       if (digits.length === 0) return "";
-      digits = digits.slice(-7); // cap at a sane length
+      digits = digits.slice(-7);
       const padded = digits.padStart(3, "0");
       const cs = padded.slice(-2);
       let secMin = padded.slice(0, -2).padStart(2, "0");
@@ -997,7 +1113,6 @@
     typeInput.addEventListener("input", () => {
       const raw = typeInput.value;
       if (/^dnf$/i.test(raw.trim())) { typeInput.value = raw.trim().toUpperCase(); return; }
-      // let the user freely type letters of "dnf" as they go (d, dn, dnf) without reformatting
       if (/^[dnf]*$/i.test(raw.trim()) && /[a-z]/i.test(raw)) return;
       const hasPlus = raw.trim().endsWith("+");
       const digitsOnly = raw.replace(/[^\d]/g, "");
@@ -1015,7 +1130,6 @@
         penalty = "+2";
         str = str.replace(/\+2$|\+$/, "").trim();
       }
-      // formats: 12.34  |  1:05.67  |  65.4  |  1:05
       const m = str.match(/^(?:(\d+):)?(\d+(?:\.\d+)?)$/);
       if (!m) return null;
       const min = m[1] ? parseInt(m[1], 10) : 0;
@@ -1036,7 +1150,8 @@
         ms: parsed.ms,
         penalty: parsed.penalty,
         scramble: scrambleTextEl.textContent,
-        at: new Date().toISOString()
+        at: new Date().toISOString(),
+        phases: null
       };
       addSolve(newSolve);
       const newMs = solveEffectiveMs(newSolve);
@@ -1061,7 +1176,6 @@
       const valid = loadSolves().map(solveEffectiveMs).filter(v => v !== Infinity);
       return valid.length ? Math.min(...valid) : null;
     }
-    // Which solves (by index in the newest-first array) were a PB at the time they were set
     function computePbFlags(solves) {
       const flags = new Array(solves.length).fill(false);
       let runningBest = Infinity;
@@ -1079,7 +1193,13 @@
       const dateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
       const timeStr = solveDisplay(solve);
       const eventLabel = (EVENTS.find(e => e.id === currentEvent) || {}).label || currentEvent;
-      return `Generated By Twist & Turn on ${dateStr}\n${eventLabel}: ${timeStr}\nTime List:\n1. ${timeStr}   ${solve.scramble}`;
+      let text = `Generated By Twist & Turn on ${dateStr}\n${eventLabel}: ${timeStr}\nTime List:\n1. ${timeStr}   ${solve.scramble}`;
+      if (solve.phases && solve.phases.length) {
+        let prev = 0;
+        const parts = solve.phases.map((p, i) => { const d2 = p - prev; prev = p; return `P${i + 1} ${fmt(d2)}`; });
+        text += `\nPhases: ${parts.join(" / ")}`;
+      }
+      return text;
     }
     function solveDisplay(solve) {
       if (solve.penalty === "DNF") return "DNF";
@@ -1122,7 +1242,6 @@
       const pbFlags = computePbFlags(solves);
       listEl.innerHTML = solves.map((s, i) => {
         const n = solves.length - i;
-        // Running ao5/ao12 as of this solve: this solve + the (up to) 4/11 solves right after it in the array (i.e. the ones right before it chronologically, since index 0 = newest)
         const ao5win = solves.slice(i, i + 5).map(solveEffectiveMs);
         const ao12win = solves.slice(i, i + 12).map(solveEffectiveMs);
         const ao5 = ao5win.length === 5 ? average(ao5win) : null;
@@ -1149,7 +1268,6 @@
     }
 
     function average(msArray) {
-      // WCA-style: drop best & worst, average the rest. DNF counts as worst possible.
       if (msArray.length === 0) return null;
       const dnfCount = msArray.filter(v => v === Infinity).length;
       if (dnfCount >= 2) return "DNF";
@@ -1166,25 +1284,16 @@
       return avg === "DNF" ? "DNF" : avg == null ? "-" : fmt(avg);
     }
 
-    // ---- BPA / WPA (Best/Worst Possible Average) ----
-    // Once (n-1) of the n solves for an AoN are in, the last solve gets
-    // trimmed away as either the new best or the new worst (WCA trim rule),
-    // so the final AoN is bounded no matter what that last solve turns out
-    // to be. BPA = average if the next solve is the best possible (so it
-    // gets trimmed as "best", leaving the worst of the existing n-1 trimmed
-    // instead). WPA = average if the next solve is the worst possible / DNF
-    // (so it gets trimmed as "worst", leaving the best of the existing n-1
-    // trimmed instead).
     function bpaFromWindow(msArray) {
       if (msArray.length === 0) return null;
-      const trimmed = [...msArray].sort((a, b) => a - b).slice(0, -1); // drop current worst
+      const trimmed = [...msArray].sort((a, b) => a - b).slice(0, -1);
       if (trimmed.length === 0) return null;
       if (trimmed.some(v => v === Infinity)) return "DNF";
       return trimmed.reduce((a, b) => a + b, 0) / trimmed.length;
     }
     function wpaFromWindow(msArray) {
       if (msArray.length === 0) return null;
-      const trimmed = [...msArray].sort((a, b) => a - b).slice(1); // drop current best
+      const trimmed = [...msArray].sort((a, b) => a - b).slice(1);
       if (trimmed.length === 0) return null;
       if (trimmed.some(v => v === Infinity)) return "DNF";
       return trimmed.reduce((a, b) => a + b, 0) / trimmed.length;
@@ -1198,6 +1307,55 @@
         bpa: bpa === "DNF" ? "DNF" : bpa == null ? "-" : fmt(bpa),
         wpa: wpa === "DNF" ? "DNF" : wpa == null ? "-" : fmt(wpa)
       };
+    }
+
+    // ---- corner customization helpers ----
+    const CORNER_OPTIONS = [
+      { id: "none", label: "None" },
+      { id: "ao5", label: "Ao5" },
+      { id: "ao12", label: "Ao12" },
+      { id: "ao25", label: "Ao25" },
+      { id: "best", label: "Best" },
+      { id: "mean", label: "Mean" },
+      { id: "count", label: "Solve Count" },
+      { id: "session", label: "Session Name" },
+      { id: "event", label: "Event" },
+      { id: "date", label: "Today's Date" },
+    ];
+    function cornerValueText(id, solves) {
+      switch (id) {
+        case "ao5": return "Ao5 " + computeAvgText(solves, 5);
+        case "ao12": return "Ao12 " + computeAvgText(solves, 12);
+        case "ao25": return "Ao25 " + computeAvgText(solves, 25);
+        case "best": {
+          const valid = solves.map(solveEffectiveMs).filter(v => v !== Infinity);
+          return "Best " + (valid.length ? fmt(Math.min(...valid)) : "-");
+        }
+        case "mean": {
+          const valid = solves.map(solveEffectiveMs).filter(v => v !== Infinity);
+          return "Mean " + (valid.length ? fmt(valid.reduce((a, b) => a + b, 0) / valid.length) : "-");
+        }
+        case "count": return solves.length + " solves";
+        case "session": {
+          const sessions = ensureSessionsForEvent(currentEvent);
+          const cur = sessions.find(s => s.id === currentSessionId);
+          return cur ? cur.name : "";
+        }
+        case "event": return (EVENTS.find(e => e.id === currentEvent) || {}).label || currentEvent;
+        case "date": {
+          const d = new Date();
+          return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+        }
+        default: return "";
+      }
+    }
+    function renderCorners() {
+      const solves = loadSolves();
+      ["tl", "tr", "bl", "br"].forEach(pos => {
+        const el = document.getElementById("tz-corner-" + pos);
+        const id = settings.corners[pos];
+        el.textContent = (id && id !== "none") ? cornerValueText(id, solves) : "";
+      });
     }
 
     function renderStats() {
@@ -1223,9 +1381,9 @@
         stddevEl.textContent = fmt(Math.sqrt(variance));
       }
 
-      // Ao5 / Ao12 stay right below the timer, each with its own share icon
+      // Ao5 / Ao12 / Ao25 stay right below the timer, each with its own share icon
       const belowEl = document.getElementById("below-timer-avgs");
-      belowEl.innerHTML = [5, 12].map(n => {
+      belowEl.innerHTML = [5, 12, 25].map(n => {
         const { bpa, wpa } = computeBpaWpaText(solves, n);
         return `
         <div>
@@ -1236,10 +1394,8 @@
       }).join("");
       belowEl.querySelectorAll(".share-avg-btn").forEach(b => b.addEventListener("click", () => shareAverage(parseInt(b.dataset.n))));
 
-      // Extra averages the user turned on (Ao50/100/200/500/1000) live in the
-      // sidebar under current/best, each with its own share icon
       const extraEl = document.getElementById("sidebar-extra-avgs");
-      const extras = [...settings.avgs].filter(n => n !== 5 && n !== 12).sort((a, b) => a - b);
+      const extras = [...settings.avgs].filter(n => n !== 5 && n !== 12 && n !== 25).sort((a, b) => a - b);
       extraEl.innerHTML = extras.map(n => {
         const { bpa, wpa } = computeBpaWpaText(solves, n);
         return `
@@ -1252,18 +1408,20 @@
         </div>`;
       }).join("");
       extraEl.querySelectorAll(".share-avg-btn").forEach(b => b.addEventListener("click", () => shareAverage(parseInt(b.dataset.n))));
+
+      renderCorners();
     }
 
     function shareAverage(n) {
       const solves = loadSolves();
-      if (solves.length < n) return; // not enough solves yet — button shouldn't really be clickable in this state
-      const windowSolves = solves.slice(0, n); // most recent n, newest first
+      if (solves.length < n) return;
+      const windowSolves = solves.slice(0, n);
       const avg = average(windowSolves.map(solveEffectiveMs));
       const avgStr = avg === "DNF" ? "DNF" : avg == null ? "-" : fmt(avg);
       const d = new Date();
       const dateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
       const eventLabel = (EVENTS.find(e => e.id === currentEvent) || {}).label || currentEvent;
-      const chronological = [...windowSolves].reverse(); // oldest -> newest, like a real round
+      const chronological = [...windowSolves].reverse();
       const lines = chronological.map((s, i) => `${i + 1}. ${solveDisplay(s)}   ${s.scramble}`);
       const text = `Generated By Twist & Turn on ${dateStr}\n${eventLabel} - Ao${n}: ${avgStr}\nTime List:\n${lines.join("\n")}`;
       openShareModal(text);
@@ -1280,9 +1438,19 @@
     // Settings
     // ==========================================================
     const SETTINGS_KEY = "tt-timer-settings";
-    const DEFAULT_SETTINGS = { manualMode: false, inspection: false, theme: "dark", avgs: [5, 12], showPreview: true, holdTimeMs: 300, hideRunningTime: false, timerColor: "var(--cube-blue)" };
+    const DEFAULT_SETTINGS = {
+      manualMode: false, inspection: false, theme: "dark", avgs: [5, 12, 25], showPreview: true,
+      holdTimeMs: 300, hideRunningTime: false, timerColor: "var(--cube-blue)",
+      phasesEnabled: false, phasesCount: 3,
+      corners: { tl: "none", tr: "none", bl: "none", br: "none" }
+    };
     function loadSettings() {
-      try { return { ...DEFAULT_SETTINGS, ...JSON.parse(localStorage.getItem(SETTINGS_KEY)) }; }
+      try {
+        const s = { ...DEFAULT_SETTINGS, ...JSON.parse(localStorage.getItem(SETTINGS_KEY)) };
+        s.corners = { ...DEFAULT_SETTINGS.corners, ...(s.corners || {}) };
+        if (!s.avgs.includes(25)) s.avgs.push(25);
+        return s;
+      }
       catch { return { ...DEFAULT_SETTINGS }; }
     }
     function saveSettings(s) { localStorage.setItem(SETTINGS_KEY, JSON.stringify(s)); }
@@ -1320,7 +1488,7 @@
     settingManual.checked = settings.manualMode;
     settingInspection.checked = settings.inspection;
     settingManual.addEventListener("change", () => {
-      if (state !== "idle") { settingManual.checked = settings.manualMode; return; } // don't switch mid-solve
+      if (state !== "idle") { settingManual.checked = settings.manualMode; return; }
       settings.manualMode = settingManual.checked;
       saveSettings(settings);
       setTypeMode(settings.manualMode);
@@ -1336,6 +1504,22 @@
       settings.showPreview = settingPreview.checked;
       saveSettings(settings);
       updateScramblePreview(scrambleTextEl.textContent);
+    });
+
+    // ---- Phases settings ----
+    const settingPhasesEnabled = document.getElementById("setting-phases-enabled");
+    const settingPhasesCount = document.getElementById("setting-phases-count");
+    settingPhasesEnabled.checked = settings.phasesEnabled;
+    settingPhasesCount.value = String(settings.phasesCount);
+    settingPhasesEnabled.addEventListener("change", () => {
+      settings.phasesEnabled = settingPhasesEnabled.checked;
+      saveSettings(settings);
+      renderPhaseReadout();
+    });
+    settingPhasesCount.addEventListener("change", () => {
+      settings.phasesCount = parseInt(settingPhasesCount.value, 10);
+      saveSettings(settings);
+      renderPhaseReadout();
     });
 
     const settingHoldTime = document.getElementById("setting-hold-time");
@@ -1380,6 +1564,18 @@
       });
     });
 
+    // ---- Corner customization wiring ----
+    document.querySelectorAll(".corner-select").forEach(sel => {
+      sel.innerHTML = CORNER_OPTIONS.map(o => `<option value="${o.id}">${o.label}</option>`).join("");
+      const pos = sel.dataset.corner;
+      sel.value = settings.corners[pos] || "none";
+      sel.addEventListener("change", () => {
+        settings.corners[pos] = sel.value;
+        saveSettings(settings);
+        renderCorners();
+      });
+    });
+
     // ==========================================================
     // Mobile session drawer
     // ==========================================================
@@ -1404,7 +1600,7 @@
     // ==========================================================
     const fsBtn = document.getElementById("fullscreen-btn");
     async function enterFullscreen() {
-      try { await document.documentElement.requestFullscreen(); } catch (e) { /* fullscreen API may be blocked — CSS focus mode still applies */ }
+      try { await document.documentElement.requestFullscreen(); } catch (e) { }
       document.body.classList.add("fs-active");
       fsBtn.textContent = "✕";
       fsBtn.title = "Exit Fullscreen";
@@ -1447,7 +1643,7 @@
     document.getElementById("share-close-btn").addEventListener("click", closeShareModal);
     shareBackdrop.addEventListener("click", (e) => { if (e.target === shareBackdrop) closeShareModal(); });
     shareNativeBtn.addEventListener("click", async () => {
-      try { await navigator.share({ text: currentShareText }); } catch (e) { /* user cancelled or unsupported — ignore */ }
+      try { await navigator.share({ text: currentShareText }); } catch (e) { }
     });
     shareCopyBtn.addEventListener("click", async () => {
       try {
@@ -1460,21 +1656,8 @@
     });
 
     // ==========================================================
-    // Hardware Timer Support (Web Bluetooth) — NEW, purely additive
+    // Hardware Timer Support (Web Bluetooth)
     // ==========================================================
-    // This whole block only ADDS behavior. It never edits state, startTimer,
-    // stopTimer, etc. — it reuses startTimer() as-is, and for stopping it
-    // mirrors stopTimer()'s tail (so the original stopTimer stays untouched)
-    // but substitutes the authoritative elapsed time reported by the hardware
-    // instead of a performance.now() delta.
-    //
-    // Driver registry: each driver exposes { name, connect(handlers) }.
-    // connect() must return a Promise that resolves to a live connection
-    // object exposing { disconnect() }. Adding Stackmat later is just adding
-    // another entry here — nothing else in this block needs to change.
-    // ==========================================================
-
-    // ---- CRC-16/CCITT-FALSE (poly 0x1021, init 0xFFFF), per GAN's protocol ----
     function crc16CcittFalse(bytes) {
       let crc = 0xFFFF;
       for (let i = 0; i < bytes.length; i++) {
@@ -1486,20 +1669,11 @@
       return crc;
     }
 
-    // GAN Smart Timer state codes (from the timer-state notify characteristic)
     const GAN_STATE = {
-      GET_SET: 0x01,   // grace delay expired, ready to start
-      HANDS_OFF: 0x02, // hands removed before grace delay expired (cancel)
-      RUNNING: 0x03,   // timer started running
-      STOPPED: 0x04,   // timer stopped — includes recorded time
-      IDLE: 0x05,      // reset via the timer's own button
-      HANDS_ON: 0x06,  // both hands placed on the timer
-      FINISHED: 0x07,  // automatic, right after STOPPED
+      GET_SET: 0x01, HANDS_OFF: 0x02, RUNNING: 0x03, STOPPED: 0x04,
+      IDLE: 0x05, HANDS_ON: 0x06, FINISHED: 0x07,
     };
 
-    // Parses one Timer State characteristic notification.
-    // Frame: [0xFE][len][0x01][stateCode][timestamp?4 bytes][crc16le 2 bytes]
-    // `len` = byte-length of everything after itself (data + 2-byte CRC).
     function parseGanTimerFrame(dataView) {
       const bytes = new Uint8Array(dataView.buffer, dataView.byteOffset, dataView.byteLength);
       if (bytes.length < 4 || bytes[0] !== 0xFE) return null;
@@ -1508,24 +1682,22 @@
       const dataAndCrc = bytes.slice(2, 2 + len);
       const dataPart = dataAndCrc.slice(0, dataAndCrc.length - 2);
       const crcBytes = dataAndCrc.slice(dataAndCrc.length - 2);
-      const expectedCrc = crcBytes[0] | (crcBytes[1] << 8); // uint16le
+      const expectedCrc = crcBytes[0] | (crcBytes[1] << 8);
       if (crc16CcittFalse(dataPart) !== expectedCrc) {
         console.warn("[HardwareTimer] CRC mismatch, dropping frame:", bytes);
         return null;
       }
-      if (dataPart[0] !== 0x01) return null; // data prefix
+      if (dataPart[0] !== 0x01) return null;
       const stateCode = dataPart[1];
       let elapsedMs = null;
       if (dataPart.length >= 6 && (stateCode === GAN_STATE.STOPPED || stateCode === GAN_STATE.IDLE)) {
         const minutes = dataPart[2], seconds = dataPart[3];
-        const millis = dataPart[4] | (dataPart[5] << 8); // uint16le
+        const millis = dataPart[4] | (dataPart[5] << 8);
         elapsedMs = (minutes * 60 + seconds) * 1000 + millis;
       }
       return { stateCode, elapsedMs };
     }
 
-    // Mirrors stopTimer()'s tail so the original stopTimer() never has to
-    // change. Uses the hardware-reported elapsed time as the source of truth.
     function finalizeSolveFromHardware(elapsedMs) {
       clearInterval(runInterval);
       display.textContent = fmt(elapsedMs);
@@ -1538,7 +1710,8 @@
         ms: Math.round(elapsedMs),
         penalty: pendingPenalty,
         scramble: scrambleTextEl.textContent,
-        at: new Date().toISOString()
+        at: new Date().toISOString(),
+        phases: null
       };
       addSolve(newSolve);
       pendingPenalty = null;
@@ -1549,11 +1722,8 @@
       getNewScramble();
     }
 
-    // Routes a parsed hardware state into the existing state machine, only
-    // acting when the app's current `state` makes the transition sensible —
-    // this keeps keyboard/touch input and the hardware timer from fighting.
     function routeHardwareState(stateCode, elapsedMs) {
-      if (typeMode) return; // manual entry mode active — hardware input ignored
+      if (typeMode) return;
 
       switch (stateCode) {
         case GAN_STATE.HANDS_ON:
@@ -1585,7 +1755,7 @@
 
         case GAN_STATE.RUNNING:
           if (state === "ready" || state === "idle" || state === "holding") {
-            startTimer(); // reuses the existing, untouched function
+            startTimer();
           }
           break;
 
@@ -1599,11 +1769,10 @@
         case GAN_STATE.IDLE:
         case GAN_STATE.FINISHED:
         default:
-          break; // no app-state action needed
+          break;
       }
     }
 
-    // ---- GAN Smart Timer driver ----
     const GAN_SERVICE_UUID = "0000fff0-0000-1000-8000-00805f9b34fb";
     const GAN_TIMER_STATE_CHAR_UUID = "0000fff5-0000-1000-8000-00805f9b34fb";
 
@@ -1641,12 +1810,6 @@
       }
     };
 
-    // ---- Stackmat driver — reserved slot for future support ----
-    // Stackmat timers report time over the 3.5mm audio jack (an analog tone
-    // protocol), not Bluetooth, so this will eventually need a Web Audio API
-    // based driver rather than navigator.bluetooth. The slot exists now so
-    // the rest of this module (registry, UI, routing) doesn't need to change
-    // when that lands — only this driver's `connect` gets implemented.
     const stackmatDriver = {
       name: "Stackmat Timer",
       async connect() {
@@ -1654,16 +1817,6 @@
       }
     };
 
-    // ---- QiYi Smart Timer — reserved slot ----
-    // Unlike the GAN Smart Timer, QiYi has not published (and no one has
-    // publicly reverse-engineered) the Bluetooth GATT service/characteristic
-    // layout for its Smart Timer — it only talks to QiYi's own "Smart Player
-    // Pro" app. Faking a service UUID here would just fail silently and look
-    // "connected-but-broken", so this stays a clear, honest stub until the
-    // real protocol is known. If you can sniff the GATT service UUID +
-    // notification bytes (e.g. with the nRF Connect app while paired to
-    // Smart Player Pro), drop them in and this becomes a real driver — same
-    // shape as ganDriver above.
     const qiyiDriver = {
       name: "QiYi Smart Timer",
       async connect() {
@@ -1671,10 +1824,6 @@
       }
     };
 
-    // ---- MoYu Smart Timer — reserved slot ----
-    // Same situation as QiYi: MoYu's Smart/AI Timer only pairs with its own
-    // WCU Cube app, and no public GATT spec exists for it yet. Reserved slot,
-    // same shape as ganDriver, ready to fill in once the protocol is known.
     const moyuDriver = {
       name: "MoYu Smart Timer",
       async connect() {
@@ -1715,7 +1864,6 @@
       return { connect, disconnect, isConnected };
     })();
 
-    // ---- Settings drawer wiring for "Connect Smart Timer" ----
     const hwConnectBtn = document.getElementById("hw-connect-btn");
     const hwDisconnectBtn = document.getElementById("hw-disconnect-btn");
     const hwStatusEl = document.getElementById("hw-timer-status");
@@ -1751,6 +1899,48 @@
     hwDisconnectBtn.addEventListener("click", () => {
       HardwareTimer.disconnect();
       setHwStatus("Not connected", false);
+    });
+
+    // ==========================================================
+    // PWA install support
+    // ==========================================================
+    let deferredInstallPrompt = null;
+    const installTopBtn = document.getElementById("install-pwa-btn");
+    const installSettingsBtn = document.getElementById("settings-install-btn");
+    const pwaInstallStatus = document.getElementById("pwa-install-status");
+
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", () => {
+        navigator.serviceWorker.register("./sw.js").catch(err => {
+          console.warn("[PWA] service worker registration failed (fine if not served over http/https):", err);
+        });
+      });
+    }
+
+    window.addEventListener("beforeinstallprompt", (e) => {
+      e.preventDefault();
+      deferredInstallPrompt = e;
+      installTopBtn.classList.remove("hidden");
+      pwaInstallStatus.textContent = "";
+    });
+
+    async function triggerInstall() {
+      if (!deferredInstallPrompt) {
+        pwaInstallStatus.textContent = "Browser install prompt abhi available nahi hai — Chrome/Edge me 'Add to Home Screen' / address-bar install icon try karo.";
+        return;
+      }
+      deferredInstallPrompt.prompt();
+      const choice = await deferredInstallPrompt.userChoice;
+      pwaInstallStatus.textContent = choice.outcome === "accepted" ? "✅ Installed!" : "Install cancelled.";
+      deferredInstallPrompt = null;
+      installTopBtn.classList.add("hidden");
+    }
+    installTopBtn.addEventListener("click", triggerInstall);
+    installSettingsBtn.addEventListener("click", triggerInstall);
+
+    window.addEventListener("appinstalled", () => {
+      installTopBtn.classList.add("hidden");
+      pwaInstallStatus.textContent = "✅ App installed.";
     });
 
     // ==========================================================
