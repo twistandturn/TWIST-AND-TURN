@@ -395,6 +395,22 @@
       </div>
 
       <div>
+        <p class="font-mono text-xs uppercase tracking-widest mb-3" style="color:var(--ink-muted);">Import / Export</p>
+        <p class="text-xs mb-3" style="color:var(--ink-muted);">Current session: <b id="io-current-session-label" style="color:var(--ink);">-</b></p>
+
+        <p class="text-xs font-mono uppercase tracking-widest mb-1" style="color:var(--ink-muted);">Export</p>
+        <div class="flex gap-2 mb-4">
+          <button type="button" id="export-json-btn" class="btn-ghost text-xs px-3 py-2 rounded-lg flex-1">📤 This App (.json)</button>
+          <button type="button" id="export-cstimer-btn" class="btn-ghost text-xs px-3 py-2 rounded-lg flex-1">📤 cstimer (.txt)</button>
+        </div>
+
+        <p class="text-xs font-mono uppercase tracking-widest mb-1" style="color:var(--ink-muted);">Import</p>
+        <p class="text-xs mb-2" style="color:var(--ink-muted);">cstimer export (.txt/.json) ya is app ka apna export — dono chalega. Solves current session me add ho jayenge (existing solves delete nahi honge).</p>
+        <input type="file" id="import-file-input" accept=".json,.txt,.csv" class="field w-full text-xs rounded-lg px-2 py-2 mb-2">
+        <p id="io-status" class="text-xs" style="color:var(--ink-muted);"></p>
+      </div>
+
+      <div>
         <p class="font-mono text-xs uppercase tracking-widest mb-3" style="color:var(--ink-muted);">App</p>
         <p class="text-xs mb-3" style="color:var(--ink-muted);">Timer ko phone/desktop pe alag app ki tarah install karo (offline bhi chalega).</p>
         <button type="button" id="settings-install-btn" class="btn-primary w-full py-2.5 rounded-lg text-sm">⬇️ Install Timer App</button>
@@ -727,6 +743,7 @@
       ).join("");
       document.getElementById("session-delete-btn").disabled = sessions.length <= 1;
       document.getElementById("session-delete-btn").style.opacity = sessions.length <= 1 ? "0.35" : "1";
+      if (typeof updateIoSessionLabel === "function") updateIoSessionLabel();
     }
     document.getElementById("session-select").addEventListener("change", (e) => {
       if (state !== "idle") { e.target.value = currentSessionId; return; }
@@ -1865,6 +1882,159 @@
     hwDisconnectBtn.addEventListener("click", () => {
       HardwareTimer.disconnect();
       setHwStatus("Not connected", false);
+    });
+
+    // ==========================================================
+    // Import / Export
+    // ==========================================================
+    const ioStatusEl = document.getElementById("io-status");
+    const ioSessionLabelEl = document.getElementById("io-current-session-label");
+    function updateIoSessionLabel() {
+      const sessions = ensureSessionsForEvent(currentEvent);
+      const cur = sessions.find(s => s.id === currentSessionId);
+      const eventLabel = (EVENTS.find(e => e.id === currentEvent) || {}).label || currentEvent;
+      ioSessionLabelEl.textContent = `${eventLabel} — ${cur ? cur.name : ""}`;
+    }
+
+    function downloadTextFile(filename, text, mime) {
+      const blob = new Blob([text], { type: mime || "application/octet-stream" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url; a.download = filename;
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      setTimeout(() => URL.revokeObjectURL(url), 2000);
+    }
+
+    // ---- Export: this app's own format (round-trips perfectly) ----
+    document.getElementById("export-json-btn").addEventListener("click", () => {
+      const solves = loadSolves();
+      const sessions = ensureSessionsForEvent(currentEvent);
+      const cur = sessions.find(s => s.id === currentSessionId);
+      const payload = {
+        app: "twist-turn-timer", version: 1,
+        event: currentEvent, sessionName: cur ? cur.name : "Session",
+        exportedAt: new Date().toISOString(),
+        solves // {ms, penalty, scramble, at, phases}
+      };
+      downloadTextFile(`twist-turn-${currentEvent}-${(cur ? cur.name : "session").replace(/\s+/g, "_")}.json`,
+        JSON.stringify(payload, null, 2), "application/json");
+      ioStatusEl.textContent = `✅ Exported ${solves.length} solves.`;
+    });
+
+    // ---- Export: cstimer-compatible session format ----
+    // cstimer stores each solve as [[penalty, ms], "scramble", "comment", unixSecondsTimestamp]
+    // penalty: 0 = OK, 2000 = +2, -1 = DNF. ms is the *unpenalized* time.
+    document.getElementById("export-cstimer-btn").addEventListener("click", () => {
+      const solves = loadSolves();
+      const cstimerSolves = solves.slice().reverse().map(s => {
+        const penaltyCode = s.penalty === "+2" ? 2000 : s.penalty === "DNF" ? -1 : 0;
+        const ts = Math.floor(new Date(s.at).getTime() / 1000);
+        return [[penaltyCode, s.ms], s.scramble || "", "", ts];
+      });
+      const payload = { [`session1`]: cstimerSolves, properties: { sessionData: JSON.stringify({ 1: { name: "Session 1", opt: {} } }) } };
+      downloadTextFile(`cstimer-export-${currentEvent}.txt`, JSON.stringify(payload), "text/plain");
+      ioStatusEl.textContent = `✅ Exported ${solves.length} solves in cstimer format.`;
+    });
+
+    // ---- Import: auto-detect this-app JSON, cstimer JSON, or plain CSV ----
+    function importOwnFormat(data) {
+      if (!Array.isArray(data.solves)) return 0;
+      const existing = loadSolves();
+      const imported = data.solves.map(s => ({
+        ms: Math.round(s.ms), penalty: s.penalty || null,
+        scramble: s.scramble || "", at: s.at || new Date().toISOString(),
+        phases: s.phases || null
+      }));
+      saveSolves([...imported, ...existing]); // newest-first convention, imported treated as most recent batch
+      return imported.length;
+    }
+
+    function cstimerPenaltyToApp(code) {
+      if (code === 2000) return "+2";
+      if (code === -1 || code === -2) return "DNF";
+      return null;
+    }
+
+    function importCstimerFormat(data) {
+      const existing = loadSolves();
+      const importedAll = [];
+      Object.keys(data).forEach(key => {
+        if (!/^session/i.test(key) || !Array.isArray(data[key])) return;
+        data[key].forEach(entry => {
+          if (!Array.isArray(entry) || !Array.isArray(entry[0])) return;
+          const [penaltyCode, ms] = entry[0];
+          const scramble = typeof entry[1] === "string" ? entry[1] : "";
+          const ts = entry[3] ? new Date(entry[3] * 1000).toISOString() : new Date().toISOString();
+          importedAll.push({
+            ms: Math.round(ms), penalty: cstimerPenaltyToApp(penaltyCode),
+            scramble, at: ts, phases: null
+          });
+        });
+      });
+      if (importedAll.length === 0) return 0;
+      // cstimer's arrays are oldest-first; keep newest-first convention here.
+      importedAll.reverse();
+      saveSolves([...importedAll, ...existing]);
+      return importedAll.length;
+    }
+
+    // Very small CSV fallback: one time (seconds, e.g. 12.34) per line, optional
+    // ",scramble" after a comma, optional trailing "DNF" or "+2".
+    function importCsvFormat(text) {
+      const existing = loadSolves();
+      const lines = text.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+      const importedAll = [];
+      for (const line of lines) {
+        const parts = line.split(",");
+        const timeToken = parts[0].trim();
+        let penalty = null;
+        let timeStr = timeToken;
+        if (/dnf/i.test(timeToken)) { penalty = "DNF"; timeStr = timeToken.replace(/dnf/i, "").trim(); }
+        else if (timeToken.endsWith("+")) { penalty = "+2"; timeStr = timeToken.slice(0, -1); }
+        const sec = parseFloat(timeStr);
+        if (isNaN(sec)) continue;
+        importedAll.push({
+          ms: Math.round(sec * 1000), penalty,
+          scramble: parts[1] ? parts[1].trim() : "",
+          at: new Date().toISOString(), phases: null
+        });
+      }
+      if (importedAll.length === 0) return 0;
+      saveSolves([...importedAll, ...existing]);
+      return importedAll.length;
+    }
+
+    document.getElementById("import-file-input").addEventListener("change", async (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      ioStatusEl.textContent = "Reading file…";
+      try {
+        const text = await file.text();
+        let count = 0;
+        try {
+          const data = JSON.parse(text);
+          if (data && data.app === "twist-turn-timer") {
+            count = importOwnFormat(data);
+          } else if (data && typeof data === "object") {
+            count = importCstimerFormat(data);
+          }
+        } catch (jsonErr) {
+          // not JSON — try CSV / plain-times fallback
+          count = importCsvFormat(text);
+        }
+        if (count > 0) {
+          renderSolves();
+          renderStats();
+          ioStatusEl.textContent = `✅ ${count} solves imported into "${(ensureSessionsForEvent(currentEvent).find(s => s.id === currentSessionId) || {}).name}".`;
+        } else {
+          ioStatusEl.textContent = "⚠️ File samajh nahi aayi — cstimer .txt/.json, is app ka .json, ya CSV try karo.";
+        }
+      } catch (err) {
+        console.error("[Import] failed:", err);
+        ioStatusEl.textContent = "⚠️ Import fail ho gaya: " + (err && err.message ? err.message : "unknown error");
+      } finally {
+        e.target.value = "";
+      }
     });
 
     // ==========================================================
