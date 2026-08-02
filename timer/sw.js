@@ -1,24 +1,45 @@
-const CACHE_NAME = "tt-timer-cache-v1";
+const CACHE_NAME = "tt-timer-cache-v2";
 const CORE_ASSETS = ["./index.html", "./manifest.json", "./icon-192.png", "./icon-512.png"];
+// Best-effort precache of CDN dependencies so the app still boots offline after
+// a first successful load. Each one is added individually and failures are
+// swallowed — a slow/unreachable CDN asset must never block install.
+const RUNTIME_ASSETS = [
+  "https://cdn.tailwindcss.com",
+  "https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js",
+];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(CORE_ASSETS)).catch(() => {})
+    (async () => {
+      const cache = await caches.open(CACHE_NAME);
+      await cache.addAll(CORE_ASSETS).catch(() => {});
+      await Promise.all(
+        RUNTIME_ASSETS.map((url) =>
+          cache.add(new Request(url, { mode: "no-cors" })).catch(() => {})
+        )
+      );
+      self.skipWaiting();
+    })()
   );
-  self.skipWaiting();
 });
 
 self.addEventListener("activate", (event) => {
   event.waitUntil(
-    caches.keys().then((keys) =>
-      Promise.all(keys.filter((k) => k !== CACHE_NAME).map((k) => caches.delete(k)))
-    )
+    (async () => {
+      const keys = await caches.keys();
+      await Promise.all(keys.filter((k) => k !== CACHE_NAME).map((k) => caches.delete(k)));
+      await self.clients.claim();
+      // Let open tabs know a new version is active so the UI can offer a refresh.
+      const clientsList = await self.clients.matchAll({ type: "window" });
+      clientsList.forEach((c) => c.postMessage({ type: "tt-sw-updated" }));
+    })()
   );
-  self.clients.claim();
 });
 
 // Network-first for navigation/HTML so updates show up quickly; fall back to
-// cache when offline. Cache-first for everything else (fonts, cdn scripts).
+// cache when offline. Cache-first for everything else (fonts, cdn scripts,
+// scramble engine, chart library) since those are versioned/immutable enough
+// that staleness isn't a real concern and speed/offline-availability matters more.
 self.addEventListener("fetch", (event) => {
   const req = event.request;
   if (req.method !== "GET") return;
@@ -40,7 +61,7 @@ self.addEventListener("fetch", (event) => {
       if (cached) return cached;
       return fetch(req)
         .then((res) => {
-          if (res && res.ok) {
+          if (res && (res.ok || res.type === "opaque")) {
             caches.open(CACHE_NAME).then((cache) => cache.put(req, res.clone()));
           }
           return res;
@@ -48,4 +69,8 @@ self.addEventListener("fetch", (event) => {
         .catch(() => cached);
     })
   );
+});
+
+self.addEventListener("message", (event) => {
+  if (event.data && event.data.type === "SKIP_WAITING") self.skipWaiting();
 });

@@ -158,9 +158,72 @@
   /* ---------- Phases / splits ---------- */
   #phase-readout{ display:none; gap:0.75rem; justify-content:center; flex-wrap:wrap; margin-top:0.5rem; font-family:'JetBrains Mono',monospace; font-size:0.8rem; color:var(--ink-muted); }
   #phase-readout span.ph-current{ color:var(--cube-blue); font-weight:700; }
+
+  /* ---------- Accessibility ---------- */
+  a:focus-visible, button:focus-visible, select:focus-visible, input:focus-visible, textarea:focus-visible, [tabindex]:focus-visible{
+    outline:2px solid var(--cube-blue); outline-offset:2px; border-radius:4px;
+  }
+  .skip-link{ position:absolute; left:-9999px; top:0; z-index:100; background:var(--cube-blue); color:#fff; padding:0.6rem 1rem; border-radius:0 0 8px 0; font-family:'Space Grotesk',sans-serif; font-weight:600; }
+  .skip-link:focus{ left:0; }
+  html[data-contrast="high"]{ --ink-muted:#C7CBD6; }
+  html[data-contrast="high"] .surface-card{ border-color:rgba(255,255,255,0.25); }
+  @media (prefers-reduced-motion: reduce){
+    *{ animation-duration:0.001ms !important; animation-iteration-count:1 !important; transition-duration:0.001ms !important; }
+  }
+  body.reduce-motion *{ animation-duration:0.001ms !important; transition-duration:0.001ms !important; }
+
+  /* ---------- Full-screen feature drawers (Analytics / Practice / Compete) ---------- */
+  .feature-backdrop{ background:rgba(0,0,0,0.55); }
+  .feature-panel{ background:var(--bg-surface); }
+  .feature-header{ display:flex; align-items:center; justify-content:space-between; padding:0.9rem 1.1rem; border-bottom:1px solid rgba(255,255,255,0.06); flex-shrink:0; }
+  .feature-body{ flex:1; overflow-y:auto; padding:1.1rem; }
+  .subtab-btn{ font-family:'Space Grotesk',sans-serif; font-weight:600; font-size:0.8rem; padding:0.45rem 0.9rem; border-radius:999px; border:1px solid rgba(255,255,255,0.12); color:var(--ink-muted); background:transparent; cursor:pointer; white-space:nowrap; }
+  .subtab-btn.active{ background:var(--cube-blue); color:#fff; border-color:transparent; }
+  .stat-tile{ background:var(--bg-base); border:1px solid rgba(255,255,255,0.08); border-radius:12px; padding:0.8rem 0.9rem; }
+  .stat-tile .stat-tile-label{ font-family:'JetBrains Mono',monospace; font-size:0.65rem; text-transform:uppercase; letter-spacing:0.05em; color:var(--ink-muted); }
+  .stat-tile .stat-tile-value{ font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:1.3rem; margin-top:0.2rem; }
+  .chart-box{ background:var(--bg-base); border:1px solid rgba(255,255,255,0.08); border-radius:12px; padding:0.9rem; }
+  .heat-cell{ width:11px; height:11px; border-radius:2px; background:rgba(255,255,255,0.06); }
+  .heat-cell[data-lvl="1"]{ background:rgba(47,111,224,0.35); }
+  .heat-cell[data-lvl="2"]{ background:rgba(47,111,224,0.55); }
+  .heat-cell[data-lvl="3"]{ background:rgba(47,111,224,0.75); }
+  .heat-cell[data-lvl="4"]{ background:rgba(47,111,224,1); }
+
+  /* ---------- Practice / algorithm trainer ---------- */
+  .alg-case-card{ background:var(--bg-base); border:1px solid rgba(255,255,255,0.08); border-radius:12px; padding:0.8rem; cursor:pointer; transition:border-color .15s ease; }
+  .alg-case-card:hover, .alg-case-card.active{ border-color:var(--cube-blue); }
+  .alg-case-card .case-name{ font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:0.85rem; }
+  .alg-case-card .case-alg{ font-family:'JetBrains Mono',monospace; font-size:0.72rem; color:var(--ink-muted); margin-top:0.25rem; word-break:break-word; }
+  .alg-case-card .case-stat{ font-family:'JetBrains Mono',monospace; font-size:0.65rem; color:var(--cube-green); margin-top:0.35rem; }
+
+  /* ---------- Achievements ---------- */
+  .achv-card{ display:flex; gap:0.7rem; align-items:flex-start; background:var(--bg-base); border:1px solid rgba(255,255,255,0.08); border-radius:12px; padding:0.75rem; }
+  .achv-card.locked{ opacity:0.4; }
+  .achv-emoji{ font-size:1.5rem; flex-shrink:0; }
+  .achv-title{ font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:0.85rem; }
+  .achv-desc{ font-size:0.72rem; color:var(--ink-muted); margin-top:0.1rem; }
+
+  /* ---------- PB / achievement toast ---------- */
+  #toast-stack{ position:fixed; top:1rem; left:50%; transform:translateX(-50%); z-index:90; display:flex; flex-direction:column; gap:0.5rem; pointer-events:none; align-items:center; }
+  .achv-toast{ background:var(--bg-surface); border:1px solid var(--cube-yellow); box-shadow:0 8px 28px rgba(0,0,0,0.4); border-radius:12px; padding:0.7rem 1.1rem; font-family:'Space Grotesk',sans-serif; font-weight:600; font-size:0.85rem; display:flex; align-items:center; gap:0.6rem; animation:toast-in .25s ease, toast-out .3s ease 3.2s forwards; }
+  @keyframes toast-in{ from{ opacity:0; transform:translateY(-10px);} to{ opacity:1; transform:translateY(0);} }
+  @keyframes toast-out{ from{ opacity:1;} to{ opacity:0; transform:translateY(-8px);} }
+  #confetti-canvas{ position:fixed; inset:0; z-index:95; pointer-events:none; }
+
+  /* ---------- Competition mode ---------- */
+  .comp-solve-slot{ display:flex; align-items:center; justify-content:space-between; padding:0.6rem 0.8rem; border-radius:10px; background:var(--bg-base); border:1px solid rgba(255,255,255,0.08); font-family:'JetBrains Mono',monospace; font-size:0.85rem; }
+  .comp-solve-slot.done{ border-color:var(--cube-green); }
+  .comp-solve-slot.current{ border-color:var(--cube-blue); }
+  .comp-solve-slot.dropped{ opacity:0.45; text-decoration:line-through; }
+  body.comp-active .cs-mobile-only, body.comp-active #settings-btn, body.comp-active #new-scramble-btn{ pointer-events:none; opacity:0.3; }
+
+  @media (max-width:860px){
+    .feature-panel{ width:100% !important; max-width:100% !important; }
+  }
 </style>
 </head>
 <body class="min-h-screen">
+  <a href="#timer-zone" class="skip-link">Skip to timer</a>
 
   <div class="cs-shell">
     <div id="sidebar-backdrop" class="hidden fixed inset-0 z-[59]" style="background:rgba(0,0,0,0.5);"></div>
@@ -219,6 +282,10 @@
         <div class="flex-1"></div>
         <button id="new-scramble-btn" class="btn-ghost text-xs px-3 py-1.5 rounded-lg flex-shrink-0">🔄 New</button>
         <button id="install-pwa-btn" type="button" class="hidden btn-ghost text-xs px-3 py-1.5 rounded-lg flex-shrink-0" title="Install Timer as an app">⬇️ Install</button>
+        <button id="analytics-btn" type="button" class="cs-icon-btn" title="Analytics dashboard" aria-label="Open analytics dashboard">📊</button>
+        <button id="practice-btn" type="button" class="cs-icon-btn" title="Algorithm trainer" aria-label="Open algorithm trainer">🎓</button>
+        <button id="compete-btn" type="button" class="cs-icon-btn" title="Competition mode" aria-label="Start competition mode">🏁</button>
+        <button id="achv-btn" type="button" class="cs-icon-btn" title="Achievements & records" aria-label="Open achievements">🏆</button>
         <a id="home-link" href="index.html" class="cs-icon-btn" title="Home">🏠</a>
         <button id="settings-btn" type="button" class="cs-icon-btn" title="Settings">⚙️</button>
         <button id="fullscreen-btn" type="button" class="cs-icon-btn" title="Fullscreen">⛶</button>
@@ -237,8 +304,8 @@
       </div>
 
       <div class="cs-timer-wrap">
-        <div id="timer-zone" class="select-none rounded-2xl py-8 px-6">
-          <div id="timer-display" class="font-mono">0.00</div>
+        <div id="timer-zone" class="select-none rounded-2xl py-8 px-6" role="button" tabindex="0" aria-label="Timer. Hold space or press and hold to start a solve.">
+          <div id="timer-display" class="font-mono" aria-live="polite" aria-atomic="true">0.00</div>
           <input id="type-time-input" type="text" inputmode="numeric" autocomplete="off" placeholder="0.00"
             class="hidden w-full bg-transparent text-center font-mono font-bold outline-none"
             style="font-size:clamp(3.2rem, 12vw, 7rem); line-height:1; letter-spacing:0.01em; color:var(--ink);">
@@ -255,6 +322,7 @@
             <button data-p="+2" class="post-penalty-btn font-mono text-sm px-4 py-2 rounded-lg" style="background:rgba(242,183,5,0.12); color:var(--cube-yellow); border:1px solid rgba(242,183,5,0.4);">+2</button>
             <button data-p="dnf" class="post-penalty-btn font-mono text-sm px-4 py-2 rounded-lg" style="background:rgba(232,65,43,0.12); color:var(--cube-red); border:1px solid rgba(232,65,43,0.4);">DNF</button>
             <button id="post-solve-share-btn" class="hidden font-mono text-sm px-4 py-2 rounded-lg" style="background:rgba(47,111,224,0.12); color:var(--cube-blue); border:1px solid rgba(47,111,224,0.4);">🎉 PB! Share</button>
+            <a id="post-solve-clip-btn" target="_blank" rel="noopener" class="hidden font-mono text-sm px-4 py-2 rounded-lg" style="background:rgba(155,89,182,0.12); color:#9B59B6; border:1px solid rgba(155,89,182,0.4);">🎥 Watch clip</a>
           </div>
 
           <div class="mt-6">
@@ -287,6 +355,22 @@
         <label class="flex items-center justify-between py-2">
           <span class="text-sm">Scramble Image Preview</span>
           <input type="checkbox" id="setting-preview" class="toggle-switch-input">
+        </label>
+        <label class="flex items-center justify-between py-2">
+          <span class="text-sm">Sound Cues (ready / inspection warnings)</span>
+          <input type="checkbox" id="setting-sound" class="toggle-switch-input">
+        </label>
+      </div>
+
+      <div>
+        <p class="font-mono text-xs uppercase tracking-widest mb-3" style="color:var(--ink-muted);">Accessibility</p>
+        <label class="flex items-center justify-between py-2">
+          <span class="text-sm">High Contrast Text</span>
+          <input type="checkbox" id="setting-contrast" class="toggle-switch-input">
+        </label>
+        <label class="flex items-center justify-between py-2">
+          <span class="text-sm">Reduce Motion</span>
+          <input type="checkbox" id="setting-reduce-motion" class="toggle-switch-input">
         </label>
       </div>
 
@@ -392,6 +476,26 @@
           <button type="button" id="hw-connect-btn" class="btn-primary flex-1 py-2 rounded-lg text-sm">🔗 Connect Smart Timer</button>
           <button type="button" id="hw-disconnect-btn" class="hidden btn-ghost py-2 px-3 rounded-lg text-sm">Disconnect</button>
         </div>
+        <p class="text-xs mt-4 mb-2" style="color:var(--ink-muted);">Stackmat's real audio protocol isn't reliably reverse-engineerable without physical hardware to test against, so instead of a fake decoder, here's a genuinely working mic-based alternative: it starts/stops the timer on a sharp sound spike (a clap, a table tap, or the stackmat's own audible click) — handy for camera setups or a real stackmat unit.</p>
+        <div class="flex items-center gap-2 mb-2">
+          <button type="button" id="mic-trigger-btn" class="btn-ghost flex-1 py-2 rounded-lg text-sm">🎙️ Enable Sound-Trigger Start/Stop</button>
+        </div>
+        <label class="flex items-center justify-between py-1">
+          <span class="text-xs">Sensitivity</span>
+          <input type="range" id="mic-sensitivity" min="1" max="10" value="5" style="width:120px;">
+        </label>
+        <p id="mic-trigger-status" class="text-xs" style="color:var(--ink-muted);">Off</p>
+      </div>
+
+      <div>
+        <p class="font-mono text-xs uppercase tracking-widest mb-3" style="color:var(--ink-muted);">📷 Solve Recording</p>
+        <p class="text-xs mb-3" style="color:var(--ink-muted);">Records a short webcam clip of each solve to review your turning/execution right after — kept only in this tab (not saved to disk) unless you download it, to avoid filling up storage.</p>
+        <label class="flex items-center justify-between py-2">
+          <span class="text-sm">Record webcam during solves</span>
+          <input type="checkbox" id="setting-camera" class="toggle-switch-input">
+        </label>
+        <p id="camera-status" class="text-xs" style="color:var(--ink-muted);"></p>
+        <video id="camera-preview" class="hidden w-full rounded-lg mt-2" style="max-height:140px; object-fit:cover;" muted playsinline></video>
       </div>
 
       <div>
@@ -399,15 +503,32 @@
         <p class="text-xs mb-3" style="color:var(--ink-muted);">Current session: <b id="io-current-session-label" style="color:var(--ink);">-</b></p>
 
         <p class="text-xs font-mono uppercase tracking-widest mb-1" style="color:var(--ink-muted);">Export</p>
-        <div class="flex gap-2 mb-4">
+        <div class="flex gap-2 mb-2 flex-wrap">
           <button type="button" id="export-json-btn" class="btn-ghost text-xs px-3 py-2 rounded-lg flex-1">📤 This App (.json)</button>
           <button type="button" id="export-cstimer-btn" class="btn-ghost text-xs px-3 py-2 rounded-lg flex-1">📤 cstimer (.txt)</button>
         </div>
+        <div class="flex gap-2 mb-4 flex-wrap">
+          <button type="button" id="export-csv-btn" class="btn-ghost text-xs px-3 py-2 rounded-lg flex-1">📤 CSV (Excel/Sheets)</button>
+          <button type="button" id="export-cubedesk-btn" class="btn-ghost text-xs px-3 py-2 rounded-lg flex-1">📤 CubeDesk-style (.json)</button>
+        </div>
 
         <p class="text-xs font-mono uppercase tracking-widest mb-1" style="color:var(--ink-muted);">Import</p>
-        <p class="text-xs mb-2" style="color:var(--ink-muted);">cstimer export (.txt/.json) ya is app ka apna export — dono chalega. Solves current session me add ho jayenge (existing solves delete nahi honge).</p>
+        <p class="text-xs mb-2" style="color:var(--ink-muted);">cstimer export (.txt/.json), CSV, ya is app ka apna export — sab chalega. Solves current session me add ho jayenge (existing solves delete nahi honge).</p>
         <input type="file" id="import-file-input" accept=".json,.txt,.csv" class="field w-full text-xs rounded-lg px-2 py-2 mb-2">
         <p id="io-status" class="text-xs" style="color:var(--ink-muted);"></p>
+      </div>
+
+      <div>
+        <p class="font-mono text-xs uppercase tracking-widest mb-3" style="color:var(--ink-muted);">🔄 Backup & Device Sync</p>
+        <p class="text-xs mb-3" style="color:var(--ink-muted);">There's no real account/login system here — that needs a live server with a database, which a single static HTML file can't provide honestly. What actually works fully offline: a complete backup of every event, session, setting, achievement and trainer stat as one file, plus a copy-paste code to move everything to another device by hand.</p>
+        <button type="button" id="full-backup-btn" class="btn-primary w-full py-2.5 rounded-lg text-sm mb-2">💾 Download Full Backup (all events)</button>
+        <input type="file" id="full-restore-input" accept=".json" class="field w-full text-xs rounded-lg px-2 py-2 mb-2">
+        <p class="text-xs mb-2" style="color:var(--ink-muted);">Restoring a full backup replaces everything currently on this device.</p>
+        <div class="flex gap-2 mb-2">
+          <button type="button" id="sync-code-generate-btn" class="btn-ghost text-xs px-3 py-2 rounded-lg flex-1">📋 Copy Sync Code</button>
+          <button type="button" id="sync-code-apply-btn" class="btn-ghost text-xs px-3 py-2 rounded-lg flex-1">📥 Paste & Apply Sync Code</button>
+        </div>
+        <p id="backup-status" class="text-xs" style="color:var(--ink-muted);"></p>
       </div>
 
       <div>
@@ -439,6 +560,150 @@
       </div>
     </div>
   </div>
+
+  <!-- Toasts & confetti -->
+  <div id="toast-stack" aria-live="polite"></div>
+  <canvas id="confetti-canvas" class="hidden"></canvas>
+
+  <!-- Analytics dashboard -->
+  <div id="analytics-backdrop" class="hidden fixed inset-0 z-[75] feature-backdrop"></div>
+  <aside id="analytics-panel" class="hidden fixed top-0 right-0 h-full w-full max-w-2xl z-[76] feature-panel flex flex-col">
+    <div class="feature-header">
+      <h2 class="font-display font-bold text-lg">📊 Analytics</h2>
+      <button id="analytics-close-btn" type="button" class="btn-ghost text-sm px-3 py-1.5 rounded-lg">✕</button>
+    </div>
+    <div class="feature-body">
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-2 mb-4" id="analytics-tiles"></div>
+
+      <div class="chart-box mb-4">
+        <p class="font-mono text-xs uppercase tracking-widest mb-2" style="color:var(--ink-muted);">Solve Time Trend</p>
+        <canvas id="chart-trend" height="140"></canvas>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+        <div class="chart-box">
+          <p class="font-mono text-xs uppercase tracking-widest mb-2" style="color:var(--ink-muted);">Distribution</p>
+          <canvas id="chart-hist" height="160"></canvas>
+        </div>
+        <div class="chart-box">
+          <p class="font-mono text-xs uppercase tracking-widest mb-2" style="color:var(--ink-muted);">Ao5 / Ao12 Progress</p>
+          <canvas id="chart-avg" height="160"></canvas>
+        </div>
+      </div>
+      <div class="chart-box mb-4">
+        <p class="font-mono text-xs uppercase tracking-widest mb-2" style="color:var(--ink-muted);">Practice Activity</p>
+        <div id="heatmap-grid" class="flex gap-1 overflow-x-auto pb-1"></div>
+        <p class="text-xs mt-2" style="color:var(--ink-muted);">Solves per day, last 14 weeks.</p>
+      </div>
+      <div class="chart-box mb-4">
+        <p class="font-mono text-xs uppercase tracking-widest mb-2" style="color:var(--ink-muted);">🧠 Smart Insights</p>
+        <div id="insights-list" class="space-y-2 text-sm"></div>
+        <p class="text-xs mt-3" style="color:var(--ink-muted);">Rule-based analysis of your own solve history — consistency, phase splits, DNF rate, and trend. Not a connected AI model.</p>
+      </div>
+      <div class="chart-box">
+        <p class="font-mono text-xs uppercase tracking-widest mb-2" style="color:var(--ink-muted);">Session Comparison</p>
+        <div id="session-compare-table" class="text-xs font-mono overflow-x-auto"></div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Algorithm / Practice trainer -->
+  <div id="practice-backdrop" class="hidden fixed inset-0 z-[75] feature-backdrop"></div>
+  <aside id="practice-panel" class="hidden fixed top-0 right-0 h-full w-full max-w-2xl z-[76] feature-panel flex flex-col">
+    <div class="feature-header">
+      <h2 class="font-display font-bold text-lg">🎓 Algorithm Trainer</h2>
+      <button id="practice-close-btn" type="button" class="btn-ghost text-sm px-3 py-1.5 rounded-lg">✕</button>
+    </div>
+    <div class="feature-body">
+      <div class="flex gap-2 flex-wrap mb-4" id="practice-category-tabs"></div>
+
+      <div id="practice-drill-box" class="hidden surface-card rounded-2xl p-4 mb-4">
+        <div class="flex items-center justify-between mb-2">
+          <p class="font-display font-bold text-sm" id="practice-drill-title">Case</p>
+          <button id="practice-drill-exit" type="button" class="btn-ghost text-xs px-2 py-1 rounded-lg">Back to list</button>
+        </div>
+        <p class="font-mono text-xs mb-1" style="color:var(--ink-muted);">Scramble (inverse of algorithm — sets up this case from solved):</p>
+        <p id="practice-drill-scramble" class="font-mono text-sm mb-3" style="letter-spacing:0.02em;">-</p>
+        <div class="flex items-center gap-3 mb-3">
+          <button id="practice-reveal-btn" type="button" class="btn-ghost text-xs px-3 py-1.5 rounded-lg">👁️ Reveal algorithm</button>
+          <p id="practice-drill-alg" class="font-mono text-sm hidden"></p>
+        </div>
+        <div id="practice-drill-timer" class="text-center py-6 rounded-xl" style="background:var(--bg-base);">
+          <div id="practice-timer-display" class="font-mono font-bold" style="font-size:2.5rem;">0.00</div>
+          <p class="text-xs mt-2" style="color:var(--ink-muted);">Hold SPACE (or tap here) to time this case, same as the main timer.</p>
+        </div>
+        <div class="grid grid-cols-3 gap-2 mt-3 text-center">
+          <div class="stat-tile"><p class="stat-tile-label">Attempts</p><p class="stat-tile-value" id="practice-stat-count">0</p></div>
+          <div class="stat-tile"><p class="stat-tile-label">Best</p><p class="stat-tile-value" id="practice-stat-best">-</p></div>
+          <div class="stat-tile"><p class="stat-tile-label">Avg (last 12)</p><p class="stat-tile-value" id="practice-stat-avg">-</p></div>
+        </div>
+      </div>
+
+      <div id="practice-case-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-2"></div>
+
+      <div class="mt-5 pt-4" style="border-top:1px solid rgba(255,255,255,0.06);">
+        <p class="font-mono text-xs uppercase tracking-widest mb-2" style="color:var(--ink-muted);">Add a custom case</p>
+        <p class="text-xs mb-2" style="color:var(--ink-muted);">Have an OLL/PLL/F2L algorithm you want to drill that isn't listed? Add it here — it'll show up in its category with its own stats.</p>
+        <div class="flex flex-col sm:flex-row gap-2">
+          <input id="custom-case-cat" list="custom-case-cat-list" placeholder="Category (OLL/PLL/F2L/Other)" class="field rounded-lg text-sm px-2 py-2 flex-1">
+          <datalist id="custom-case-cat-list"><option value="OLL"><option value="PLL"><option value="F2L"><option value="Other"></datalist>
+          <input id="custom-case-name" placeholder="Case name" class="field rounded-lg text-sm px-2 py-2 flex-1">
+          <input id="custom-case-alg" placeholder="Algorithm, e.g. R U R' U R U2 R'" class="field rounded-lg text-sm px-2 py-2 flex-[2]">
+          <button id="custom-case-add-btn" type="button" class="btn-primary rounded-lg text-sm px-4 py-2">Add</button>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Competition mode -->
+  <div id="compete-backdrop" class="hidden fixed inset-0 z-[75] items-center justify-center p-4 feature-backdrop">
+    <div class="surface-card rounded-2xl p-5 w-full max-w-md max-h-[90vh] overflow-y-auto">
+      <div class="flex items-center justify-between mb-3">
+        <h3 class="font-display font-bold text-lg">🏁 Competition Mode</h3>
+        <button id="compete-close-btn" type="button" class="btn-ghost text-sm px-3 py-1.5 rounded-lg">✕</button>
+      </div>
+      <div id="compete-setup">
+        <p class="text-sm mb-3" style="color:var(--ink-muted);">Runs a fixed, official-style set of solves in your current session/event — no deleting or editing mid-round, WCA trimmed average at the end.</p>
+        <label class="block text-sm mb-1">Format</label>
+        <select id="compete-format" class="field w-full rounded-lg text-sm px-3 py-2 mb-4">
+          <option value="5">Ao5 (best of 5, trim 1 best / 1 worst)</option>
+          <option value="12">Ao12 (best of 12, trim 1 best / 1 worst)</option>
+          <option value="3">Mo3 (mean of 3, no trim)</option>
+        </select>
+        <button id="compete-start-btn" type="button" class="btn-primary w-full py-2.5 rounded-lg text-sm">Start Round</button>
+      </div>
+      <div id="compete-active" class="hidden">
+        <p class="text-xs mb-2" style="color:var(--ink-muted);">Solve in order. Use the main timer as normal — this window just tracks the round.</p>
+        <div id="compete-slots" class="space-y-2 mb-4"></div>
+        <button id="compete-abort-btn" type="button" class="btn-ghost w-full py-2 rounded-lg text-sm">Abort round</button>
+      </div>
+      <div id="compete-result" class="hidden text-center">
+        <p class="text-xs uppercase tracking-widest font-mono mb-1" style="color:var(--ink-muted);" id="compete-result-label">Result</p>
+        <p class="font-display font-bold text-4xl mb-3" id="compete-result-value">-</p>
+        <div id="compete-result-list" class="text-left font-mono text-xs space-y-1 mb-4"></div>
+        <div class="grid grid-cols-2 gap-2">
+          <button id="compete-share-btn" type="button" class="btn-primary py-2.5 rounded-lg text-sm">📤 Share result</button>
+          <button id="compete-done-btn" type="button" class="btn-ghost py-2.5 rounded-lg text-sm">Done</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Achievements & personal records -->
+  <div id="achv-backdrop" class="hidden fixed inset-0 z-[75] feature-backdrop"></div>
+  <aside id="achv-panel" class="hidden fixed top-0 right-0 h-full w-full max-w-2xl z-[76] feature-panel flex flex-col">
+    <div class="feature-header">
+      <h2 class="font-display font-bold text-lg">🏆 Achievements & Records</h2>
+      <button id="achv-close-btn" type="button" class="btn-ghost text-sm px-3 py-1.5 rounded-lg">✕</button>
+    </div>
+    <div class="feature-body">
+      <p class="font-mono text-xs uppercase tracking-widest mb-2" style="color:var(--ink-muted);">Personal Leaderboard — best single per event</p>
+      <p class="text-xs mb-3" style="color:var(--ink-muted);">This is a local leaderboard across your own events and sessions on this device — not a global/online leaderboard (that needs a server, which this file-based app doesn't have).</p>
+      <div id="pr-leaderboard-table" class="text-xs font-mono mb-6 overflow-x-auto"></div>
+
+      <p class="font-mono text-xs uppercase tracking-widest mb-2" style="color:var(--ink-muted);">Badges</p>
+      <div id="achv-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-2"></div>
+    </div>
+  </aside>
 
   <script type="module">
     import { randomScrambleForEvent } from "https://cdn.cubing.net/v0/js/cubing/scramble";
@@ -882,10 +1147,13 @@
         inspectionStartAt = performance.now();
         setZoneState(null);
         hint.textContent = "Inspecting… keep holding to get ready";
+        let insp8Played = false, insp12Played = false;
         inspectionInterval = setInterval(() => {
           const elapsed = (performance.now() - inspectionStartAt) / 1000;
           const remain = Math.max(0, 15 - elapsed);
           display.textContent = elapsed <= 15 ? remain.toFixed(0) + "s" : (elapsed <= 17 ? "+2" : "DNF");
+          if (elapsed >= 8 && !insp8Played) { insp8Played = true; playTone("warn"); }
+          if (elapsed >= 12 && !insp12Played) { insp12Played = true; playTone("warn"); }
         }, 100);
       } else {
         state = "holding";
@@ -900,6 +1168,7 @@
           setZoneState("ready");
           hint.textContent = "Release to start!";
           display.textContent = "0.00";
+          playTone("ready");
         }
       }, HOLD_THRESHOLD_MS);
     }
@@ -937,14 +1206,18 @@
       renderPhaseReadout();
       setZoneState("running");
       hint.textContent = settings.phasesEnabled ? "Tap / SPACE to mark each phase" : "Tap / press SPACE to stop";
+      if (typeof maybeStartClipRecording === "function") maybeStartClipRecording();
       runStartAt = performance.now();
-      runInterval = setInterval(() => {
+      const tick = () => {
         display.textContent = settings.hideRunningTime ? "●" : fmt(performance.now() - runStartAt);
-      }, 30);
+        runInterval = requestAnimationFrame(tick);
+      };
+      runInterval = requestAnimationFrame(tick);
     }
 
     function stopTimer() {
-      clearInterval(runInterval);
+      cancelAnimationFrame(runInterval);
+      playTone("stop");
       const elapsed = performance.now() - runStartAt;
       if (settings.phasesEnabled) phaseSplits.push(elapsed); // final phase boundary = solve end
       display.textContent = fmt(elapsed);
@@ -967,6 +1240,7 @@
       const newMs = solveEffectiveMs(newSolve);
       const isPb = newMs !== Infinity && (prevBest === null || newMs < prevBest);
       showPostSolvePanel(isPb ? newSolve : null);
+      if (typeof maybeStopClipRecording === "function") maybeStopClipRecording();
       getNewScramble();
     }
 
@@ -980,9 +1254,13 @@
     function showPostSolvePanel(pbSolve) {
       postSolvePanel.classList.remove("hidden");
       postSolvePanel.classList.add("flex");
+      document.getElementById("post-solve-clip-btn").classList.add("hidden");
       if (pbSolve) {
         postSolveShareBtn.classList.remove("hidden");
         postSolveShareBtn.onclick = () => openShareModal(buildShareText(pbSolve));
+        fireConfetti();
+        playTone("pb");
+        showToast("🎉", "New personal best!", solveDisplay(pbSolve));
       } else {
         postSolveShareBtn.classList.add("hidden");
       }
@@ -1223,6 +1501,8 @@
       saveSolves(solves);
       renderSolves();
       renderStats();
+      if (typeof checkAchievements === "function") checkAchievements(solves, solve);
+      if (typeof onCompeteSolveLogged === "function") onCompeteSolveLogged(solve);
     }
 
     function deleteSolve(index) {
@@ -1242,18 +1522,21 @@
       renderStats();
     }
 
+    let solveListRenderLimit = 300; // perf: avoid building thousands of DOM rows at once
     function renderSolves() {
-      const solves = loadSolves();
+      const allSolves = loadSolves();
       const listEl = document.getElementById("solve-list");
-      if (solves.length === 0) {
+      if (allSolves.length === 0) {
         listEl.innerHTML = `<p class="p-6 text-center text-xs" style="color:var(--ink-muted);">No solves yet</p>`;
         return;
       }
-      const pbFlags = computePbFlags(solves);
+      const truncated = allSolves.length > solveListRenderLimit;
+      const solves = truncated ? allSolves.slice(0, solveListRenderLimit) : allSolves;
+      const pbFlags = computePbFlags(allSolves);
       listEl.innerHTML = solves.map((s, i) => {
-        const n = solves.length - i;
-        const ao5win = solves.slice(i, i + 5).map(solveEffectiveMs);
-        const ao12win = solves.slice(i, i + 12).map(solveEffectiveMs);
+        const n = allSolves.length - i;
+        const ao5win = allSolves.slice(i, i + 5).map(solveEffectiveMs);
+        const ao12win = allSolves.slice(i, i + 12).map(solveEffectiveMs);
         const ao5 = ao5win.length === 5 ? average(ao5win) : null;
         const ao12 = ao12win.length === 12 ? average(ao12win) : null;
         const fmtAvg = v => v == null ? "-" : v === "DNF" ? "DNF" : fmt(v);
@@ -1271,10 +1554,12 @@
             <button data-i="${i}" class="delete-btn cs-del" title="Delete">✕</button>
           </span>
         </div>`;
-      }).join("");
+      }).join("") + (truncated ? `<button id="solve-load-more-btn" class="cs-clear-btn w-full">Show more (${allSolves.length - solveListRenderLimit} hidden for performance)</button>` : "");
       listEl.querySelectorAll(".penalty-btn").forEach(b => b.addEventListener("click", () => cyclePenalty(parseInt(b.dataset.i))));
       listEl.querySelectorAll(".delete-btn").forEach(b => b.addEventListener("click", () => deleteSolve(parseInt(b.dataset.i))));
-      listEl.querySelectorAll(".share-btn").forEach(b => b.addEventListener("click", () => openShareModal(buildShareText(solves[parseInt(b.dataset.i)]))));
+      listEl.querySelectorAll(".share-btn").forEach(b => b.addEventListener("click", () => openShareModal(buildShareText(allSolves[parseInt(b.dataset.i)]))));
+      const loadMoreBtn = document.getElementById("solve-load-more-btn");
+      if (loadMoreBtn) loadMoreBtn.addEventListener("click", () => { solveListRenderLimit += 500; renderSolves(); });
     }
 
     function average(msArray) {
@@ -1401,7 +1686,8 @@
       manualMode: false, inspection: false, theme: "dark", avgs: [5, 12, 25], showPreview: true,
       holdTimeMs: 300, hideRunningTime: false, timerColor: "var(--cube-blue)",
       phasesEnabled: false, phasesCount: 3,
-      customColors: { board: null, scramble: null, sidebar: null, page: null, text: null }
+      customColors: { board: null, scramble: null, sidebar: null, page: null, text: null },
+      soundEnabled: false, highContrast: false, reduceMotion: false
     };
     function loadSettings() {
       try {
@@ -1682,7 +1968,8 @@
     }
 
     function finalizeSolveFromHardware(elapsedMs) {
-      clearInterval(runInterval);
+      cancelAnimationFrame(runInterval);
+      playTone("stop");
       display.textContent = fmt(elapsedMs);
       state = "idle";
       setZoneState(null);
@@ -1702,6 +1989,7 @@
       const newMs = solveEffectiveMs(newSolve);
       const isPb = newMs !== Infinity && (prevBest === null || newMs < prevBest);
       showPostSolvePanel(isPb ? newSolve : null);
+      if (typeof maybeStopClipRecording === "function") maybeStopClipRecording();
       getNewScramble();
     }
 
@@ -2066,6 +2354,11 @@
           console.warn("[PWA] service worker registration failed:", err);
         });
       });
+      navigator.serviceWorker.addEventListener("message", (e) => {
+        if (e.data && e.data.type === "tt-sw-updated" && navigator.serviceWorker.controller) {
+          showToast("⬆️", "Update installed", "Refresh to get the latest version.");
+        }
+      });
     }
 
     window.addEventListener("beforeinstallprompt", (e) => {
@@ -2097,6 +2390,924 @@
       installTopBtn.classList.add("hidden");
       pwaInstallStatus.textContent = "✅ App installed.";
     });
+
+    // ==========================================================
+    // Sound engine — WebAudio beeps, no audio files needed
+    // ==========================================================
+    let audioCtx = null;
+    function getAudioCtx() {
+      if (!audioCtx) { try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { return null; } }
+      if (audioCtx.state === "suspended") audioCtx.resume().catch(() => {});
+      return audioCtx;
+    }
+    function playTone(kind) {
+      if (!settings.soundEnabled) return;
+      const ctx = getAudioCtx();
+      if (!ctx) return;
+      const specs = {
+        ready: [{ f: 880, d: 0.09 }],
+        warn: [{ f: 660, d: 0.08 }],
+        stop: [{ f: 440, d: 0.07 }],
+        pb: [{ f: 660, d: 0.09 }, { f: 880, d: 0.09 }, { f: 1100, d: 0.14 }],
+        click: [{ f: 520, d: 0.05 }]
+      };
+      const seq = specs[kind] || specs.click;
+      let t = ctx.currentTime;
+      seq.forEach(({ f, d }) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = "sine"; osc.frequency.value = f;
+        gain.gain.setValueAtTime(0.0001, t);
+        gain.gain.exponentialRampToValueAtTime(0.18, t + 0.01);
+        gain.gain.exponentialRampToValueAtTime(0.0001, t + d);
+        osc.connect(gain); gain.connect(ctx.destination);
+        osc.start(t); osc.stop(t + d + 0.02);
+        t += d;
+      });
+    }
+
+    // ==========================================================
+    // Toasts + confetti
+    // ==========================================================
+    function showToast(emoji, title, sub) {
+      const stack = document.getElementById("toast-stack");
+      const el = document.createElement("div");
+      el.className = "achv-toast";
+      el.innerHTML = `<span style="font-size:1.2rem;">${emoji}</span><span>${escapeHtml(title)}${sub ? ` <span style="color:var(--ink-muted); font-weight:400;">— ${escapeHtml(sub)}</span>` : ""}</span>`;
+      stack.appendChild(el);
+      setTimeout(() => el.remove(), 3600);
+    }
+
+    function fireConfetti() {
+      if (document.body.classList.contains("reduce-motion") || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+      const canvas = document.getElementById("confetti-canvas");
+      canvas.classList.remove("hidden");
+      canvas.width = window.innerWidth; canvas.height = window.innerHeight;
+      const ctx2 = canvas.getContext("2d");
+      const colors = ["#E8412B", "#F2B705", "#2F6FE0", "#22A35C", "#9B59B6"];
+      const pieces = Array.from({ length: 90 }, () => ({
+        x: Math.random() * canvas.width, y: -20 - Math.random() * 200,
+        vx: (Math.random() - 0.5) * 3, vy: 2 + Math.random() * 3,
+        size: 4 + Math.random() * 5, color: colors[Math.floor(Math.random() * colors.length)],
+        rot: Math.random() * 360, vr: (Math.random() - 0.5) * 10
+      }));
+      let frames = 0;
+      function step() {
+        ctx2.clearRect(0, 0, canvas.width, canvas.height);
+        pieces.forEach(p => {
+          p.x += p.vx; p.y += p.vy; p.rot += p.vr;
+          ctx2.save();
+          ctx2.translate(p.x, p.y); ctx2.rotate(p.rot * Math.PI / 180);
+          ctx2.fillStyle = p.color;
+          ctx2.fillRect(-p.size / 2, -p.size / 2, p.size, p.size);
+          ctx2.restore();
+        });
+        frames++;
+        if (frames < 130) requestAnimationFrame(step);
+        else canvas.classList.add("hidden");
+      }
+      step();
+    }
+
+    // ==========================================================
+    // Accessibility settings
+    // ==========================================================
+    const settingSound = document.getElementById("setting-sound");
+    const settingContrast = document.getElementById("setting-contrast");
+    const settingReduceMotion = document.getElementById("setting-reduce-motion");
+    settingSound.checked = !!settings.soundEnabled;
+    settingContrast.checked = !!settings.highContrast;
+    settingReduceMotion.checked = !!settings.reduceMotion;
+    function applyAccessibility() {
+      document.documentElement.setAttribute("data-contrast", settings.highContrast ? "high" : "normal");
+      document.body.classList.toggle("reduce-motion", !!settings.reduceMotion);
+    }
+    settingSound.addEventListener("change", () => { settings.soundEnabled = settingSound.checked; saveSettings(settings); if (settings.soundEnabled) playTone("click"); });
+    settingContrast.addEventListener("change", () => { settings.highContrast = settingContrast.checked; saveSettings(settings); applyAccessibility(); });
+    settingReduceMotion.addEventListener("change", () => { settings.reduceMotion = settingReduceMotion.checked; saveSettings(settings); applyAccessibility(); });
+    applyAccessibility();
+
+    // ==========================================================
+    // Achievements
+    // ==========================================================
+    const ACHV_KEY = "tt-timer-achievements";
+    const ACHIEVEMENT_DEFS = [
+      { id: "first-solve", emoji: "🎬", title: "First Solve", desc: "Log your very first solve.", check: (all) => all.length >= 1 },
+      { id: "solves-50", emoji: "🔥", title: "Half Century", desc: "50 solves logged (this event).", check: (all) => all.length >= 50 },
+      { id: "solves-100", emoji: "💯", title: "Centurion", desc: "100 solves logged (this event).", check: (all) => all.length >= 100 },
+      { id: "solves-1000", emoji: "🏔️", title: "1000 Solves", desc: "1000 solves logged (this event).", check: (all) => all.length >= 1000 },
+      { id: "streak-7", emoji: "📅", title: "7-Day Streak", desc: "Solved on 7 different days in a row.", check: (all) => longestSolveStreak(all) >= 7 },
+      { id: "streak-30", emoji: "🗓️", title: "30-Day Streak", desc: "Solved on 30 different days in a row.", check: (all) => longestSolveStreak(all) >= 30 },
+      { id: "consistent", emoji: "🎯", title: "Steady Hands", desc: "Ao100 within 10% of your PB single.", check: (all) => {
+          if (all.length < 100) return false;
+          const best = Math.min(...all.map(solveEffectiveMs).filter(v => v !== Infinity));
+          const avg = average(all.slice(0, 100).map(solveEffectiveMs));
+          return typeof avg === "number" && best && (avg - best) / best <= 0.10;
+        } },
+      { id: "no-dnf-50", emoji: "✅", title: "Clean Run", desc: "50 solves in a row without a DNF.", check: (all) => {
+          let run = 0, max = 0;
+          for (let i = all.length - 1; i >= 0; i--) { if (all[i].penalty === "DNF") run = 0; else run++; max = Math.max(max, run); }
+          return max >= 50;
+        } },
+      { id: "pb-hunter", emoji: "🏆", title: "PB Hunter", desc: "Beat your personal best 10 times (this event).", check: (all) => computePbFlags(all).filter(Boolean).length >= 10 },
+    ];
+    function loadAchievements() { try { return JSON.parse(localStorage.getItem(ACHV_KEY) || "{}"); } catch { return {}; } }
+    function saveAchievements(a) { localStorage.setItem(ACHV_KEY, JSON.stringify(a)); }
+    function longestSolveStreak(all) {
+      const days = [...new Set(all.map(s => (s.at || "").slice(0, 10)))].sort();
+      if (days.length === 0) return 0;
+      let max = 1, cur = 1;
+      for (let i = 1; i < days.length; i++) {
+        const prev = new Date(days[i - 1]), now = new Date(days[i]);
+        cur = (now - prev) / 86400000 === 1 ? cur + 1 : 1;
+        max = Math.max(max, cur);
+      }
+      return max;
+    }
+    function checkAchievements(allSolvesForEvent, latestSolve) {
+      const store = loadAchievements();
+      const key = currentEvent;
+      store[key] = store[key] || {};
+      let unlockedNew = false;
+      ACHIEVEMENT_DEFS.forEach(def => {
+        if (store[key][def.id]) return;
+        let ok = false;
+        try { ok = def.check(allSolvesForEvent); } catch (e) { ok = false; }
+        if (ok) {
+          store[key][def.id] = new Date().toISOString();
+          unlockedNew = true;
+          showToast(def.emoji, "Achievement unlocked: " + def.title, def.desc);
+          playTone("pb");
+        }
+      });
+      if (unlockedNew) saveAchievements(store);
+    }
+
+    function renderAchievements() {
+      const store = loadAchievements();
+      const unlockedForEvent = store[currentEvent] || {};
+      const grid = document.getElementById("achv-grid");
+      const allSolves = loadSolves();
+      grid.innerHTML = ACHIEVEMENT_DEFS.map(def => {
+        const unlocked = !!unlockedForEvent[def.id];
+        return `<div class="achv-card ${unlocked ? "" : "locked"}">
+          <span class="achv-emoji">${def.emoji}</span>
+          <div><p class="achv-title">${def.title}</p><p class="achv-desc">${def.desc}</p></div>
+        </div>`;
+      }).join("");
+
+      // Personal leaderboard: best single across every event/session on this device
+      const tableEl = document.getElementById("pr-leaderboard-table");
+      const rows = EVENTS.map(ev => {
+        const sessions = ensureSessionsForEvent(ev.id);
+        let best = null, bestSession = "";
+        sessions.forEach(s => {
+          try {
+            const raw = localStorage.getItem(storageKey(ev.id, s.id));
+            const arr = raw ? JSON.parse(raw) : [];
+            arr.forEach(sv => {
+              const ms = solveEffectiveMs(sv);
+              if (ms !== Infinity && (best === null || ms < best)) { best = ms; bestSession = s.name; }
+            });
+          } catch (e) {}
+        });
+        return { label: ev.label, best, bestSession };
+      }).filter(r => r.best !== null).sort((a, b) => a.best - b.best);
+      if (rows.length === 0) {
+        tableEl.innerHTML = `<p class="text-xs" style="color:var(--ink-muted);">No solves yet.</p>`;
+      } else {
+        tableEl.innerHTML = `<table class="w-full"><thead><tr style="color:var(--ink-muted);"><th class="text-left py-1">Event</th><th class="text-left py-1">Best</th><th class="text-left py-1">Session</th></tr></thead><tbody>` +
+          rows.map(r => `<tr><td class="py-1">${escapeHtml(r.label)}</td><td class="py-1" style="color:var(--cube-green);">${fmt(r.best)}</td><td class="py-1" style="color:var(--ink-muted);">${escapeHtml(r.bestSession)}</td></tr>`).join("") +
+          `</tbody></table>`;
+      }
+    }
+
+    const achvBtn = document.getElementById("achv-btn");
+    const achvPanel = document.getElementById("achv-panel");
+    const achvBackdrop = document.getElementById("achv-backdrop");
+    function openAchv() { achvPanel.classList.remove("hidden"); achvBackdrop.classList.remove("hidden"); renderAchievements(); }
+    function closeAchv() { achvPanel.classList.add("hidden"); achvBackdrop.classList.add("hidden"); }
+    achvBtn.addEventListener("click", openAchv);
+    document.getElementById("achv-close-btn").addEventListener("click", closeAchv);
+    achvBackdrop.addEventListener("click", closeAchv);
+
+    // ==========================================================
+    // Analytics dashboard (Chart.js loaded lazily on first open)
+    // ==========================================================
+    let chartJsLoaded = false;
+    let chartInstances = {};
+    function loadChartJs() {
+      if (chartJsLoaded) return Promise.resolve();
+      return new Promise((resolve, reject) => {
+        const s = document.createElement("script");
+        s.src = "https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js";
+        s.onload = () => { chartJsLoaded = true; resolve(); };
+        s.onerror = reject;
+        document.head.appendChild(s);
+      });
+    }
+
+    function computeSmartInsights(solves) {
+      const insights = [];
+      const valid = solves.filter(s => s.penalty !== "DNF");
+      if (valid.length < 5) return [{ icon: "ℹ️", text: "Log at least 5 solves in this session to unlock insights." }];
+
+      const ms = valid.map(solveEffectiveMs);
+      const mean = ms.reduce((a, b) => a + b, 0) / ms.length;
+      const variance = ms.reduce((a, v) => a + (v - mean) ** 2, 0) / ms.length;
+      const stddev = Math.sqrt(variance);
+      const cv = stddev / mean; // coefficient of variation — consistency proxy
+
+      if (cv < 0.10) insights.push({ icon: "🎯", text: "Very consistent solving — your spread is under 10% of your mean. Good candidate to push turn speed a bit harder." });
+      else if (cv > 0.25) insights.push({ icon: "📉", text: "High variance between solves (over 25% of your mean). Look-ahead and lock-up moments are probably costing more than raw turning speed right now." });
+
+      const dnfRate = solves.filter(s => s.penalty === "DNF").length / solves.length;
+      if (dnfRate > 0.08) insights.push({ icon: "⚠️", text: `DNF rate is ${(dnfRate * 100).toFixed(0)}% — that's above what most solvers can afford. Slowing down slightly on tricky scrambles usually pays for itself.` });
+
+      const recent = ms.slice(0, Math.min(20, ms.length));
+      const older = ms.slice(Math.min(20, ms.length), Math.min(40, ms.length));
+      if (older.length >= 5) {
+        const recentAvg = recent.reduce((a, b) => a + b, 0) / recent.length;
+        const olderAvg = older.reduce((a, b) => a + b, 0) / older.length;
+        const delta = ((olderAvg - recentAvg) / olderAvg) * 100;
+        if (delta > 3) insights.push({ icon: "📈", text: `Trending faster — your last 20 solves average ${delta.toFixed(1)}% quicker than the 20 before that.` });
+        else if (delta < -3) insights.push({ icon: "📉", text: `Trending slower — your last 20 solves average ${Math.abs(delta).toFixed(1)}% slower than the 20 before that. Could be fatigue, a harder scramble batch, or worth a short break.` });
+      }
+
+      const withPhases = solves.filter(s => s.phases && s.phases.length >= 2).slice(0, 30);
+      if (withPhases.length >= 8) {
+        const n = withPhases[0].phases.length;
+        const phaseAverages = new Array(n).fill(0);
+        withPhases.forEach(s => { let prev = 0; s.phases.forEach((p, i) => { phaseAverages[i] += (p - prev); prev = p; }); });
+        const avgs = phaseAverages.map(v => v / withPhases.length);
+        const totalAvg = avgs.reduce((a, b) => a + b, 0);
+        const share = avgs.map(v => v / totalAvg);
+        const maxIdx = share.indexOf(Math.max(...share));
+        insights.push({ icon: "🧩", text: `Phase ${maxIdx + 1} takes the largest share of your solve time on average (${(share[maxIdx] * 100).toFixed(0)}%) across your last ${withPhases.length} tracked solves — that's the highest-leverage phase to drill.` });
+      }
+
+      const best = Math.min(...ms);
+      const last = solveEffectiveMs(solves[0]);
+      if (last !== Infinity && last <= best * 1.02 && last !== best) insights.push({ icon: "🔥", text: "Your last solve was within 2% of your session best — you're warmed up." });
+
+      if (insights.length === 0) insights.push({ icon: "🙂", text: "Nothing unusual to flag — keep stacking solves for deeper trend data." });
+      return insights;
+    }
+
+    function renderHeatmap(allSolvesEverySession) {
+      const grid = document.getElementById("heatmap-grid");
+      const counts = {};
+      allSolvesEverySession.forEach(s => { const d = (s.at || "").slice(0, 10); if (d) counts[d] = (counts[d] || 0) + 1; });
+      const days = [];
+      const today = new Date();
+      for (let i = 14 * 7 - 1; i >= 0; i--) {
+        const d = new Date(today); d.setDate(d.getDate() - i);
+        days.push(d.toISOString().slice(0, 10));
+      }
+      const weeks = [];
+      for (let i = 0; i < days.length; i += 7) weeks.push(days.slice(i, i + 7));
+      grid.innerHTML = weeks.map(week => `<div class="flex flex-col gap-1">${week.map(d => {
+        const c = counts[d] || 0;
+        const lvl = c === 0 ? 0 : c < 5 ? 1 : c < 15 ? 2 : c < 30 ? 3 : 4;
+        return `<div class="heat-cell" data-lvl="${lvl}" title="${d}: ${c} solve${c === 1 ? "" : "s"}"></div>`;
+      }).join("")}</div>`).join("");
+    }
+
+    async function openAnalytics() {
+      document.getElementById("analytics-panel").classList.remove("hidden");
+      document.getElementById("analytics-backdrop").classList.remove("hidden");
+      const solves = loadSolves();
+      const valid = solves.filter(s => s.penalty !== "DNF").map(solveEffectiveMs);
+
+      // Tiles
+      const tilesEl = document.getElementById("analytics-tiles");
+      const best = valid.length ? Math.min(...valid) : null;
+      const worst = valid.length ? Math.max(...valid) : null;
+      const mean = valid.length ? valid.reduce((a, b) => a + b, 0) / valid.length : null;
+      const dnfRate = solves.length ? (solves.filter(s => s.penalty === "DNF").length / solves.length * 100) : 0;
+      const tiles = [
+        ["Solves", solves.length],
+        ["Best", best != null ? fmt(best) : "-"],
+        ["Worst", worst != null ? fmt(worst) : "-"],
+        ["Mean", mean != null ? fmt(mean) : "-"],
+        ["DNF rate", dnfRate.toFixed(1) + "%"],
+        ["Ao100", computeAvgText(solves, 100)],
+      ];
+      tilesEl.innerHTML = tiles.map(([l, v]) => `<div class="stat-tile"><p class="stat-tile-label">${l}</p><p class="stat-tile-value">${v}</p></div>`).join("");
+
+      // Insights
+      document.getElementById("insights-list").innerHTML = computeSmartInsights(solves).map(i => `<div class="flex gap-2"><span>${i.icon}</span><span>${escapeHtml(i.text)}</span></div>`).join("");
+
+      // Heatmap across all events/sessions on this device
+      let everySolve = [];
+      EVENTS.forEach(ev => {
+        ensureSessionsForEvent(ev.id).forEach(s => {
+          try { everySolve = everySolve.concat(JSON.parse(localStorage.getItem(storageKey(ev.id, s.id)) || "[]")); } catch (e) {}
+        });
+      });
+      renderHeatmap(everySolve);
+
+      // Session comparison table (this event)
+      const cmpEl = document.getElementById("session-compare-table");
+      const sessions = ensureSessionsForEvent(currentEvent);
+      const rows = sessions.map(s => {
+        let arr = [];
+        try { arr = JSON.parse(localStorage.getItem(storageKey(currentEvent, s.id)) || "[]"); } catch (e) {}
+        const v = arr.filter(x => x.penalty !== "DNF").map(solveEffectiveMs);
+        return { name: s.name, count: arr.length, best: v.length ? Math.min(...v) : null, mean: v.length ? v.reduce((a, b) => a + b, 0) / v.length : null };
+      });
+      cmpEl.innerHTML = `<table class="w-full"><thead><tr style="color:var(--ink-muted);"><th class="text-left py-1">Session</th><th class="text-left py-1">Solves</th><th class="text-left py-1">Best</th><th class="text-left py-1">Mean</th></tr></thead><tbody>` +
+        rows.map(r => `<tr${r.name === (sessions.find(s => s.id === currentSessionId) || {}).name ? ' style="color:var(--cube-blue);"' : ""}><td class="py-1">${escapeHtml(r.name)}</td><td class="py-1">${r.count}</td><td class="py-1">${r.best != null ? fmt(r.best) : "-"}</td><td class="py-1">${r.mean != null ? fmt(r.mean) : "-"}</td></tr>`).join("") +
+        `</tbody></table>`;
+
+      try {
+        await loadChartJs();
+        renderCharts(solves);
+      } catch (e) {
+        console.error("[Analytics] Chart.js failed to load:", e);
+      }
+    }
+
+    function renderCharts(solvesNewestFirst) {
+      const solves = [...solvesNewestFirst].reverse(); // chronological for charts
+      const labels = solves.map((_, i) => i + 1);
+      const times = solves.map(s => { const v = solveEffectiveMs(s); return v === Infinity ? null : v / 1000; });
+      const gridColor = "rgba(255,255,255,0.08)";
+      const textColor = getComputedStyle(document.documentElement).getPropertyValue("--ink-muted") || "#9297A6";
+
+      Object.values(chartInstances).forEach(c => { try { c.destroy(); } catch (e) {} });
+      chartInstances = {};
+
+      const commonScales = {
+        x: { ticks: { color: textColor, maxTicksLimit: 8 }, grid: { color: gridColor } },
+        y: { ticks: { color: textColor }, grid: { color: gridColor } }
+      };
+
+      chartInstances.trend = new Chart(document.getElementById("chart-trend"), {
+        type: "line",
+        data: { labels, datasets: [{ label: "Time (s)", data: times, borderColor: "#2F6FE0", backgroundColor: "rgba(47,111,224,0.1)", pointRadius: 0, borderWidth: 1.5, tension: 0.15, spanGaps: true }] },
+        options: { responsive: true, plugins: { legend: { display: false } }, scales: commonScales }
+      });
+
+      const finite = times.filter(t => t != null);
+      if (finite.length >= 3) {
+        const min = Math.min(...finite), max = Math.max(...finite);
+        const bucketCount = Math.min(16, Math.max(6, Math.round(Math.sqrt(finite.length))));
+        const bucketSize = Math.max(0.01, (max - min) / bucketCount);
+        const buckets = new Array(bucketCount).fill(0);
+        finite.forEach(t => { let idx = Math.floor((t - min) / bucketSize); if (idx >= bucketCount) idx = bucketCount - 1; if (idx < 0) idx = 0; buckets[idx]++; });
+        const histLabels = buckets.map((_, i) => (min + i * bucketSize).toFixed(1) + "s");
+        chartInstances.hist = new Chart(document.getElementById("chart-hist"), {
+          type: "bar",
+          data: { labels: histLabels, datasets: [{ data: buckets, backgroundColor: "#22A35C" }] },
+          options: { responsive: true, plugins: { legend: { display: false } }, scales: commonScales }
+        });
+      }
+
+      const ao5series = solves.map((_, i) => { const win = solves.slice(Math.max(0, i - 4), i + 1).map(solveEffectiveMs); return win.length === 5 ? average(win) : null; }).map(v => v === "DNF" || v == null ? null : v / 1000);
+      const ao12series = solves.map((_, i) => { const win = solves.slice(Math.max(0, i - 11), i + 1).map(solveEffectiveMs); return win.length === 12 ? average(win) : null; }).map(v => v === "DNF" || v == null ? null : v / 1000);
+      chartInstances.avg = new Chart(document.getElementById("chart-avg"), {
+        type: "line",
+        data: { labels, datasets: [
+          { label: "Ao5", data: ao5series, borderColor: "#F2B705", pointRadius: 0, borderWidth: 1.5, spanGaps: true },
+          { label: "Ao12", data: ao12series, borderColor: "#E8412B", pointRadius: 0, borderWidth: 1.5, spanGaps: true },
+        ] },
+        options: { responsive: true, plugins: { legend: { display: true, labels: { color: textColor } } }, scales: commonScales }
+      });
+    }
+
+    document.getElementById("analytics-btn").addEventListener("click", openAnalytics);
+    document.getElementById("analytics-close-btn").addEventListener("click", () => {
+      document.getElementById("analytics-panel").classList.add("hidden");
+      document.getElementById("analytics-backdrop").classList.add("hidden");
+    });
+    document.getElementById("analytics-backdrop").addEventListener("click", () => {
+      document.getElementById("analytics-panel").classList.add("hidden");
+      document.getElementById("analytics-backdrop").classList.add("hidden");
+    });
+
+    // ==========================================================
+    // Algorithm trainer (Practice mode)
+    // High-confidence, verifiable algorithm sets only: full PLL (21) and
+    // 2-look OLL (orient-corners + orient-edges, 9 algs). Full 1-look OLL/F2L
+    // sets are large enough that recalling all of them error-free from memory
+    // isn't reliable — rather than risk teaching a wrong algorithm, this ships
+    // the well-established subset plus a way to add your own cases.
+    // ==========================================================
+    const BUILTIN_CASES = {
+      PLL: [
+        ["Aa (corners, CW)", "x R' U R' D2 R U' R' D2 R2 x'"],
+        ["Ab (corners, CCW)", "x R2 D2 R U R' D2 R U' R x'"],
+        ["E (corners, diag)", "x' R U' R' D R U R' D' R U R' D R U' R' D' x"],
+        ["F", "R' U' F' R U R' U' R' F R2 U' R' U' R U R' U R"],
+        ["Ga", "R2 U R' U R' U' R U' R2 U' D R' U R D'"],
+        ["Gb", "R' U' R U D' R2 U R' U R U' R U' R2 D"],
+        ["Gc", "R2 U' R U' R U R' U R2 U D' R U' R' D"],
+        ["Gd", "R U R' U' D R2 U' R U' R' U R' U R2 D'"],
+        ["H", "M2 U M2 U2 M2 U M2"],
+        ["Ja", "R' U L' U2 R U' R' U2 R L U'"],
+        ["Jb", "R U R' F' R U R' U' R' F R2 U' R'"],
+        ["Na", "R U R' U R U R' F' R U R' U' R' F R2 U' R' U2 R U' R'"],
+        ["Nb", "R' U R U' R' F' U' F R U R' F R' F' R U' R"],
+        ["Ra", "R U R' F' R U2 R' U2 R' F R U R U2 R' U'"],
+        ["Rb", "R' U2 R U2 R' F R U R' U' R' F' R2 U'"],
+        ["T", "R U R' U' R' F R2 U' R' U' R U R' F'"],
+        ["Ua (edges CW)", "R U' R U R U R U' R' U' R2"],
+        ["Ub (edges CCW)", "R2 U R U R' U' R' U' R' U R'"],
+        ["V", "R' U R' U' y R' F' R2 U' R' U R' F R F"],
+        ["Y", "F R U' R' U' R U R' F' R U R' U' R' F R F'"],
+        ["Z", "M' U M2 U M2 U M' U2 M2"],
+      ],
+      "2-Look OLL": [
+        ["OCLL 1 (Sune)", "R U R' U R U2 R'"],
+        ["OCLL 2 (Anti-Sune)", "R U2 R' U' R U' R'"],
+        ["OCLL 3 (headlights)", "R2 D R' U2 R D' R' U2 R'"],
+        ["OCLL 4 (chameleon)", "F R U R' U' R U R' U' F'"],
+        ["OCLL 5 (bowtie)", "r U R' U' r' F R F'"],
+        ["OCLL 6 (bowtie 2)", "R U2 R2 U' R2 U' R2 U2 R"],
+        ["OCLL 7 (H)", "R U2 R' U' R U R' U' R U' R'"],
+        ["EO: dot/cross (F R U R' U' F')", "F R U R' U' F'"],
+        ["EO: line (f R U R' U' f')", "f R U R' U' f'"],
+      ],
+    };
+    const CUSTOM_CASES_KEY = "tt-timer-custom-cases";
+    const TRAINER_STATS_KEY = "tt-timer-trainer-stats";
+    function loadCustomCases() { try { return JSON.parse(localStorage.getItem(CUSTOM_CASES_KEY) || "{}"); } catch { return {}; } }
+    function saveCustomCases(c) { localStorage.setItem(CUSTOM_CASES_KEY, JSON.stringify(c)); }
+    function loadTrainerStats() { try { return JSON.parse(localStorage.getItem(TRAINER_STATS_KEY) || "{}"); } catch { return {}; } }
+    function saveTrainerStats(s) { localStorage.setItem(TRAINER_STATS_KEY, JSON.stringify(s)); }
+
+    function allCasesForCategory(cat) {
+      const builtin = BUILTIN_CASES[cat] || [];
+      const custom = (loadCustomCases()[cat] || []);
+      return [...builtin.map(([name, alg]) => ({ name, alg, custom: false })), ...custom.map(c => ({ ...c, custom: true }))];
+    }
+    function invertAlg(alg) {
+      const moves = alg.trim().split(/\s+/).filter(Boolean).filter(m => !/^[xyz]/.test(m)); // drop cube rotations for scramble purposes
+      return moves.reverse().map(m => {
+        if (m.endsWith("2")) return m;
+        if (m.endsWith("'")) return m.slice(0, -1);
+        return m + "'";
+      }).join(" ");
+    }
+
+    let practiceCategory = "PLL";
+    let practiceActiveCase = null; // {name, alg, custom}
+
+    function trainerKey(cat, name) { return cat + "::" + name; }
+
+    function renderPracticeCategoryTabs() {
+      const cats = [...new Set([...Object.keys(BUILTIN_CASES), ...Object.keys(loadCustomCases())])];
+      document.getElementById("practice-category-tabs").innerHTML = cats.map(c =>
+        `<button type="button" class="subtab-btn ${c === practiceCategory ? "active" : ""}" data-cat="${escapeHtml(c)}">${escapeHtml(c)}</button>`
+      ).join("");
+      document.querySelectorAll("#practice-category-tabs .subtab-btn").forEach(b => {
+        b.addEventListener("click", () => { practiceCategory = b.dataset.cat; renderPracticeCategoryTabs(); renderPracticeCaseGrid(); });
+      });
+    }
+
+    function renderPracticeCaseGrid() {
+      const grid = document.getElementById("practice-case-grid");
+      const stats = loadTrainerStats();
+      const cases = allCasesForCategory(practiceCategory);
+      if (cases.length === 0) {
+        grid.innerHTML = `<p class="text-xs col-span-2" style="color:var(--ink-muted);">No cases yet in this category — add one below.</p>`;
+        return;
+      }
+      grid.innerHTML = cases.map(c => {
+        const st = stats[trainerKey(practiceCategory, c.name)];
+        const statText = st && st.times.length ? `${st.times.length} reps · best ${fmt(Math.min(...st.times))}` : "Not drilled yet";
+        return `<div class="alg-case-card" data-name="${escapeHtml(c.name)}">
+          <p class="case-name">${escapeHtml(c.name)}</p>
+          <p class="case-alg">${escapeHtml(c.alg)}</p>
+          <p class="case-stat">${statText}</p>
+        </div>`;
+      }).join("");
+      grid.querySelectorAll(".alg-case-card").forEach(card => {
+        card.addEventListener("click", () => {
+          const c = cases.find(x => x.name === card.dataset.name);
+          if (c) openPracticeDrill(c);
+        });
+      });
+    }
+
+    function openPracticeDrill(c) {
+      practiceActiveCase = c;
+      document.getElementById("practice-case-grid").classList.add("hidden");
+      document.getElementById("practice-drill-box").classList.remove("hidden");
+      document.getElementById("practice-drill-title").textContent = `${practiceCategory} — ${c.name}`;
+      document.getElementById("practice-drill-scramble").textContent = invertAlg(c.alg);
+      document.getElementById("practice-drill-alg").textContent = c.alg;
+      document.getElementById("practice-drill-alg").classList.add("hidden");
+      document.getElementById("practice-reveal-btn").classList.remove("hidden");
+      document.getElementById("practice-timer-display").textContent = "0.00";
+      renderPracticeStats();
+    }
+    document.getElementById("practice-reveal-btn").addEventListener("click", () => {
+      document.getElementById("practice-drill-alg").classList.remove("hidden");
+      document.getElementById("practice-reveal-btn").classList.add("hidden");
+    });
+    document.getElementById("practice-drill-exit").addEventListener("click", () => {
+      practiceActiveCase = null;
+      document.getElementById("practice-drill-box").classList.add("hidden");
+      document.getElementById("practice-case-grid").classList.remove("hidden");
+      renderPracticeCaseGrid();
+    });
+
+    function renderPracticeStats() {
+      if (!practiceActiveCase) return;
+      const stats = loadTrainerStats();
+      const st = stats[trainerKey(practiceCategory, practiceActiveCase.name)] || { times: [] };
+      document.getElementById("practice-stat-count").textContent = st.times.length;
+      document.getElementById("practice-stat-best").textContent = st.times.length ? fmt(Math.min(...st.times)) : "-";
+      const last12 = st.times.slice(-12);
+      document.getElementById("practice-stat-avg").textContent = last12.length ? fmt(last12.reduce((a, b) => a + b, 0) / last12.length) : "-";
+    }
+
+    // Independent hold-to-time control for the drill box — mirrors the main
+    // timer's state machine but stays scoped to practice so it never touches
+    // real solve history.
+    let drillState = "idle", drillHoldStart = 0, drillHoldTimeout = null, drillRunStart = 0, drillRaf = null;
+    const drillZone = document.getElementById("practice-drill-timer");
+    const drillDisplay = document.getElementById("practice-timer-display");
+    function drillBegin() {
+      if (!practiceActiveCase || drillState !== "idle") return;
+      drillState = "holding"; drillHoldStart = performance.now();
+      drillHoldTimeout = setTimeout(() => { if (drillState === "holding") { drillState = "ready"; drillDisplay.textContent = "0.00"; } }, HOLD_THRESHOLD_MS);
+    }
+    function drillEnd() {
+      if (drillState === "ready") {
+        drillState = "running"; drillRunStart = performance.now();
+        const tick = () => { drillDisplay.textContent = fmt(performance.now() - drillRunStart); drillRaf = requestAnimationFrame(tick); };
+        drillRaf = requestAnimationFrame(tick);
+        return;
+      }
+      if (drillState === "running") {
+        cancelAnimationFrame(drillRaf);
+        const elapsed = performance.now() - drillRunStart;
+        drillDisplay.textContent = fmt(elapsed);
+        drillState = "idle";
+        const stats = loadTrainerStats();
+        const key = trainerKey(practiceCategory, practiceActiveCase.name);
+        stats[key] = stats[key] || { times: [] };
+        stats[key].times.push(Math.round(elapsed));
+        if (stats[key].times.length > 200) stats[key].times = stats[key].times.slice(-200);
+        saveTrainerStats(stats);
+        renderPracticeStats();
+        playTone("stop");
+        return;
+      }
+      if (drillState === "holding") { clearTimeout(drillHoldTimeout); drillState = "idle"; drillDisplay.textContent = "0.00"; }
+    }
+    drillZone.addEventListener("mousedown", drillBegin); drillZone.addEventListener("mouseup", drillEnd);
+    drillZone.addEventListener("touchstart", (e) => { e.preventDefault(); drillBegin(); }, { passive: false });
+    drillZone.addEventListener("touchend", (e) => { e.preventDefault(); drillEnd(); }, { passive: false });
+    document.addEventListener("keydown", (e) => {
+      if (e.code !== "Space" || e.repeat) return;
+      const panel = document.getElementById("practice-panel");
+      if (panel.classList.contains("hidden") || document.getElementById("practice-drill-box").classList.contains("hidden")) return;
+      if (isTypingInField()) return;
+      e.preventDefault(); drillBegin();
+    });
+    document.addEventListener("keyup", (e) => {
+      if (e.code !== "Space") return;
+      const panel = document.getElementById("practice-panel");
+      if (panel.classList.contains("hidden") || document.getElementById("practice-drill-box").classList.contains("hidden")) return;
+      if (isTypingInField()) return;
+      e.preventDefault(); drillEnd();
+    });
+
+    document.getElementById("custom-case-add-btn").addEventListener("click", () => {
+      const cat = document.getElementById("custom-case-cat").value.trim() || "Other";
+      const name = document.getElementById("custom-case-name").value.trim();
+      const alg = document.getElementById("custom-case-alg").value.trim();
+      if (!name || !alg) return;
+      const store = loadCustomCases();
+      store[cat] = store[cat] || [];
+      store[cat].push({ name, alg });
+      saveCustomCases(store);
+      practiceCategory = cat;
+      document.getElementById("custom-case-name").value = "";
+      document.getElementById("custom-case-alg").value = "";
+      renderPracticeCategoryTabs();
+      renderPracticeCaseGrid();
+    });
+
+    const practiceBtn = document.getElementById("practice-btn");
+    function openPractice() {
+      document.getElementById("practice-panel").classList.remove("hidden");
+      document.getElementById("practice-backdrop").classList.remove("hidden");
+      renderPracticeCategoryTabs();
+      renderPracticeCaseGrid();
+    }
+    function closePractice() {
+      document.getElementById("practice-panel").classList.add("hidden");
+      document.getElementById("practice-backdrop").classList.add("hidden");
+    }
+    practiceBtn.addEventListener("click", openPractice);
+    document.getElementById("practice-close-btn").addEventListener("click", closePractice);
+    document.getElementById("practice-backdrop").addEventListener("click", closePractice);
+
+    // ==========================================================
+    // Competition mode — fixed-count round, WCA-style trimmed average,
+    // no editing/deleting mid-round.
+    // ==========================================================
+    let compActive = false, compFormat = 5, compTimes = [], compTargetCount = 5;
+    const compBackdrop = document.getElementById("compete-backdrop");
+    function openCompeteModal() {
+      compBackdrop.classList.remove("hidden"); compBackdrop.classList.add("flex");
+      document.getElementById("compete-setup").classList.toggle("hidden", compActive);
+      document.getElementById("compete-active").classList.toggle("hidden", !compActive);
+      document.getElementById("compete-result").classList.add("hidden");
+      if (compActive) renderCompeteSlots();
+    }
+    function closeCompeteModal() { compBackdrop.classList.add("hidden"); compBackdrop.classList.remove("flex"); }
+    document.getElementById("compete-btn").addEventListener("click", openCompeteModal);
+    document.getElementById("compete-close-btn").addEventListener("click", closeCompeteModal);
+
+    document.getElementById("compete-start-btn").addEventListener("click", () => {
+      compFormat = parseInt(document.getElementById("compete-format").value, 10);
+      compTargetCount = compFormat;
+      compTimes = [];
+      compActive = true;
+      document.body.classList.add("comp-active");
+      document.getElementById("compete-setup").classList.add("hidden");
+      document.getElementById("compete-active").classList.remove("hidden");
+      renderCompeteSlots();
+      showToast("🏁", "Competition round started", `${compTargetCount} solves — solve as normal`);
+    });
+    document.getElementById("compete-abort-btn").addEventListener("click", () => {
+      if (!confirm("Abort this competition round?")) return;
+      endCompetition(false);
+      closeCompeteModal();
+    });
+    function renderCompeteSlots() {
+      const el = document.getElementById("compete-slots");
+      el.innerHTML = Array.from({ length: compTargetCount }, (_, i) => {
+        const done = i < compTimes.length;
+        const isCurrent = i === compTimes.length;
+        return `<div class="comp-solve-slot ${done ? "done" : ""} ${isCurrent ? "current" : ""}">
+          <span>Solve ${i + 1}</span><span>${done ? solveDisplay(compTimes[i]) : (isCurrent ? "next up…" : "-")}</span>
+        </div>`;
+      }).join("");
+    }
+    function onCompeteSolveLogged(solve) {
+      if (!compActive) return;
+      compTimes.push(solve);
+      renderCompeteSlots();
+      if (!compBackdrop.classList.contains("hidden")) renderCompeteSlots();
+      if (compTimes.length >= compTargetCount) endCompetition(true);
+    }
+    function endCompetition(completed) {
+      compActive = false;
+      document.body.classList.remove("comp-active");
+      if (!completed) { compTimes = []; return; }
+      const msArr = compTimes.map(solveEffectiveMs);
+      let resultMs, label;
+      if (compFormat === 3) {
+        const dnfCount = msArr.filter(v => v === Infinity).length;
+        resultMs = dnfCount > 0 ? "DNF" : msArr.reduce((a, b) => a + b, 0) / msArr.length;
+        label = "Mo3";
+      } else {
+        resultMs = average(msArr);
+        label = "Ao" + compFormat;
+      }
+      document.getElementById("compete-result-label").textContent = label + " Result";
+      document.getElementById("compete-result-value").textContent = resultMs === "DNF" ? "DNF" : fmt(resultMs);
+      const sorted = [...msArr];
+      const minV = Math.min(...sorted.filter(v => v !== Infinity), Infinity);
+      const maxV = Math.max(...sorted);
+      document.getElementById("compete-result-list").innerHTML = compTimes.map((s, i) => {
+        const v = msArr[i];
+        const tag = v === maxV ? " (worst, trimmed)" : (v === minV && v !== Infinity ? " (best, trimmed)" : "");
+        return `<div>${i + 1}. ${solveDisplay(s)}${compFormat !== 3 ? tag : ""}</div>`;
+      }).join("");
+      openCompeteModal();
+      document.getElementById("compete-active").classList.add("hidden");
+      document.getElementById("compete-result").classList.remove("hidden");
+      if (resultMs !== "DNF") { fireConfetti(); playTone("pb"); }
+      window.__lastCompResult = { label, resultMs, times: compTimes, event: currentEvent };
+    }
+    document.getElementById("compete-done-btn").addEventListener("click", () => { compTimes = []; closeCompeteModal(); });
+    document.getElementById("compete-share-btn").addEventListener("click", () => {
+      const r = window.__lastCompResult;
+      if (!r) return;
+      const eventLabel = (EVENTS.find(e => e.id === r.event) || {}).label || r.event;
+      const lines = r.times.map((s, i) => `${i + 1}. ${solveDisplay(s)}   ${s.scramble}`);
+      const text = `Generated By Twist & Turn — Competition Mode\n${eventLabel} - ${r.label}: ${r.resultMs === "DNF" ? "DNF" : fmt(r.resultMs)}\nTime List:\n${lines.join("\n")}`;
+      openShareModal(text);
+    });
+
+    // ==========================================================
+    // CSV / CubeDesk-style export, full backup, sync codes
+    // ==========================================================
+    document.getElementById("export-csv-btn").addEventListener("click", () => {
+      const solves = loadSolves();
+      const rows = [["#", "time_seconds", "penalty", "date", "scramble"]];
+      [...solves].reverse().forEach((s, i) => {
+        rows.push([i + 1, (s.ms / 1000).toFixed(3), s.penalty || "", s.at || "", (s.scramble || "").replace(/\n/g, " | ")]);
+      });
+      const csv = rows.map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(",")).join("\n");
+      downloadTextFile(`twist-turn-${currentEvent}.csv`, csv, "text/csv");
+      ioStatusEl.textContent = `✅ Exported ${solves.length} solves as CSV.`;
+    });
+    document.getElementById("export-cubedesk-btn").addEventListener("click", () => {
+      const solves = loadSolves();
+      const payload = {
+        source: "twist-turn-timer",
+        puzzle: currentEvent,
+        solves: solves.map(s => ({
+          time: s.ms, penalty: s.penalty === "DNF" ? "dnf" : s.penalty === "+2" ? "plustwo" : "none",
+          scramble: s.scramble, date: s.at
+        }))
+      };
+      downloadTextFile(`cubedesk-style-${currentEvent}.json`, JSON.stringify(payload, null, 2), "application/json");
+      ioStatusEl.textContent = `✅ Exported ${solves.length} solves in a CubeDesk-style format (best-effort — CubeDesk's own schema isn't publicly specified).`;
+    });
+
+    function buildFullBackup() {
+      const data = { app: "twist-turn-timer-full-backup", version: 1, exportedAt: new Date().toISOString(), events: {} };
+      EVENTS.forEach(ev => {
+        const sessions = ensureSessionsForEvent(ev.id);
+        data.events[ev.id] = { sessions: sessions.map(s => ({ id: s.id, name: s.name, solves: (() => { try { return JSON.parse(localStorage.getItem(storageKey(ev.id, s.id)) || "[]"); } catch { return []; } })() })) };
+      });
+      data.settings = settings;
+      data.achievements = loadAchievements();
+      data.customCases = loadCustomCases();
+      data.trainerStats = loadTrainerStats();
+      return data;
+    }
+    function restoreFullBackup(data) {
+      if (!data || data.app !== "twist-turn-timer-full-backup" || !data.events) throw new Error("Not a Twist & Turn full backup file.");
+      const sessionsMap = loadSessionsMap();
+      Object.entries(data.events).forEach(([evId, evData]) => {
+        if (!evData.sessions || !evData.sessions.length) return;
+        sessionsMap[evId] = evData.sessions.map(s => ({ id: s.id, name: s.name }));
+        evData.sessions.forEach(s => localStorage.setItem(storageKey(evId, s.id), JSON.stringify(s.solves || [])));
+      });
+      saveSessionsMap(sessionsMap);
+      if (data.settings) saveSettings({ ...DEFAULT_SETTINGS, ...data.settings });
+      if (data.achievements) saveAchievements(data.achievements);
+      if (data.customCases) saveCustomCases(data.customCases);
+      if (data.trainerStats) saveTrainerStats(data.trainerStats);
+    }
+    document.getElementById("full-backup-btn").addEventListener("click", () => {
+      const data = buildFullBackup();
+      downloadTextFile(`twist-turn-full-backup-${new Date().toISOString().slice(0, 10)}.json`, JSON.stringify(data), "application/json");
+      document.getElementById("backup-status").textContent = "✅ Full backup downloaded.";
+    });
+    document.getElementById("full-restore-input").addEventListener("change", async (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const statusEl = document.getElementById("backup-status");
+      try {
+        const data = JSON.parse(await file.text());
+        if (!confirm("This replaces every event/session currently on this device with the backup's contents. Continue?")) { e.target.value = ""; return; }
+        restoreFullBackup(data);
+        statusEl.textContent = "✅ Restored. Reloading…";
+        setTimeout(() => location.reload(), 800);
+      } catch (err) {
+        statusEl.textContent = "⚠️ Couldn't restore: " + (err && err.message ? err.message : "invalid file");
+      } finally { e.target.value = ""; }
+    });
+    async function toSyncCode(obj) {
+      const json = JSON.stringify(obj);
+      if ("CompressionStream" in window) {
+        const stream = new Blob([json]).stream().pipeThrough(new CompressionStream("gzip"));
+        const buf = await new Response(stream).arrayBuffer();
+        let bin = ""; new Uint8Array(buf).forEach(b => bin += String.fromCharCode(b));
+        return "TTGZ1:" + btoa(bin);
+      }
+      return "TTRAW1:" + btoa(unescape(encodeURIComponent(json)));
+    }
+    async function fromSyncCode(code) {
+      code = code.trim();
+      if (code.startsWith("TTGZ1:")) {
+        const bin = atob(code.slice(6));
+        const bytes = Uint8Array.from(bin, c => c.charCodeAt(0));
+        const stream = new Blob([bytes]).stream().pipeThrough(new DecompressionStream("gzip"));
+        const text = await new Response(stream).text();
+        return JSON.parse(text);
+      }
+      if (code.startsWith("TTRAW1:")) return JSON.parse(decodeURIComponent(escape(atob(code.slice(7)))));
+      throw new Error("Doesn't look like a Twist & Turn sync code.");
+    }
+    document.getElementById("sync-code-generate-btn").addEventListener("click", async () => {
+      const statusEl = document.getElementById("backup-status");
+      try {
+        const code = await toSyncCode(buildFullBackup());
+        await navigator.clipboard.writeText(code);
+        statusEl.textContent = `✅ Sync code copied (${(code.length / 1024).toFixed(1)}KB as text) — paste it on the other device.`;
+      } catch (err) {
+        statusEl.textContent = "⚠️ Couldn't generate/copy sync code: " + (err && err.message ? err.message : "unknown error");
+      }
+    });
+    document.getElementById("sync-code-apply-btn").addEventListener("click", async () => {
+      const statusEl = document.getElementById("backup-status");
+      const code = prompt("Paste the sync code copied from your other device:");
+      if (!code) return;
+      try {
+        const data = await fromSyncCode(code);
+        if (!confirm("This replaces every event/session currently on this device with the pasted sync code. Continue?")) return;
+        restoreFullBackup(data);
+        statusEl.textContent = "✅ Synced. Reloading…";
+        setTimeout(() => location.reload(), 800);
+      } catch (err) {
+        statusEl.textContent = "⚠️ Couldn't apply sync code: " + (err && err.message ? err.message : "invalid code");
+      }
+    });
+
+    // ==========================================================
+    // Mic sound-trigger (hands-free start/stop via a sharp sound)
+    // ==========================================================
+    let micStream = null, micAnalyser = null, micRaf = null, micArmed = false;
+    const micBtn = document.getElementById("mic-trigger-btn");
+    const micStatus = document.getElementById("mic-trigger-status");
+    const micSensitivity = document.getElementById("mic-sensitivity");
+    async function toggleMicTrigger() {
+      if (micStream) {
+        micStream.getTracks().forEach(t => t.stop());
+        micStream = null; cancelAnimationFrame(micRaf);
+        micBtn.textContent = "🎙️ Enable Sound-Trigger Start/Stop";
+        micStatus.textContent = "Off";
+        return;
+      }
+      try {
+        micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        const ctx = getAudioCtx();
+        const source = ctx.createMediaStreamSource(micStream);
+        micAnalyser = ctx.createAnalyser();
+        micAnalyser.fftSize = 512;
+        source.connect(micAnalyser);
+        const data = new Uint8Array(micAnalyser.frequencyBinCount);
+        let cooldownUntil = 0;
+        const loop = () => {
+          micAnalyser.getByteTimeDomainData(data);
+          let peak = 0;
+          for (let i = 0; i < data.length; i++) peak = Math.max(peak, Math.abs(data[i] - 128));
+          const threshold = 128 - parseInt(micSensitivity.value, 10) * 11; // higher sensitivity = lower threshold
+          if (peak > Math.max(20, threshold) && performance.now() > cooldownUntil) {
+            cooldownUntil = performance.now() + 400;
+            if (state === "idle") { beginPress(); setTimeout(() => { if (state === "holding" || state === "ready") endPress(); }, HOLD_THRESHOLD_MS + 30); }
+            else if (state === "running") { beginPress(); }
+          }
+          micRaf = requestAnimationFrame(loop);
+        };
+        loop();
+        micBtn.textContent = "🎙️ Disable Sound-Trigger";
+        micStatus.textContent = "🔴 Listening — clap or tap near the mic to start/stop.";
+      } catch (err) {
+        micStatus.textContent = "⚠️ Mic access denied or unavailable: " + (err && err.message ? err.message : "unknown error");
+      }
+    }
+    micBtn.addEventListener("click", toggleMicTrigger);
+
+    // ==========================================================
+    // Webcam solve recording (in-memory only — reviews last clip)
+    // ==========================================================
+    let camStream = null, camRecorder = null, camChunks = [], lastClipUrl = null;
+    const settingCamera = document.getElementById("setting-camera");
+    const cameraStatus = document.getElementById("camera-status");
+    const cameraPreview = document.getElementById("camera-preview");
+    async function enableCamera() {
+      try {
+        camStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+        cameraPreview.srcObject = camStream;
+        cameraPreview.classList.remove("hidden");
+        await cameraPreview.play().catch(() => {});
+        cameraStatus.textContent = "✅ Camera ready — recording starts automatically with each solve.";
+      } catch (err) {
+        cameraStatus.textContent = "⚠️ Camera access denied or unavailable: " + (err && err.message ? err.message : "unknown error");
+        settingCamera.checked = false;
+      }
+    }
+    function disableCamera() {
+      if (camStream) camStream.getTracks().forEach(t => t.stop());
+      camStream = null;
+      cameraPreview.classList.add("hidden");
+      cameraStatus.textContent = "";
+    }
+    settingCamera.addEventListener("change", () => { settingCamera.checked ? enableCamera() : disableCamera(); });
+    function maybeStartClipRecording() {
+      if (!camStream || !window.MediaRecorder) return;
+      try {
+        camChunks = [];
+        camRecorder = new MediaRecorder(camStream, { mimeType: "video/webm" });
+        camRecorder.ondataavailable = (e) => { if (e.data.size > 0) camChunks.push(e.data); };
+        camRecorder.start();
+      } catch (e) { console.warn("[Camera] couldn't start recording:", e); }
+    }
+    function maybeStopClipRecording() {
+      if (!camRecorder || camRecorder.state === "inactive") return;
+      camRecorder.onstop = () => {
+        if (lastClipUrl) URL.revokeObjectURL(lastClipUrl);
+        lastClipUrl = camChunks.length ? URL.createObjectURL(new Blob(camChunks, { type: "video/webm" })) : null;
+        const clipBtn = document.getElementById("post-solve-clip-btn");
+        if (lastClipUrl) { clipBtn.href = lastClipUrl; clipBtn.classList.remove("hidden"); }
+        else clipBtn.classList.add("hidden");
+      };
+      camRecorder.stop();
+    }
 
     // ==========================================================
     // Init
