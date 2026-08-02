@@ -3,736 +3,2744 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Twist & Turn : Cubing Battle 2026</title>
-<link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#E8412B">
-<link rel="icon" href="icon-192.png">
-<link rel="apple-touch-icon" href="icon-192.png">
+<title>Timer - Twist & Turn</title>
+<link rel="manifest" href="./manifest.json">
+<meta name="theme-color" content="#101218">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="TT Timer">
+<link rel="apple-touch-icon" href="./icon-192.png">
+<link rel="icon" href="./icon-192.png">
 <script src="https://cdn.tailwindcss.com"></script>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
   :root{
-    --bg-base:#101218;
-    --bg-surface:#181B24;
-    --ink:#F2F1ED;
-    --ink-muted:#9297A6;
-    --cube-red:#E8412B;
-    --cube-yellow:#F2B705;
-    --cube-blue:#2F6FE0;
-    --cube-green:#22A35C;
+    --bg-base:#101218; --bg-surface:#181B24; --ink:#F2F1ED; --ink-muted:#9297A6;
+    --cube-red:#E8412B; --cube-yellow:#F2B705; --cube-blue:#2F6FE0; --cube-green:#22A35C;
+    --timer-running-color: var(--cube-blue);
+    --scramble-bg-color: rgba(47,111,224,0.08);
+    --board-bg-color: transparent;
   }
-  body{ font-family:'Inter', sans-serif; scroll-behavior:smooth; background:var(--bg-base); color:var(--ink); }
+  .timer-color-btn{ height:30px; border:2px solid transparent; cursor:pointer; }
+  .timer-color-btn.selected{ border-color:var(--ink); }
+  *{ box-sizing:border-box; }
+  body{ font-family:'Inter', sans-serif; background:var(--bg-base); color:var(--ink); overscroll-behavior:none; }
   .font-display{ font-family:'Space Grotesk', sans-serif; }
   .font-mono{ font-family:'JetBrains Mono', monospace; }
-
-  #home{ position:relative; overflow:hidden; background:radial-gradient(1200px 500px at 80% -10%, rgba(47,111,224,0.18), transparent 60%), var(--bg-base); }
-  .scramble-row{ white-space:nowrap; position:absolute; left:0; width:200%; display:flex; opacity:0.14; font-size:1.1rem; letter-spacing:0.15em; color:var(--ink); user-select:none; }
-  .scramble-row span{ padding:0 2rem; }
-  .scramble-row.r1{ top:18%; animation:scrollLeft 38s linear infinite; }
-  .scramble-row.r2{ top:78%; animation:scrollRight 44s linear infinite; }
-  @keyframes scrollLeft{ from{ transform:translateX(0); } to{ transform:translateX(-50%); } }
-  @keyframes scrollRight{ from{ transform:translateX(-50%); } to{ transform:translateX(0); } }
-  @media (prefers-reduced-motion: reduce){ .scramble-row{ animation:none !important; } }
-  #home > .hero-content{ position:relative; z-index:1; }
-
-  .cube-mark{ display:grid; grid-template-columns:repeat(3,1fr); gap:3px; width:26px; height:26px; }
-  .cube-mark span{ border-radius:2px; display:block; }
-  .cube-mark span:nth-child(1){ background:var(--cube-red); }
-  .cube-mark span:nth-child(2){ background:var(--cube-yellow); }
-  .cube-mark span:nth-child(3){ background:var(--cube-green); }
-  .cube-mark span:nth-child(4){ background:var(--cube-blue); }
-  .cube-mark span:nth-child(5){ background:var(--ink); }
-  .cube-mark span:nth-child(6){ background:var(--cube-red); }
-  .cube-mark span:nth-child(7){ background:var(--cube-blue); }
-  .cube-mark span:nth-child(8){ background:var(--cube-yellow); }
-  .cube-mark span:nth-child(9){ background:var(--cube-green); }
-
-  .eyebrow{ font-family:'JetBrains Mono', monospace; font-size:0.75rem; letter-spacing:0.2em; text-transform:uppercase; color:var(--ink-muted); }
-
   .surface-card{ background:var(--bg-surface); border:1px solid rgba(255,255,255,0.06); }
-  .accent-border-red{ border-left:3px solid var(--cube-red); }
-  .accent-border-yellow{ border-left:3px solid var(--cube-yellow); }
-  .accent-border-blue{ border-left:3px solid var(--cube-blue); }
-  .accent-border-green{ border-left:3px solid var(--cube-green); }
-
-  .interactive-card{ position:relative; transition:transform .25s ease, box-shadow .25s ease, border-color .25s ease; will-change:transform, box-shadow; }
-  .interactive-card:hover, .interactive-card:focus-within{ transform:translateY(-6px); box-shadow:0 18px 35px rgba(0,0,0,0.35); }
-  @media (prefers-reduced-motion: reduce){ .interactive-card:hover{ transform:none; } }
-
+  .field{ background:var(--bg-base); border:1px solid rgba(255,255,255,0.12); color:var(--ink); }
+  .field:focus{ outline:none; border-color:var(--cube-blue); }
   .btn-primary{ background:var(--cube-red); color:#fff; font-family:'Space Grotesk',sans-serif; font-weight:600; }
   .btn-primary:hover{ filter:brightness(1.08); }
+  .btn-ghost{ border:1px solid rgba(255,255,255,0.15); color:var(--ink-muted); font-family:'JetBrains Mono',monospace; }
+  .btn-ghost:hover{ color:var(--ink); border-color:rgba(255,255,255,0.3); }
 
-  ::selection{ background:var(--cube-yellow); color:#101218; }
-  section[id]{ scroll-margin-top: 80px; }
+  #timer-zone{
+    user-select:none; -webkit-user-select:none; touch-action:none; cursor:pointer;
+    transition:background .15s ease, transform .1s ease;
+    position:relative;
+  }
+  #timer-zone.state-holding{ background:rgba(232,65,43,0.12); }
+  #timer-zone.state-ready{ background:rgba(34,163,92,0.15); }
+  #timer-zone.state-running{ background:rgba(47,111,224,0.08); }
+  .cs-main.state-holding{ background:rgba(232,65,43,0.05); transition:background .15s ease; }
+  .cs-main.state-ready{ background:rgba(34,163,92,0.06); transition:background .15s ease; }
+  .cs-main.state-running{ background:rgba(47,111,224,0.04); transition:background .15s ease; }
+  #timer-display{
+    font-family:'JetBrains Mono', monospace; font-weight:700;
+    font-size:clamp(3.2rem, 12vw, 7rem); line-height:1; letter-spacing:0.01em;
+    transition:color .15s ease;
+  }
+  .state-holding #timer-display{ color:var(--cube-red); }
+  .state-ready #timer-display{ color:var(--cube-green); }
+  .state-running #timer-display{ color:var(--timer-running-color); }
+
+  .event-tab{ font-family:'Space Grotesk',sans-serif; font-weight:600; }
+  .event-tab.active{ color:#fff; }
+
+  .solve-row:hover .solve-actions{ opacity:1; }
+  .solve-actions{ opacity:0; transition:opacity .15s ease; }
+  @media (hover:none){ .solve-actions{ opacity:1; } }
+
+  /* ---------- Light theme ---------- */
+  html[data-theme="light"]{ --bg-base:#F4F3EF; --bg-surface:#FFFFFF; --ink:#15171C; --ink-muted:#5B6070; }
+  html[data-theme="light"] .surface-card{ border-color:rgba(0,0,0,0.08); }
+  html[data-theme="light"] .field{ border-color:rgba(0,0,0,0.15); }
+  html[data-theme="light"] .btn-ghost{ border-color:rgba(0,0,0,0.15); color:#5B6070; }
+  html[data-theme="light"] .btn-ghost:hover{ color:#15171C; border-color:rgba(0,0,0,0.3); }
+  html[data-theme="light"] .event-tab:not(.active){ background:#fff !important; border-color:rgba(0,0,0,0.1) !important; }
+  html[data-theme="light"] .toggle-switch-input{ background:rgba(0,0,0,0.15); }
+
+  /* ---------- Toggle switches (settings) ---------- */
+  .toggle-switch-input{ appearance:none; -webkit-appearance:none; width:42px; height:24px; background:rgba(255,255,255,0.15); border-radius:999px; position:relative; cursor:pointer; transition:background .15s ease; flex-shrink:0; }
+  .toggle-switch-input::before{ content:""; position:absolute; top:2px; left:2px; width:20px; height:20px; background:#fff; border-radius:50%; transition:transform .15s ease; }
+  .toggle-switch-input:checked{ background:var(--cube-blue); }
+  .toggle-switch-input:checked::before{ transform:translateX(18px); }
+
+  #settings-drawer{ transition:transform .2s ease; }
+
+  /* ---------- cstimer-style shell ---------- */
+  html, body{ height:100%; }
+  .cs-shell{ display:flex; min-height:100vh; }
+  .cs-sidebar{
+    width:300px; flex-shrink:0; background:var(--bg-surface); border-right:1px solid rgba(255,255,255,0.06);
+    display:flex; flex-direction:column; height:100vh; position:sticky; top:0;
+  }
+  .cs-sidebar-header{ display:flex; align-items:center; justify-content:space-between; padding:0.9rem 1rem; border-bottom:1px solid rgba(255,255,255,0.06); }
+  .cs-icon-btn{ width:34px; height:34px; display:flex; align-items:center; justify-content:center; border-radius:8px; border:1px solid rgba(255,255,255,0.12); color:var(--ink-muted); font-size:0.95rem; flex-shrink:0; background:transparent; cursor:pointer; }
+  .cs-icon-btn:hover{ color:var(--ink); border-color:rgba(255,255,255,0.3); }
+  .cs-session-box{ padding:0.9rem 1rem; border-bottom:1px solid rgba(255,255,255,0.06); }
+  .cs-session-title{ font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:0.95rem; margin-bottom:0.6rem; }
+  .cs-current-best{ display:flex; gap:0; text-align:center; margin-bottom:0.6rem; border:1px solid rgba(255,255,255,0.08); border-radius:10px; overflow:hidden; }
+  .cs-current-best > div{ flex:1; padding:0.5rem 0.25rem; }
+  .cs-current-best > div:first-child{ border-right:1px solid rgba(255,255,255,0.08); }
+  .cs-summary-line{ font-family:'JetBrains Mono',monospace; font-size:0.75rem; color:var(--ink-muted); display:flex; justify-content:space-between; }
+  .cs-sidebar-avgs{ margin:0.4rem 0; }
+  .cs-sidebar-avg-row{ display:flex; align-items:center; justify-content:space-between; font-family:'JetBrains Mono',monospace; font-size:0.78rem; padding:0.25rem 0; }
+  .cs-avg-share-btn{ cursor:pointer; color:var(--cube-blue); background:none; border:none; font-size:0.75rem; padding:0.1rem 0.35rem; flex-shrink:0; }
+  .cs-below-avgs .cs-avg-share-btn{ font-size:0.85rem; margin-left:0.3rem; }
+  .cs-table-head{ display:grid; grid-template-columns:1.6rem minmax(3.4rem,1fr) 2.6rem 2.6rem 3.6rem; gap:0.35rem; padding:0.5rem 0.6rem; font-family:'JetBrains Mono',monospace; font-size:0.65rem; text-transform:uppercase; letter-spacing:0.05em; color:var(--ink-muted); border-bottom:1px solid rgba(255,255,255,0.06); position:sticky; top:0; background:var(--bg-surface); }
+  .cs-table-body{ flex:1; overflow-y:auto; }
+  .cs-solve-row{ display:grid; grid-template-columns:1.6rem minmax(3.4rem,1fr) 2.6rem 2.6rem 3.6rem; gap:0.35rem; align-items:center; padding:0.4rem 0.6rem; font-family:'JetBrains Mono',monospace; font-size:0.75rem; border-bottom:1px solid rgba(255,255,255,0.04); }
+  .cs-solve-row:hover{ background:rgba(255,255,255,0.03); }
+  .cs-solve-row .cs-del{ opacity:0; cursor:pointer; color:var(--cube-red); text-align:center; font-size:0.7rem; background:none; border:none; padding:0.1rem 0.15rem; }
+  .cs-solve-row:hover .cs-del{ opacity:1; }
+  @media (hover:none){ .cs-solve-row .cs-del{ opacity:1; } }
+  .cs-clear-btn{ margin:0.75rem; font-family:'JetBrains Mono',monospace; font-size:0.75rem; padding:0.5rem; border-radius:8px; border:1px solid rgba(255,255,255,0.12); color:var(--ink-muted); background:transparent; cursor:pointer; }
+  .cs-clear-btn:hover{ color:var(--cube-red); border-color:var(--cube-red); }
+
+  .cs-main{ flex:1; min-width:0; display:flex; flex-direction:column; }
+  .cs-topbar{ display:flex; align-items:center; gap:0.6rem; padding:0.6rem 1rem; border-bottom:1px solid rgba(255,255,255,0.06); }
+  .cs-event-select{ font-family:'Space Grotesk',sans-serif; font-weight:600; font-size:0.9rem; background:var(--bg-base); border:1px solid rgba(255,255,255,0.12); color:var(--ink); border-radius:8px; padding:0.45rem 0.7rem; }
+  .cs-event-select:focus{ outline:none; border-color:var(--cube-blue); }
+  .cs-scramble-bar{ background:var(--scramble-bg-color); border-bottom:1px solid rgba(255,255,255,0.06); padding:0.9rem 1.25rem; text-align:center; }
+  html[data-theme="light"]{ --scramble-bg-color:#FDEDEA; }
+  .cs-timer-wrap{ flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:1.5rem 1rem; text-align:center; }
+  #timer-zone{ background-color:var(--board-bg-color); }
+  .cs-below-avgs{ display:flex; gap:1.5rem; justify-content:center; flex-wrap:wrap; margin-top:0.75rem; font-family:'JetBrains Mono',monospace; }
+  .cs-below-avgs .cs-avg-label{ font-size:0.7rem; text-transform:uppercase; letter-spacing:0.05em; color:var(--ink-muted); }
+  .cs-below-avgs .cs-avg-value{ font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:1.15rem; }
+
+  body.fs-active .cs-sidebar{ display:none; }
+  body.fs-active #home-link{ display:none; }
+  body.fs-active #timer-display{ font-size:clamp(4rem, 17vw, 11rem); }
+  body.fs-active #type-time-input{ font-size:clamp(4rem, 17vw, 11rem) !important; }
+  body.fs-active .cs-mobile-only{ display:none !important; }
+
+  .cs-mobile-only{ display:none; }
+
+  @media (max-width: 860px){
+    .cs-mobile-only{ display:flex; }
+    .cs-sidebar{
+      position:fixed; top:0; left:0; width:85%; max-width:320px; height:100dvh;
+      z-index:60; transform:translateX(-100%); transition:transform .2s ease;
+      border-right:1px solid rgba(255,255,255,0.08);
+    }
+    .cs-sidebar.cs-sidebar-open{ transform:translateX(0); }
+    #sidebar-close-btn{ display:flex; }
+    .cs-topbar{ flex-wrap:wrap; }
+    .cs-below-avgs{ gap:1rem; }
+    #timer-display{ font-size:clamp(2.6rem, 15vw, 5.5rem); }
+    #type-time-input{ font-size:clamp(2.6rem, 15vw, 5.5rem) !important; }
+    .cs-scramble-bar{ padding:0.7rem 0.9rem; }
+    #scramble-text{ font-size:0.95rem !important; }
+    #settings-drawer{ max-width:100%; }
+    #scramble-preview-box{ bottom:0.5rem; right:0.5rem; padding:0.35rem; }
+    #scramble-preview-box scramble-display{ width:80px !important; height:80px !important; }
+  }
+
+  /* ---------- Custom scramble edit ---------- */
+  #scramble-edit-btn{ background:none; border:none; cursor:pointer; color:var(--ink-muted); font-size:0.85rem; vertical-align:middle; margin-left:0.35rem; }
+  #scramble-edit-btn:hover{ color:var(--cube-blue); }
+  #scramble-edit-area{ width:100%; background:transparent; border:1px dashed rgba(255,255,255,0.25); border-radius:6px; color:var(--ink); font-family:'JetBrains Mono',monospace; font-size:0.95rem; padding:0.4rem; resize:vertical; }
+
+  /* ---------- Phases / splits ---------- */
+  #phase-readout{ display:none; gap:0.75rem; justify-content:center; flex-wrap:wrap; margin-top:0.5rem; font-family:'JetBrains Mono',monospace; font-size:0.8rem; color:var(--ink-muted); }
+  #phase-readout span.ph-current{ color:var(--cube-blue); font-weight:700; }
 </style>
 </head>
-<body class="antialiased min-h-screen flex flex-col">
+<body class="min-h-screen">
 
-<nav class="sticky top-0 z-50 border-b border-white/5" style="background:rgba(16,18,24,0.85); backdrop-filter:blur(10px);">
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-    <div class="flex justify-between h-16 items-center relative">
-      <div class="flex items-center gap-3 cursor-pointer" onclick="scrollToSection('home')">
-        <img src="logo.png.jpeg" alt="Logo" class="h-9 w-auto rounded-full p-0.5 bg-white/90" onerror="this.onerror=null;this.src='https://placehold.co/40x40/101218/F2B705?text=T%26T';">
-        <span class="font-display font-bold text-xl tracking-tight">Twist &amp; Turn</span>
+  <div class="cs-shell">
+    <div id="sidebar-backdrop" class="hidden fixed inset-0 z-[59]" style="background:rgba(0,0,0,0.5);"></div>
+
+
+    <!-- SIDEBAR -->
+    <aside id="cs-sidebar" class="cs-sidebar">
+      <div class="cs-sidebar-header">
+        <span class="flex items-center gap-2 cursor-pointer" onclick="window.location.href='index.html'">
+          <img src="./logo-256.png" alt="Twist & Turn" style="width:28px;height:28px;border-radius:6px;object-fit:cover;">
+          <span class="font-display font-bold text-base">Twist &amp; Turn</span>
+        </span>
+        <button id="sidebar-close-btn" type="button" class="cs-icon-btn cs-mobile-only" title="Close">✕</button>
       </div>
-      <div class="flex items-center gap-2">
-        <button id="menuBtn" class="md:hidden text-3xl leading-none text-[var(--ink)]">☰</button>
+
+      <div class="cs-session-box">
+        <div class="cs-session-title" style="display:flex; align-items:center; gap:0.35rem; margin-bottom:0.6rem;">
+          <select id="session-select" class="field text-sm rounded-md" style="flex:1; min-width:0; padding:0.35rem 0.4rem; font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:0.9rem;"></select>
+          <button id="session-rename-btn" type="button" class="cs-icon-btn" style="width:28px;height:28px;font-size:0.7rem;flex-shrink:0;" title="Rename session">✏️</button>
+          <button id="session-add-btn" type="button" class="cs-icon-btn" style="width:28px;height:28px;font-size:0.8rem;flex-shrink:0;" title="New session">➕</button>
+          <button id="session-delete-btn" type="button" class="cs-icon-btn" style="width:28px;height:28px;font-size:0.7rem;flex-shrink:0;" title="Delete session">🗑️</button>
+        </div>
+        <div class="cs-current-best">
+          <div>
+            <p class="font-mono text-[10px] uppercase tracking-widest" style="color:var(--ink-muted);">current</p>
+            <p id="stat-current" class="font-display font-bold text-base mt-0.5">-</p>
+          </div>
+          <div>
+            <p class="font-mono text-[10px] uppercase tracking-widest" style="color:var(--ink-muted);">best</p>
+            <p id="stat-best" class="font-display font-bold text-base mt-0.5" style="color:var(--cube-green);">-</p>
+          </div>
+        </div>
+        <div id="sidebar-extra-avgs" class="cs-sidebar-avgs"></div>
+        <div class="cs-summary-line">
+          <span>solve: <span id="stat-count">0/0</span></span>
+          <span>mean: <span id="stat-mean">DNF</span></span>
+          <span>σ: <span id="stat-stddev">-</span></span>
+        </div>
       </div>
-      <div id="navLinks" class="hidden absolute top-full right-0 mt-2 w-full md:static md:mt-0 md:w-auto md:flex md:items-center md:space-x-1 text-right md:text-left font-mono text-sm uppercase tracking-wider" style="background:var(--bg-surface);">
-        <button onclick="scrollToSection('upcoming')" class="block w-full px-4 py-3 text-left hover:text-[var(--cube-yellow)] transition border-b-2 border-transparent hover:border-[var(--cube-yellow)] md:inline-block md:w-auto md:p-2">Upcoming</button>
-        <button onclick="goToPage('timer/index.html')" class="block w-full px-4 py-3 text-left hover:text-[var(--cube-red)] transition border-b-2 border-transparent hover:border-[var(--cube-red)] md:inline-block md:w-auto md:p-2">⏱️ Timer</button>
-        <button onclick="goToPage('previous-competitions.html')" class="block w-full px-4 py-3 text-left hover:text-[var(--cube-blue)] transition border-b-2 border-transparent hover:border-[var(--cube-blue)] md:inline-block md:w-auto md:p-2">Previous</button>
-        <button onclick="scrollToSection('rules')" class="block w-full px-4 py-3 text-left hover:text-[var(--cube-red)] transition border-b-2 border-transparent hover:border-[var(--cube-red)] md:inline-block md:w-auto md:p-2">Rules</button>
-        <button onclick="scrollToSection('results')" class="block w-full px-4 py-3 text-left hover:text-[var(--cube-green)] transition border-b-2 border-transparent hover:border-[var(--cube-green)] md:inline-block md:w-auto md:p-2">Results</button>
-        <button onclick="scrollToSection('live-results')" class="block w-full px-4 py-3 text-left hover:text-[var(--cube-red)] transition border-b-2 border-transparent hover:border-[var(--cube-red)] md:inline-block md:w-auto md:p-2">Live</button>
-        <button onclick="scrollToSection('gallery')" class="block w-full px-4 py-3 text-left hover:text-[var(--cube-yellow)] transition border-b-2 border-transparent hover:border-[var(--cube-yellow)] md:inline-block md:w-auto md:p-2">Gallery</button>
-        <button onclick="scrollToSection('hall-of-fame')" class="block w-full px-4 py-3 text-left hover:text-[var(--cube-blue)] transition border-b-2 border-transparent hover:border-[var(--cube-blue)] md:inline-block md:w-auto md:p-2">Hall of Fame</button>
-        <button onclick="scrollToSection('faq')" class="block w-full px-4 py-3 text-left hover:text-[var(--cube-green)] transition border-b-2 border-transparent hover:border-[var(--cube-green)] md:inline-block md:w-auto md:p-2">FAQ</button>
-        <button onclick="scrollToSection('organizer')" class="block w-full px-4 py-3 text-left hover:text-[var(--cube-blue)] transition border-b-2 border-transparent hover:border-[var(--cube-blue)] md:inline-block md:w-auto md:p-2">Organizer</button>
-        <button onclick="scrollToSection('contact')" class="block w-full px-4 py-3 text-left hover:text-[var(--cube-yellow)] transition border-b-2 border-transparent hover:border-[var(--cube-yellow)] md:inline-block md:w-auto md:p-2">Contact</button>
+
+      <div class="cs-table-head">
+        <span>#</span><span>time</span><span>ao5</span><span>ao12</span><span></span>
+      </div>
+      <div id="solve-list" class="cs-table-body">
+        <p class="p-6 text-center text-xs" style="color:var(--ink-muted);">No solves yet</p>
+      </div>
+      <button id="clear-session-btn" class="cs-clear-btn">🗑️ Clear Session</button>
+      <p class="font-mono text-center px-3 pb-3" style="font-size:0.65rem; color:var(--ink-muted); margin-top:-0.5rem;">⌫ delete last · 2 flag +2 · D flag DNF</p>
+    </aside>
+
+    <!-- MAIN -->
+    <main class="cs-main">
+      <div class="cs-topbar">
+        <button id="sidebar-open-btn" type="button" class="cs-icon-btn cs-mobile-only" title="Session">☰</button>
+        <select id="event-select" class="cs-event-select"></select>
+        <div class="flex-1"></div>
+        <button id="new-scramble-btn" class="btn-ghost text-xs px-3 py-1.5 rounded-lg flex-shrink-0">🔄 New</button>
+        <button id="stats-btn" type="button" class="cs-icon-btn" title="Stats &amp; Achievements">📊</button>
+        <button id="practice-btn" type="button" class="cs-icon-btn" title="Algorithm Practice">🎓</button>
+        <button id="leaderboard-btn" type="button" class="cs-icon-btn" title="Leaderboard &amp; Cloud Sync">🏆</button>
+        <button id="install-pwa-btn" type="button" class="hidden btn-ghost text-xs px-3 py-1.5 rounded-lg flex-shrink-0" title="Install Timer as an app">⬇️ Install</button>
+        <a id="home-link" href="index.html" class="cs-icon-btn" title="Home">🏠</a>
+        <button id="settings-btn" type="button" class="cs-icon-btn" title="Settings">⚙️</button>
+        <button id="fullscreen-btn" type="button" class="cs-icon-btn" title="Fullscreen">⛶</button>
+      </div>
+
+      <div class="cs-scramble-bar">
+        <p id="scramble-text" class="font-mono text-base md:text-lg leading-relaxed inline" style="letter-spacing:0.03em;">Loading…</p>
+        <button id="scramble-edit-btn" type="button" title="Enter your own scramble">✏️</button>
+        <div id="scramble-edit-wrap" class="hidden mt-2">
+          <textarea id="scramble-edit-area" rows="2" placeholder="Type your own scramble…"></textarea>
+          <div class="mt-1 flex gap-2 justify-center">
+            <button id="scramble-edit-save" type="button" class="btn-ghost text-xs px-3 py-1 rounded-lg">✅ Use this scramble</button>
+            <button id="scramble-edit-cancel" type="button" class="btn-ghost text-xs px-3 py-1 rounded-lg">Cancel</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="cs-timer-wrap">
+        <div id="timer-zone" class="select-none rounded-2xl py-8 px-6">
+          <div id="timer-display" class="font-mono">0.00</div>
+          <input id="type-time-input" type="text" inputmode="numeric" autocomplete="off" placeholder="0.00"
+            class="hidden w-full bg-transparent text-center font-mono font-bold outline-none"
+            style="font-size:clamp(3.2rem, 12vw, 7rem); line-height:1; letter-spacing:0.01em; color:var(--ink);">
+          <p id="timer-hint" class="text-sm mt-4" style="color:var(--ink-muted);">Hold SPACE (or press &amp; hold here on mobile) to start</p>
+          <div id="phase-readout"></div>
+        </div>
+
+        <div class="text-center px-4">
+          <div id="below-timer-avgs" class="cs-below-avgs"></div>
+
+          <!-- Post-solve penalty panel -->
+          <div id="post-solve-panel" class="hidden items-center justify-center gap-2 mt-5 flex-wrap">
+            <button data-p="ok" class="post-penalty-btn font-mono text-sm px-4 py-2 rounded-lg" style="background:rgba(34,163,92,0.15); color:var(--cube-green); border:1px solid rgba(34,163,92,0.4);">OK</button>
+            <button data-p="+2" class="post-penalty-btn font-mono text-sm px-4 py-2 rounded-lg" style="background:rgba(242,183,5,0.12); color:var(--cube-yellow); border:1px solid rgba(242,183,5,0.4);">+2</button>
+            <button data-p="dnf" class="post-penalty-btn font-mono text-sm px-4 py-2 rounded-lg" style="background:rgba(232,65,43,0.12); color:var(--cube-red); border:1px solid rgba(232,65,43,0.4);">DNF</button>
+            <button id="post-solve-share-btn" class="hidden font-mono text-sm px-4 py-2 rounded-lg" style="background:rgba(47,111,224,0.12); color:var(--cube-blue); border:1px solid rgba(47,111,224,0.4);">🎉 PB! Share</button>
+          </div>
+
+          <div class="mt-6">
+            <button id="manual-start-btn" class="btn-primary px-6 py-2.5 rounded-lg">Start / Stop</button>
+          </div>
+        </div>
+      </div>
+    </main>
+
+  </div>
+
+  <!-- Settings drawer -->
+  <div id="settings-backdrop" class="hidden fixed inset-0 z-[70]" style="background:rgba(0,0,0,0.5);"></div>
+  <aside id="settings-drawer" class="fixed top-0 right-0 h-full w-full max-w-sm z-[71] surface-card overflow-y-auto" style="transform:translateX(100%);">
+    <div class="flex items-center justify-between px-5 py-4 border-b border-white/5">
+      <h2 class="font-display font-bold text-lg">⚙️ Settings</h2>
+      <button id="settings-close-btn" type="button" class="btn-ghost text-sm px-3 py-1.5 rounded-lg">✕</button>
+    </div>
+    <div class="p-5 space-y-7">
+      <div>
+        <p class="font-mono text-xs uppercase tracking-widest mb-3" style="color:var(--ink-muted);">Timer Mode</p>
+        <label class="flex items-center justify-between py-2">
+          <span class="text-sm">Manual Time Entry</span>
+          <input type="checkbox" id="setting-manual" class="toggle-switch-input">
+        </label>
+        <label class="flex items-center justify-between py-2">
+          <span class="text-sm">15s WCA Inspection</span>
+          <input type="checkbox" id="setting-inspection" class="toggle-switch-input">
+        </label>
+        <label class="flex items-center justify-between py-2">
+          <span class="text-sm">Scramble Image Preview</span>
+          <input type="checkbox" id="setting-preview" class="toggle-switch-input">
+        </label>
+        <label class="flex items-center justify-between py-2">
+          <span class="text-sm">🏁 Competition Mode</span>
+          <input type="checkbox" id="setting-competition-mode" class="toggle-switch-input">
+        </label>
+        <p class="text-xs" style="color:var(--ink-muted);">Fresh session banata hai, inspection force-on karta hai, aur Ao5 poora hote hi ek shareable result card ban jata hai — real comp attempt jaisa feel.</p>
+      </div>
+
+      <div>
+        <p class="font-mono text-xs uppercase tracking-widest mb-3" style="color:var(--ink-muted);">Phases (Split Times)</p>
+        <label class="flex items-center justify-between py-2">
+          <span class="text-sm">Enable Phases</span>
+          <input type="checkbox" id="setting-phases-enabled" class="toggle-switch-input">
+        </label>
+        <label class="flex items-center justify-between py-2">
+          <span class="text-sm">Number of Phases</span>
+          <select id="setting-phases-count" class="field text-sm rounded-lg px-2 py-1.5">
+            <option value="2">2</option>
+            <option value="3">3</option>
+            <option value="4">4</option>
+            <option value="5">5</option>
+          </select>
+        </label>
+        <p class="text-xs" style="color:var(--ink-muted);">Jab ON ho, running timer ke dauran tap/space se split (phase) mark hota hai — last phase pe solve khatam hoga.</p>
+      </div>
+
+      <div>
+        <p class="font-mono text-xs uppercase tracking-widest mb-3" style="color:var(--ink-muted);">Timer Customization</p>
+        <label class="flex items-center justify-between py-2">
+          <span class="text-sm">Hold Time</span>
+          <select id="setting-hold-time" class="field text-sm rounded-lg px-2 py-1.5">
+            <option value="0">None</option>
+            <option value="300">0.3s (default)</option>
+            <option value="500">0.5s</option>
+            <option value="800">0.8s</option>
+            <option value="1000">1.0s</option>
+          </select>
+        </label>
+        <label class="flex items-center justify-between py-2">
+          <span class="text-sm">Hide Time While Solving</span>
+          <input type="checkbox" id="setting-hide-running" class="toggle-switch-input">
+        </label>
+        <p class="text-xs mt-1 mb-2" style="color:var(--ink-muted);">Timer Color</p>
+        <div class="flex gap-2" id="timer-color-swatches">
+          <button type="button" data-color="var(--cube-blue)" class="timer-color-btn flex-1 py-2 rounded-lg" style="background:var(--cube-blue);" title="Blue"></button>
+          <button type="button" data-color="var(--cube-green)" class="timer-color-btn flex-1 py-2 rounded-lg" style="background:var(--cube-green);" title="Green"></button>
+          <button type="button" data-color="var(--cube-red)" class="timer-color-btn flex-1 py-2 rounded-lg" style="background:var(--cube-red);" title="Red"></button>
+          <button type="button" data-color="var(--cube-yellow)" class="timer-color-btn flex-1 py-2 rounded-lg" style="background:var(--cube-yellow);" title="Yellow"></button>
+          <button type="button" data-color="#9B59B6" class="timer-color-btn flex-1 py-2 rounded-lg" style="background:#9B59B6;" title="Purple"></button>
+          <button type="button" data-color="#F2F1ED" class="timer-color-btn flex-1 py-2 rounded-lg" style="background:#F2F1ED; border:1px solid rgba(0,0,0,0.15);" title="White"></button>
+        </div>
+      </div>
+
+      <div>
+        <p class="font-mono text-xs uppercase tracking-widest mb-3" style="color:var(--ink-muted);">Full Color Customization</p>
+        <p class="text-xs mb-3" style="color:var(--ink-muted);">Har area ka apna color set karo — jo chahiye badlo, baaki theme default pe rahega.</p>
+        <div class="space-y-3">
+          <label class="flex items-center justify-between py-1">
+            <span class="text-sm">Board / Timer Area</span>
+            <input type="color" id="color-board" class="color-pick" data-target="board" value="#101218">
+          </label>
+          <label class="flex items-center justify-between py-1">
+            <span class="text-sm">Scramble Area</span>
+            <input type="color" id="color-scramble" class="color-pick" data-target="scramble" value="#182a4d">
+          </label>
+          <label class="flex items-center justify-between py-1">
+            <span class="text-sm">Sidebar / Panels</span>
+            <input type="color" id="color-sidebar" class="color-pick" data-target="sidebar" value="#181B24">
+          </label>
+          <label class="flex items-center justify-between py-1">
+            <span class="text-sm">Page Background</span>
+            <input type="color" id="color-page" class="color-pick" data-target="page" value="#101218">
+          </label>
+          <label class="flex items-center justify-between py-1">
+            <span class="text-sm">Text Color</span>
+            <input type="color" id="color-text" class="color-pick" data-target="text" value="#F2F1ED">
+          </label>
+        </div>
+        <button type="button" id="color-reset-btn" class="btn-ghost text-xs px-3 py-1.5 rounded-lg mt-3">↺ Reset to theme default</button>
+      </div>
+
+      <div>
+        <p class="font-mono text-xs uppercase tracking-widest mb-3" style="color:var(--ink-muted);">Appearance</p>
+        <div class="flex gap-2">
+          <button type="button" data-theme-btn="dark" class="theme-btn flex-1 py-2 rounded-lg text-sm font-mono">🌙 Dark</button>
+          <button type="button" data-theme-btn="light" class="theme-btn flex-1 py-2 rounded-lg text-sm font-mono">☀️ Light</button>
+        </div>
+      </div>
+      <div>
+        <p class="font-mono text-xs uppercase tracking-widest mb-3" style="color:var(--ink-muted);">Extra Averages</p>
+        <p class="text-xs mb-2" style="color:var(--ink-muted);">Ao5, Ao12 aur Ao25 hamesha dikhte hain. Baaki jo track karna hai wo on karo:</p>
+        <label class="flex items-center justify-between py-2"><span class="text-sm">Ao50</span><input type="checkbox" data-avg="50" class="toggle-switch-input avg-toggle"></label>
+        <label class="flex items-center justify-between py-2"><span class="text-sm">Ao100</span><input type="checkbox" data-avg="100" class="toggle-switch-input avg-toggle"></label>
+        <label class="flex items-center justify-between py-2"><span class="text-sm">Ao200</span><input type="checkbox" data-avg="200" class="toggle-switch-input avg-toggle"></label>
+        <label class="flex items-center justify-between py-2"><span class="text-sm">Ao500</span><input type="checkbox" data-avg="500" class="toggle-switch-input avg-toggle"></label>
+        <label class="flex items-center justify-between py-2"><span class="text-sm">Ao1000</span><input type="checkbox" data-avg="1000" class="toggle-switch-input avg-toggle"></label>
+      </div>
+      <div>
+        <p class="font-mono text-xs uppercase tracking-widest mb-3" style="color:var(--ink-muted);">Hardware Timer</p>
+        <p class="text-xs mb-3" style="color:var(--ink-muted);">Connect a Bluetooth smart timer. Hands-ready, start and stop will drive the timer automatically.</p>
+        <select id="hw-brand-select" class="field w-full rounded-lg text-sm px-3 py-2 mb-3">
+          <option value="gan">GAN Smart Timer</option>
+          <option value="qiyi">QiYi Smart Timer</option>
+          <option value="moyu">MoYu Smart Timer</option>
+        </select>
+        <p id="hw-timer-status" class="text-xs mb-3" style="color:var(--ink-muted);">Not connected</p>
+        <div class="flex gap-2">
+          <button type="button" id="hw-connect-btn" class="btn-primary flex-1 py-2 rounded-lg text-sm">🔗 Connect Smart Timer</button>
+          <button type="button" id="hw-disconnect-btn" class="hidden btn-ghost py-2 px-3 rounded-lg text-sm">Disconnect</button>
+        </div>
+      </div>
+
+      <div>
+        <p class="font-mono text-xs uppercase tracking-widest mb-3" style="color:var(--ink-muted);">Import / Export</p>
+        <p class="text-xs mb-3" style="color:var(--ink-muted);">Current session: <b id="io-current-session-label" style="color:var(--ink);">-</b></p>
+
+        <p class="text-xs font-mono uppercase tracking-widest mb-1" style="color:var(--ink-muted);">Export</p>
+        <div class="flex gap-2 mb-4">
+          <button type="button" id="export-json-btn" class="btn-ghost text-xs px-3 py-2 rounded-lg flex-1">📤 This App (.json)</button>
+          <button type="button" id="export-cstimer-btn" class="btn-ghost text-xs px-3 py-2 rounded-lg flex-1">📤 cstimer (.txt)</button>
+        </div>
+
+        <p class="text-xs font-mono uppercase tracking-widest mb-1" style="color:var(--ink-muted);">Import</p>
+        <p class="text-xs mb-2" style="color:var(--ink-muted);">cstimer export (.txt/.json) ya is app ka apna export — dono chalega. Solves current session me add ho jayenge (existing solves delete nahi honge).</p>
+        <input type="file" id="import-file-input" accept=".json,.txt,.csv" class="field w-full text-xs rounded-lg px-2 py-2 mb-2">
+        <p id="io-status" class="text-xs" style="color:var(--ink-muted);"></p>
+      </div>
+
+      <div>
+        <p class="font-mono text-xs uppercase tracking-widest mb-3" style="color:var(--ink-muted);">App</p>
+        <p class="text-xs mb-3" style="color:var(--ink-muted);">Timer ko phone/desktop pe alag app ki tarah install karo (offline bhi chalega).</p>
+        <button type="button" id="settings-install-btn" class="btn-primary w-full py-2.5 rounded-lg text-sm">⬇️ Install Timer App</button>
+        <p id="pwa-install-status" class="text-xs mt-2" style="color:var(--ink-muted);"></p>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Scramble image preview — floating, bottom-right, out of the touch/hold zone -->
+  <div id="scramble-preview-box" class="surface-card" style="display:none; position:fixed; bottom:1rem; right:1rem; z-index:40; padding:0.5rem; border-radius:12px; box-shadow:0 6px 24px rgba(0,0,0,0.35);">
+    <scramble-display id="scramble-preview" style="width:130px; height:130px; display:block;"></scramble-display>
+  </div>
+
+  <!-- Share modal -->
+  <div id="share-backdrop" class="hidden fixed inset-0 z-[80] items-center justify-center p-4" style="background:rgba(0,0,0,0.6);">
+    <div class="surface-card rounded-2xl p-5 w-full max-w-sm">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="font-display font-bold text-lg">🎉 Share Result</h3>
+        <button id="share-close-btn" type="button" class="btn-ghost text-sm px-3 py-1.5 rounded-lg">✕</button>
+      </div>
+      <pre id="share-preview" class="font-mono text-xs whitespace-pre-wrap p-3 rounded-lg mb-4" style="background:var(--bg-base); border:1px solid rgba(255,255,255,0.08); max-height:180px; overflow-y:auto;"></pre>
+      <div class="grid grid-cols-2 gap-2">
+        <button id="share-native-btn" type="button" class="btn-primary py-2.5 rounded-lg text-sm col-span-2">📤 Share…</button>
+        <a id="share-whatsapp-btn" target="_blank" rel="noopener" class="btn-ghost py-2.5 rounded-lg text-sm text-center">WhatsApp</a>
+        <button id="share-copy-btn" type="button" class="btn-ghost py-2.5 rounded-lg text-sm">📋 Copy</button>
       </div>
     </div>
   </div>
-</nav>
 
-<main class="flex-grow">
+  <!-- Confetti overlay for PB celebrations -->
+  <canvas id="confetti-canvas" class="fixed inset-0 pointer-events-none z-[90]" style="display:none;"></canvas>
 
-  <section id="home" class="py-24 md:py-32">
-    <div class="scramble-row r1"><span>R U R' U'</span><span>F2 D' B L2</span><span>U' R2 F' D</span><span>B2 L R' U2</span><span>R U R' U'</span><span>F2 D' B L2</span><span>U' R2 F' D</span><span>B2 L R' U2</span></div>
-    <div class="scramble-row r2"><span>D2 R' F U2</span><span>L' B2 R U'</span><span>F R2 D' L</span><span>U B' R2 F'</span><span>D2 R' F U2</span><span>L' B2 R U'</span><span>F R2 D' L</span><span>U B' R2 F'</span></div>
-    <div class="hero-content max-w-7xl mx-auto px-4 text-center">
-      <div class="flex justify-center mb-6">
-        <div class="cube-mark"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
+  <!-- Stats & Achievements modal -->
+  <div id="stats-backdrop" class="hidden fixed inset-0 z-[80] items-center justify-center p-4" style="background:rgba(0,0,0,0.6);">
+    <div class="surface-card rounded-2xl p-5 w-full max-w-lg" style="max-height:85vh; overflow-y:auto;">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="font-display font-bold text-lg">📊 Stats &amp; Achievements</h3>
+        <button id="stats-close-btn" type="button" class="btn-ghost text-sm px-3 py-1.5 rounded-lg">✕</button>
       </div>
-      <div id="hero-dynamic">
-        <h1 class="font-display text-4xl md:text-6xl font-bold tracking-tight mb-6">Welcome to Twist &amp; Turn</h1>
-        <p class="text-lg md:text-xl max-w-2xl mx-auto" style="color:var(--ink-muted)">Your platform for high-stakes online Rubik's Cube competitions.</p>
-      </div>
+
+      <div id="stats-summary" class="grid grid-cols-4 gap-2 mb-5 text-center font-mono text-xs"></div>
+
+      <p class="font-mono text-xs uppercase tracking-widest mb-2" style="color:var(--ink-muted);">Trend (last 100 solves)</p>
+      <canvas id="stats-trend-canvas" class="w-full rounded-lg mb-5" height="140" style="background:var(--bg-base); border:1px solid rgba(255,255,255,0.06);"></canvas>
+
+      <p class="font-mono text-xs uppercase tracking-widest mb-2" style="color:var(--ink-muted);">Distribution</p>
+      <canvas id="stats-hist-canvas" class="w-full rounded-lg mb-5" height="120" style="background:var(--bg-base); border:1px solid rgba(255,255,255,0.06);"></canvas>
+
+      <div id="stats-insights" class="mb-5"></div>
+
+      <p class="font-mono text-xs uppercase tracking-widest mb-2" style="color:var(--ink-muted);">🏅 Achievements</p>
+      <div id="achievements-grid" class="grid grid-cols-3 gap-2"></div>
     </div>
-  </section>
+  </div>
 
-  <section id="upcoming" class="py-16" style="background:var(--bg-surface);">
-    <div class="max-w-5xl mx-auto px-4">
-      <p class="eyebrow mb-2">Next Event</p>
-      <h2 class="font-display text-3xl font-bold mb-8">Upcoming Competition</h2>
+  <!-- Algorithm Practice modal -->
+  <div id="practice-backdrop" class="hidden fixed inset-0 z-[80] items-center justify-center p-4" style="background:rgba(0,0,0,0.6);">
+    <div class="surface-card rounded-2xl p-5 w-full max-w-md">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="font-display font-bold text-lg">🎓 Algorithm Practice</h3>
+        <button id="practice-close-btn" type="button" class="btn-ghost text-sm px-3 py-1.5 rounded-lg">✕</button>
+      </div>
+      <select id="practice-set-select" class="field w-full rounded-lg px-3 py-2 mb-4 text-sm">
+        <option value="cross">Cross Tips</option>
+        <option value="f2l">F2L</option>
+        <option value="oll" selected>OLL</option>
+        <option value="pll">PLL</option>
+      </select>
+      <div class="surface-card rounded-xl p-6 text-center mb-4" style="border:1px solid rgba(255,255,255,0.08); min-height:120px;">
+        <p id="practice-case-name" class="font-display font-bold text-lg mb-3">-</p>
+        <p id="practice-alg" class="font-mono text-sm hidden" style="color:var(--cube-blue); word-break:break-word;"></p>
+        <button id="practice-reveal-btn" type="button" class="btn-ghost text-xs px-3 py-1.5 rounded-lg mt-2">👁️ Reveal Algorithm</button>
+      </div>
+      <div class="flex gap-2">
+        <button id="practice-next-btn" type="button" class="btn-primary flex-1 py-2.5 rounded-lg text-sm">Next Case ➜</button>
+      </div>
+      <p id="practice-count" class="text-xs text-center mt-3" style="color:var(--ink-muted);"></p>
+    </div>
+  </div>
 
-      <div id="upcoming-content" class="interactive-card surface-card accent-border-blue rounded-2xl shadow-2xl overflow-hidden">
-        <div class="p-10 text-center"><p style="color:var(--ink-muted)">Loading...</p></div>
+  <!-- Leaderboard & Cloud Sync modal -->
+  <div id="leaderboard-backdrop" class="hidden fixed inset-0 z-[80] items-center justify-center p-4" style="background:rgba(0,0,0,0.6);">
+    <div class="surface-card rounded-2xl p-5 w-full max-w-md" style="max-height:85vh; overflow-y:auto;">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="font-display font-bold text-lg">🏆 Leaderboard &amp; Cloud</h3>
+        <button id="leaderboard-close-btn" type="button" class="btn-ghost text-sm px-3 py-1.5 rounded-lg">✕</button>
       </div>
 
-      <div id="upcoming-extra" class="hidden">
-        <div class="mt-12">
-          <h3 class="font-display text-2xl font-bold mb-8 text-center">🏁 Competition Format</h3>
-          <div class="grid md:grid-cols-5 gap-4 items-center">
-            <div class="surface-card rounded-xl p-5 text-center">
-              <h4 class="font-bold text-lg">Qualifier Round</h4>
-              <p class="mt-2" style="color:var(--ink-muted);">All Participants</p>
-            </div>
-            <div class="text-center text-3xl font-bold" style="color:var(--cube-yellow);">➜</div>
-            <div class="surface-card rounded-xl p-5 text-center">
-              <h4 class="font-bold text-lg">Top 8</h4>
-              <p class="mt-2" style="color:var(--ink-muted);">Qualified</p>
-            </div>
-            <div class="text-center text-3xl font-bold" style="color:var(--cube-yellow);">➜</div>
-            <div class="surface-card rounded-xl p-5 text-center">
-              <h4 class="font-bold text-lg">Grand Finals</h4>
-              <p class="mt-2" style="color:var(--ink-muted);">Top 3 Winners</p>
-            </div>
-          </div>
+      <div id="cloud-logged-out">
+        <p class="text-xs mb-3" style="color:var(--ink-muted);">Login karein taake aapke solves cloud pe sync ho sakein aur aap leaderboard pe apna best time submit kar sakein.</p>
+        <input type="text" id="cloud-name" class="field w-full rounded-lg px-3 py-2 mb-2 text-sm" placeholder="Your Name">
+        <input type="email" id="cloud-email" class="field w-full rounded-lg px-3 py-2 mb-2 text-sm" placeholder="Email">
+        <input type="password" id="cloud-password" class="field w-full rounded-lg px-3 py-2 mb-3 text-sm" placeholder="Password">
+        <div class="flex gap-2 mb-2">
+          <button id="cloud-signup-btn" class="btn-primary flex-1 py-2 rounded-lg text-sm">Sign Up</button>
+          <button id="cloud-login-btn" class="btn-ghost flex-1 py-2 rounded-lg text-sm">Log In</button>
         </div>
+        <p id="cloud-auth-msg" class="text-xs hidden"></p>
+      </div>
 
-        <section class="py-16">
-          <h2 class="font-display text-3xl font-bold text-center mb-10">🏆 Prize Categories</h2>
-          <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <div class="interactive-card surface-card accent-border-yellow rounded-2xl p-6 text-center">
-              <h3 class="text-2xl">🥇</h3><h4 class="font-bold mt-3">Top 3 Overall</h4>
-            </div>
-            <div class="interactive-card surface-card accent-border-red rounded-2xl p-6 text-center">
-              <h3 class="text-2xl">👩</h3><h4 class="font-bold mt-3">Fastest Female</h4>
-            </div>
-            <div class="interactive-card surface-card accent-border-blue rounded-2xl p-6 text-center">
-              <h3 class="text-2xl">⚡</h3><h4 class="font-bold mt-3">Fastest Single</h4>
-            </div>
-            <div class="interactive-card surface-card accent-border-green rounded-2xl p-6 text-center">
-              <h3 class="text-2xl">👶</h3><h4 class="font-bold mt-3">Youngest Cuber</h4>
-            </div>
-            <div class="interactive-card surface-card accent-border-yellow rounded-2xl p-6 text-center">
-              <h3 class="text-2xl">🧒</h3><h4 class="font-bold mt-3">U10 Champion</h4>
-            </div>
-            <div class="interactive-card surface-card accent-border-blue rounded-2xl p-6 text-center">
-              <h3 class="text-2xl">👦</h3><h4 class="font-bold mt-3">U14 Champion</h4>
-            </div>
-            <div class="interactive-card surface-card accent-border-red rounded-2xl p-6 text-center lg:col-span-3">
-              <h3 class="text-2xl">🧑</h3><h4 class="font-bold mt-3">U18 Champion</h4>
-            </div>
-          </div>
-        </section>
+      <div id="cloud-logged-in" class="hidden mb-4">
+        <p class="text-xs mb-2" style="color:var(--ink-muted);">Logged in as <b id="cloud-user-email" style="color:var(--ink);"></b></p>
+        <div class="flex gap-2 mb-2">
+          <button id="cloud-sync-up-btn" class="btn-ghost flex-1 py-2 rounded-lg text-xs">☁️⬆️ Backup this session</button>
+          <button id="cloud-sync-down-btn" class="btn-ghost flex-1 py-2 rounded-lg text-xs">☁️⬇️ Restore</button>
+        </div>
+        <button id="cloud-submit-best-btn" class="btn-primary w-full py-2 rounded-lg text-sm mb-2">📤 Submit My Best to Leaderboard</button>
+        <button id="cloud-logout-btn" class="btn-ghost w-full py-2 rounded-lg text-xs">Log Out</button>
+        <p id="cloud-sync-msg" class="text-xs mt-2 hidden"></p>
+      </div>
+
+      <p class="font-mono text-xs uppercase tracking-widest mb-2 mt-2" style="color:var(--ink-muted);">Leaderboard — <span id="leaderboard-event-label">3x3</span></p>
+      <div id="leaderboard-list" class="space-y-1 font-mono text-sm">
+        <p style="color:var(--ink-muted);">Login to view / loading…</p>
       </div>
     </div>
-  </section>
+  </div>
 
   <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-    import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-    import { firebaseConfig } from "./firebase-config.js";
+    import { randomScrambleForEvent } from "https://cdn.cubing.net/v0/js/cubing/scramble";
+    import "https://cdn.cubing.net/v0/js/scramble-display"; // registers <scramble-display> for the scramble image preview
 
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
-    const box = document.getElementById("upcoming-content");
-    const extra = document.getElementById("upcoming-extra");
-    const hero = document.getElementById("hero-dynamic");
+    // ==========================================================
+    // Events
+    // ==========================================================
+    const PALETTE = ["var(--cube-red)", "var(--cube-yellow)", "var(--cube-blue)", "var(--cube-green)", "#9B59B6", "#E67E22", "#1ABC9C", "#E91E63"];
+    const EVENTS = [
+      { id: "333", label: "3x3" },
+      { id: "222", label: "2x2" },
+      { id: "444", label: "4x4" },
+      { id: "555", label: "5x5" },
+      { id: "666", label: "6x6" },
+      { id: "777", label: "7x7" },
+      { id: "333bf", label: "3x3 BLD" },
+      { id: "333fm", label: "3x3 FMC" },
+      { id: "333oh", label: "3x3 OH" },
+      { id: "clock", label: "Clock" },
+      { id: "minx", label: "Megaminx" },
+      { id: "pyram", label: "Pyraminx" },
+      { id: "skewb", label: "Skewb" },
+      { id: "sq1", label: "Square-1" },
+      { id: "444bf", label: "4x4 BLD" },
+      { id: "555bf", label: "5x5 BLD" },
+      { id: "333mbf", label: "3x3 MBLD" },
+      { id: "fto", label: "FTO ⭐" },
+    ].map((ev, i) => ({ ...ev, color: PALETTE[i % PALETTE.length] }));
 
-    getDoc(doc(db, "site", "upcomingCompetition")).then(snap => {
-      if (!snap.exists() || !snap.data().status || snap.data().status === "none") {
-        box.innerHTML = `
-          <div class="p-10 text-center">
-            <h2 class="font-display text-2xl md:text-3xl font-bold mb-4">No Upcoming Competition</h2>
-            <p class="mb-6" style="color:var(--ink-muted)">There are currently no upcoming competitions.</p>
-            <p class="text-lg font-semibold" style="color:var(--cube-yellow)">Stay tuned for our next event! 🚀</p>
-          </div>`;
-        extra.classList.add("hidden");
-        hero.innerHTML = `
-          <h1 class="font-display text-4xl md:text-6xl font-bold tracking-tight mb-6">Welcome to Twist &amp; Turn</h1>
-          <p class="text-lg md:text-xl max-w-2xl mx-auto" style="color:var(--ink-muted)">Your platform for high-stakes online Rubik's Cube competitions.</p>`;
-        return;
-      }
+    let currentEvent = localStorage.getItem("tt-timer-event") || "333";
+    if (!EVENTS.some(e => e.id === currentEvent)) currentEvent = "333";
 
-      extra.classList.remove("hidden");
-      const d = snap.data();
-
-      hero.innerHTML = `
-        <h1 class="font-display text-4xl md:text-6xl font-bold tracking-tight mb-6">${d.title || ""}</h1>
-        <p class="text-lg md:text-xl max-w-2xl mx-auto" style="color:var(--ink-muted)">
-          ${d.details ? d.details + "<br><br>" : ""}
-          📅 ${d.date || ""}<br>
-          🌐 ${d.mode || ""}<br>
-          ${d.format ? "🏆 " + d.format : ""}
-        </p>
-        <div class="mt-10 flex flex-wrap justify-center gap-4">
-          ${d.regLink ? `<a href="${d.regLink}" target="_blank" class="btn-primary px-8 py-4 rounded-xl shadow-xl">Register Now 🚀</a>` : ""}
-          <a href="#rules" class="px-8 py-4 rounded-xl border border-white/20 hover:bg-white/10">Rules 📖</a>
-        </div>`;
-      const statusLabel = d.status === "open" ? "🟢 Registration Open" : "🔴 Registration Closed";
-      const statusColor = d.status === "open" ? "var(--cube-green)" : "var(--cube-red)";
-
-      box.innerHTML = `
-        ${d.posterUrl ? `<img src="${d.posterUrl}" class="w-full h-auto">` : ""}
-        <div class="p-8 text-center">
-          <h2 class="font-display text-3xl font-bold mb-3">🔥 ${d.title || ""}</h2>
-          <p class="text-lg mb-6" style="color:${statusColor};">${statusLabel}</p>
-          <div class="grid md:grid-cols-2 gap-4 text-left max-w-3xl mx-auto mb-8">
-            <div class="surface-card rounded-xl p-4"><b>📅 Date</b><br>${d.date || "-"}</div>
-            <div class="surface-card rounded-xl p-4"><b>🌐 Mode</b><br>${d.mode || "-"}</div>
-            <div class="surface-card rounded-xl p-4"><b>🧩 Event</b><br>${d.eventType || "-"}</div>
-            <div class="surface-card rounded-xl p-4"><b>💰 Entry Fee</b><br>${d.entryFee || "-"}</div>
-            <div class="surface-card rounded-xl p-4"><b>👥 Participants</b><br>${d.participantsLimit || "-"}</div>
-            <div class="surface-card rounded-xl p-4"><b>🏁 Format</b><br>${d.format || "-"}</div>
-          </div>
-          ${d.details ? `<p class="mb-6" style="color:var(--ink-muted)">${d.details}</p>` : ""}
-          ${d.regLink ? `<a href="${d.regLink}" target="_blank" class="btn-primary inline-block px-8 py-4 rounded-xl">Register Now 🚀</a>` : ""}
-        </div>`;
+    const eventSelectEl = document.getElementById("event-select");
+    function renderTabs() {
+      eventSelectEl.innerHTML = EVENTS.map(ev =>
+        `<option value="${ev.id}" ${ev.id === currentEvent ? "selected" : ""}>${ev.label}</option>`
+      ).join("");
+    }
+    eventSelectEl.addEventListener("change", () => {
+      if (state !== "idle") { eventSelectEl.value = currentEvent; return; } // don't switch mid-solve
+      currentEvent = eventSelectEl.value;
+      localStorage.setItem("tt-timer-event", currentEvent);
+      currentSessionId = getActiveSessionId(currentEvent);
+      renderSessionSelect();
+      renderSolves();
+      renderStats();
+      getNewScramble();
     });
-  </script>
 
-  <section id="rules" class="py-16">
-    <div class="max-w-7xl mx-auto px-4">
-      <div class="max-w-3xl mb-10">
-        <p class="eyebrow mb-2">Regulations</p>
-        <h2 class="font-display text-3xl font-bold mb-3">Rules &amp; Regulations</h2>
-        <p class="text-lg" style="color:var(--ink-muted)">Please read all the rules carefully before your scheduled event.</p>
-      </div>
+    // ==========================================================
+    // Scramble
+    // ==========================================================
+    const scrambleTextEl = document.getElementById("scramble-text");
+    const scramblePreviewBox = document.getElementById("scramble-preview-box");
+    const scramblePreviewEl = document.getElementById("scramble-preview");
+    let scrambleLoading = false;
+    let customScrambleActive = false; // true once the user has typed their own scramble — "New" clears it
 
-      <div class="grid gap-6 lg:grid-cols-2">
-        <div class="interactive-card surface-card accent-border-red rounded-2xl p-6 shadow-sm">
-          <h3 class="font-display font-bold text-xl mb-4">📹 Camera Setup</h3>
-          <ul class="space-y-3" style="color:#D6D8DF;">
-            <li>• The camera must remain stable throughout the entire solve.</li>
-            <li>• The following must be clearly visible at all times: cube, cube cover, timer, and both hands.</li>
-            <li>• The entire solving area should remain inside the camera frame.</li>
-            <li>• The cube must never go outside the camera frame during the attempt.</li>
-          </ul>
-        </div>
-        <div class="interactive-card surface-card accent-border-red rounded-2xl p-6 shadow-sm">
-          <h3 class="font-display font-bold text-xl mb-4">🧩 Before the Solve</h3>
-          <ol class="list-decimal list-inside space-y-3" style="color:#D6D8DF;">
-            <li>Apply the scramble exactly as provided.</li>
-            <li>Scrambles will be sent one by one in the Google Meet in-call chat.</li>
-            <li>Only solve the scramble that is currently provided.</li>
-            <li>After scrambling, show any one side of the scrambled cube clearly to the camera.</li>
-            <li>Wait for the organizer's instruction to cover the cube.</li>
-            <li>When instructed, place the cube under the cube cover.</li>
-          </ol>
-        </div>
-      </div>
-
-      <div class="mt-6 interactive-card surface-card accent-border-red rounded-2xl p-6 shadow-sm">
-        <h3 class="font-display font-bold text-xl mb-4">▶️ Starting the Attempt</h3>
-        <ul class="space-y-3" style="color:#D6D8DF;">
-          <li>• The organizer will count "1...2...3...Start".</li>
-          <li>• After "Start", the official 15-second inspection begins.</li>
-          <li>• Complete your solve following all applicable WCA regulations.</li>
-          <li>• After finishing, show the timer clearly to the camera so your result is visible.</li>
-        </ul>
-      </div>
-
-      <div class="mt-6 grid gap-6 md:grid-cols-2">
-        <div class="interactive-card surface-card accent-border-yellow rounded-2xl p-6 shadow-sm">
-          <h3 class="font-display font-bold text-xl mb-4">⚖️ WCA Regulations</h3>
-          <ul class="space-y-3" style="color:#D6D8DF;">
-            <li>• All official WCA Regulations are applicable throughout the competition.</li>
-            <li>• Penalties, +2, DNF, DNS, and all other decisions will be made according to the WCA Regulations.</li>
-          </ul>
-        </div>
-        <div class="interactive-card surface-card accent-border-yellow rounded-2xl p-6 shadow-sm">
-          <h3 class="font-display font-bold text-xl mb-4">❌ Attendance &amp; Conduct</h3>
-          <ul class="space-y-3" style="color:#D6D8DF;">
-            <li>• Participants must join the Google Meet at their allotted time.</li>
-            <li>• If a participant does not join at the scheduled time, they will be disqualified (DQ) and all solves will be recorded as DNS.</li>
-            <li>• Do not receive any outside assistance during your attempts.</li>
-            <li>• Any form of cheating, unfair practice, or violation of the rules may result in immediate disqualification.</li>
-          </ul>
-        </div>
-      </div>
-
-      <div class="mt-8 text-center">
-        <a href="https://www.worldcubeassociation.org/regulations/" target="_blank" class="btn-primary inline-flex items-center py-3 px-8 rounded-lg shadow-md transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
-          See Official WCA Rules &amp; Regulations
-        </a>
-      </div>
-    </div>
-  </section>
-
-  <section id="results" class="py-16" style="background:var(--bg-surface);">
-    <div class="max-w-7xl mx-auto px-4">
-      <p class="eyebrow mb-2">Leaderboard</p>
-      <h2 id="results-title" class="font-display text-3xl font-bold mb-2">Results</h2>
-      <span id="live-badge" class="hidden inline-block font-mono text-xs px-3 py-1 rounded-full mb-6" style="background:rgba(232,65,43,0.15); color:var(--cube-red);">🔴 LIVE</span>
-      <div id="results-table-wrap" class="overflow-x-auto rounded-2xl shadow-xl surface-card mt-4">
-        <p class="p-8 text-center" style="color:var(--ink-muted)">Loading...</p>
-      </div>
-      <div class="mt-10 text-center">
-        <p class="max-w-2xl mx-auto" style="color:var(--ink-muted)">Stay tuned for the next results update after the upcoming competition. Our leaderboard reflects the latest verified scores and official rankings.</p>
-      </div>
-    </div>
-  </section>
-
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-    import { getFirestore, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-    import { firebaseConfig } from "./firebase-config.js";
-
-    const resultsApp = initializeApp(firebaseConfig, "resultsApp");
-    const resultsDb = getFirestore(resultsApp);
-    const wrap = document.getElementById("results-table-wrap");
-    const titleEl = document.getElementById("results-title");
-    const liveBadge = document.getElementById("live-badge");
-
-    onSnapshot(doc(resultsDb, "site", "results"), (snap) => {
-      if (!snap.exists() || !snap.data().rows || snap.data().rows.length === 0) {
-        wrap.innerHTML = `<p class="p-8 text-center" style="color:var(--ink-muted)">No results published yet.</p>`;
-        liveBadge.classList.add("hidden");
+    function updateScramblePreview(scrambleStr) {
+      // 333mbf shows several scrambles at once (one per line) — an image
+      // preview doesn't make sense there, so we just skip it.
+      if (!settings.showPreview || currentEvent === "333mbf" || !scrambleStr || scrambleStr.includes("\n")) {
+        scramblePreviewBox.style.display = "none";
         return;
       }
-      const d = snap.data();
-      titleEl.textContent = d.competitionName || "Results";
-      liveBadge.classList.toggle("hidden", !d.isLive);
-
-      const rowsHtml = d.rows.map(r => `
-        <tr class="hover:bg-white/5 transition-colors">
-          <td class="px-6 py-4 font-semibold">${r.event || ""}</td>
-          <td class="px-6 py-4" style="color:#D6D8DF;">${r.first || ""}</td>
-          <td class="px-6 py-4" style="color:#D6D8DF;">${r.second || ""}</td>
-          <td class="px-6 py-4" style="color:#D6D8DF;">${r.third || ""}</td>
-        </tr>`).join("");
-
-      wrap.innerHTML = `
-        <table class="w-full border-collapse font-mono text-sm">
-          <thead style="background:var(--cube-green); color:#0B1A10;">
-            <tr>
-              <th class="px-6 py-4 text-left font-bold">Event</th>
-              <th class="px-6 py-4 text-left font-bold">1st 🥇</th>
-              <th class="px-6 py-4 text-left font-bold">2nd 🥈</th>
-              <th class="px-6 py-4 text-left font-bold">3rd 🥉</th>
-            </tr>
-          </thead>
-          <tbody class="divide-y divide-white/5">${rowsHtml}</tbody>
-        </table>`;
-    });
-  </script>
-
-  <section id="live-results" class="py-16">
-    <div class="max-w-4xl mx-auto px-4">
-      <p class="eyebrow mb-2">Right Now</p>
-      <div class="flex items-center gap-3 mb-2 flex-wrap">
-        <h2 class="font-display text-3xl font-bold">Live Results</h2>
-        <span id="live-results-badge" class="hidden inline-block font-mono text-xs px-3 py-1 rounded-full" style="background:rgba(232,65,43,0.15); color:var(--cube-red);">🔴 LIVE</span>
-      </div>
-
-      <div id="live-event-tabs" class="flex flex-wrap gap-2 mt-4 mb-2"></div>
-
-      <div id="live-results-wrap" class="rounded-2xl shadow-xl surface-card mt-4 overflow-hidden">
-        <p class="p-8 text-center" style="color:var(--ink-muted)">Waiting for results…</p>
-      </div>
-    </div>
-  </section>
-
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-    import { getFirestore, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-    import { firebaseConfig } from "./firebase-config.js";
-
-    const liveApp = initializeApp(firebaseConfig, "liveResultsApp");
-    const liveDb = getFirestore(liveApp);
-    const tabsEl = document.getElementById("live-event-tabs");
-    const liveWrap = document.getElementById("live-results-wrap");
-    const liveBadgeEl = document.getElementById("live-results-badge");
-
-    let activeEventIdx = 0;
-
-    function renderEvent(events) {
-      if (activeEventIdx >= events.length) activeEventIdx = 0;
-      const ev = events[activeEventIdx];
-      const sorted = [...(ev.rows || [])].sort((a, b) => (a.timeMs ?? Infinity) - (b.timeMs ?? Infinity));
-      const medals = ["🥇", "🥈", "🥉"];
-
-      if (sorted.length === 0) {
-        liveWrap.innerHTML = `<p class="p-8 text-center" style="color:var(--ink-muted)">Waiting for results…</p>`;
-        return;
+      try {
+        scramblePreviewEl.setAttribute("event", currentEvent);
+        scramblePreviewEl.setAttribute("scramble", scrambleStr);
+        scramblePreviewBox.style.display = "block";
+      } catch (err) {
+        console.error("[preview] couldn't render scramble image:", err);
+        scramblePreviewBox.style.display = "none";
       }
-
-      liveWrap.innerHTML = `
-        <div class="divide-y divide-white/5">
-          ${sorted.map((r, i) => `
-            <div class="flex items-center justify-between px-6 py-4 ${i < 3 ? 'bg-white/[0.03]' : ''} transition-colors">
-              <div class="flex items-center gap-4">
-                <span class="font-mono w-8 text-center ${i < 3 ? 'text-xl' : ''}" style="color:var(--ink-muted);">${medals[i] || (i + 1)}</span>
-                <span class="font-semibold">${r.name || ""}</span>
-              </div>
-              <span class="font-mono font-bold text-lg" style="color:var(--cube-yellow);">${r.timeDisplay || ""}</span>
-            </div>
-          `).join("")}
-        </div>`;
     }
 
-    function renderTabs(events) {
-      tabsEl.innerHTML = events.map((ev, i) => `
-        <button type="button" data-idx="${i}" class="live-tab-btn font-mono text-sm px-4 py-2 rounded-full transition-colors"
-          style="${i === activeEventIdx
-            ? 'background:var(--cube-red); color:#fff;'
-            : 'background:var(--bg-surface); color:var(--ink-muted); border:1px solid rgba(255,255,255,0.1);'}">
-          ${ev.name || "Event"}
-        </button>`).join("");
-
-      tabsEl.querySelectorAll(".live-tab-btn").forEach(btn => {
-        btn.addEventListener("click", () => {
-          activeEventIdx = parseInt(btn.dataset.idx, 10);
-          renderTabs(events);
-          renderEvent(events);
-        });
-      });
+    // ---- generic helpers ----
+    function randInt(min, maxIncl) { return min + Math.floor(Math.random() * (maxIncl - min + 1)); }
+    function randMod(allowDouble) {
+      const r = Math.random();
+      if (allowDouble) return r < 1 / 3 ? "" : r < 2 / 3 ? "'" : "2";
+      return r < 0.5 ? "" : "'";
     }
+    const AXIS_OF = { U: 0, D: 0, L: 1, R: 1, F: 2, B: 2 };
 
-    onSnapshot(doc(liveDb, "site", "liveResults"), (snap) => {
-      if (!snap.exists() || !snap.data().events || snap.data().events.length === 0) {
-        tabsEl.innerHTML = "";
-        liveWrap.innerHTML = `<p class="p-8 text-center" style="color:var(--ink-muted)">Waiting for results…</p>`;
-        liveBadgeEl.classList.add("hidden");
-        return;
-      }
-      const d = snap.data();
-      liveBadgeEl.classList.toggle("hidden", !d.isLive);
-      renderTabs(d.events);
-      renderEvent(d.events);
-    });
-  </script>
-
-  <section id="gallery" class="py-16">
-    <div class="max-w-7xl mx-auto px-4">
-      <p class="eyebrow mb-2">Highlights</p>
-      <h2 class="font-display text-3xl font-bold mb-8">Gallery</h2>
-      <div id="gallery-grid" class="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <p style="color:var(--ink-muted)">Loading...</p>
-      </div>
-    </div>
-  </section>
-
-  <section id="hall-of-fame" class="py-16">
-    <div class="max-w-6xl mx-auto px-4">
-      <p class="eyebrow mb-2">All-Time Greats</p>
-      <h2 class="font-display text-3xl font-bold mb-8">🏆 Hall of Fame</h2>
-      <div id="hof-grid" class="grid sm:grid-cols-2 md:grid-cols-3 gap-6">
-        <p style="color:var(--ink-muted)">Loading...</p>
-      </div>
-    </div>
-  </section>
-
-  <section id="reviews" class="py-16" style="background:var(--bg-surface);">
-    <div class="max-w-5xl mx-auto px-4">
-      <p class="eyebrow mb-2">Community Says</p>
-      <h2 class="font-display text-3xl font-bold mb-8">What Cubers Say</h2>
-      <div id="reviews-grid" class="grid md:grid-cols-2 gap-6">
-        <p style="color:var(--ink-muted)">Loading...</p>
-      </div>
-    </div>
-  </section>
-
-  <section id="faq" class="py-16">
-    <div class="max-w-3xl mx-auto px-4">
-      <p class="eyebrow mb-2">Need Help</p>
-      <h2 class="font-display text-3xl font-bold mb-8">Frequently Asked Questions</h2>
-      <div id="faq-list" class="space-y-3">
-        <p style="color:var(--ink-muted)">Loading...</p>
-      </div>
-    </div>
-  </section>
-
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-    import { getFirestore, doc, getDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-    import { firebaseConfig } from "./firebase-config.js";
-
-    const extrasApp = initializeApp(firebaseConfig, "extrasApp");
-    const db = getFirestore(extrasApp);
-
-    // ---- WhatsApp community link ----
-    getDoc(doc(db, "site", "general")).then(snap => {
-      const btn = document.getElementById("whatsapp-btn");
-      if (snap.exists() && snap.data().whatsappLink) {
-        btn.href = snap.data().whatsappLink;
-        btn.classList.remove("hidden");
-      }
-    });
-
-    // ---- Gallery ----
-    getDocs(collection(db, "galleryImages")).then(snap => {
-      const grid = document.getElementById("gallery-grid");
-      if (snap.empty) {
-        grid.innerHTML = `<p style="color:var(--ink-muted)">No photos added yet.</p>`;
-        return;
-      }
-      grid.innerHTML = snap.docs.map(d => `
-        <div class="interactive-card surface-card rounded-xl overflow-hidden">
-          <img src="${d.data().image}" class="w-full h-40 object-cover">
-        </div>`).join("");
-    });
-
-    // ---- Reviews ----
-    getDoc(doc(db, "site", "reviews")).then(snap => {
-      const grid = document.getElementById("reviews-grid");
-      const items = (snap.exists() && snap.data().items) ? snap.data().items : [];
-      if (items.length === 0) {
-        grid.innerHTML = `<p style="color:var(--ink-muted)">No reviews yet.</p>`;
-        return;
-      }
-      grid.innerHTML = items.map(r => `
-        <div class="interactive-card surface-card accent-border-yellow rounded-2xl p-6">
-          <p class="mb-4" style="color:#D6D8DF;">"${r.text || ""}"</p>
-          <p class="font-display font-bold" style="color:var(--cube-yellow);">— ${r.name || "Anonymous"}</p>
-        </div>`).join("");
-    });
-
-    // ---- Hall of Fame ----
-    const hofReady = getDoc(doc(db, "site", "hallOfFame")).then(snap => {
-      const grid = document.getElementById("hof-grid");
-      const items = (snap.exists() && snap.data().items) ? snap.data().items : [];
-      if (items.length === 0) {
-        grid.innerHTML = `<p style="color:var(--ink-muted)">No entries yet — check back after the next competition!</p>`;
-        return items;
-      }
-      grid.innerHTML = items.map(h => `
-        <div class="interactive-card surface-card accent-border-yellow rounded-2xl p-6 text-center">
-          ${h.photo ? `<img src="${h.photo}" class="w-20 h-20 rounded-full object-cover mx-auto mb-4 border-2" style="border-color:var(--cube-yellow);">` : `<div class="w-20 h-20 rounded-full mx-auto mb-4 flex items-center justify-center text-2xl font-display font-bold" style="background:var(--bg-base); color:var(--cube-yellow);">🏆</div>`}
-          <h3 class="font-display font-bold text-lg">${h.name || ""}</h3>
-          <p class="font-mono text-sm mt-1" style="color:var(--cube-yellow);">${h.achievement || ""}</p>
-          ${h.event ? `<p class="text-sm mt-1" style="color:var(--ink-muted);">${h.event}</p>` : ""}
-        </div>`).join("");
-      return items;
-    });
-
-    // ---- FAQ (also feeds the chatbot's knowledge base below) ----
-    let faqItemsCache = [];
-    const faqReady = getDoc(doc(db, "site", "faq")).then(snap => {
-      const list = document.getElementById("faq-list");
-      const items = (snap.exists() && snap.data().items) ? snap.data().items : [];
-      faqItemsCache = items;
-      if (items.length === 0) {
-        list.innerHTML = `<p style="color:var(--ink-muted)">No FAQs added yet.</p>`;
-        return;
-      }
-      list.innerHTML = items.map(f => `
-        <details class="surface-card rounded-xl p-5">
-          <summary class="font-display font-semibold cursor-pointer">${f.q || ""}</summary>
-          <p class="mt-3" style="color:var(--ink-muted);">${f.a || ""}</p>
-        </details>`).join("");
-    });
-
-    // ============================================
-    // Cubing Assistant — smart on-site search chatbot
-    // No external AI API — answers come from your own
-    // FAQ + Upcoming Competition + General info in Firestore.
-    // ============================================
-    const upcomingReady = getDoc(doc(db, "site", "upcomingCompetition"));
-    const generalReady = getDoc(doc(db, "site", "general"));
-
-    function tokenize(str) {
-      const stop = new Set(["the","is","are","a","an","to","of","for","in","on","and","or","what","how","when","where","do","does","i","my","me","can","kya","ka","ki","ke","hai","hain","mai","main","kaise"]);
-      return (str || "").toLowerCase().replace(/[^a-z0-9\s]/g, " ").split(/\s+/).filter(w => w.length > 1 && !stop.has(w));
-    }
-
-    Promise.all([faqReady, upcomingReady, generalReady, hofReady]).then(([, upcomingSnap, generalSnap, hofItems]) => {
-      const kb = [];
-
-      // FAQ entries
-      faqItemsCache.forEach(f => {
-        if (f.q && f.a) kb.push({ tokens: tokenize(f.q + " " + f.a), answer: f.a });
-      });
-
-      // Upcoming competition facts
-      if (upcomingSnap.exists() && upcomingSnap.data().status && upcomingSnap.data().status !== "none") {
-        const d = upcomingSnap.data();
-        if (d.date) kb.push({ tokens: tokenize("when date competition schedule event"), answer: `The next competition is on ${d.date}.` });
-        if (d.entryFee) kb.push({ tokens: tokenize("entry fee cost price registration charge"), answer: `Entry fee is ${d.entryFee}.` });
-        if (d.mode) kb.push({ tokens: tokenize("mode online offline venue where"), answer: `This competition is ${d.mode}.` });
-        if (d.format) kb.push({ tokens: tokenize("format rounds structure how works"), answer: `Format: ${d.format}` });
-        if (d.regLink) kb.push({ tokens: tokenize("register registration link sign up join how"), answer: `You can register here: ${d.regLink}` });
-        if (d.eventType) kb.push({ tokens: tokenize("event type cube category which events"), answer: `Event type: ${d.eventType}` });
-        if (d.participantsLimit) kb.push({ tokens: tokenize("participants limit slots spots how many"), answer: `Participant limit: ${d.participantsLimit}` });
-        kb.push({ tokens: tokenize("status open closed registration"), answer: d.status === "open" ? "Registrations are currently open! 🟢" : "Registrations are currently closed for this competition." });
-      } else {
-        kb.push({ tokens: tokenize("when next competition date upcoming"), answer: "There's no upcoming competition announced right now — stay tuned!" });
-      }
-
-      // Community
-      if (generalSnap.exists() && generalSnap.data().whatsappLink) {
-        kb.push({ tokens: tokenize("whatsapp community group join chat"), answer: `Join our WhatsApp community here: ${generalSnap.data().whatsappLink}` });
-      }
-
-      // A few evergreen ones
-      kb.push({ tokens: tokenize("live results counter timing"), answer: "Check the 'Live' section on the homepage — times update automatically as each solve is submitted, tab-wise per event." });
-      kb.push({ tokens: tokenize("hall of fame past winners champions"), answer: "Our past champions and record holders are listed in the Hall of Fame section." });
-      kb.push({ tokens: tokenize("hello hi hey namaste"), answer: "Hey! 👋 Ask me about registration, dates, entry fee, rules, or results." });
-      kb.push({ tokens: tokenize("thanks thank you shukriya"), answer: "You're welcome! Good luck cubing 🎲" });
-
-      function findAnswer(query) {
-        const qTokens = tokenize(query);
-        if (qTokens.length === 0) return "Could you rephrase that? I can help with dates, fees, registration, rules, or results.";
-        let best = null, bestScore = 0;
-        kb.forEach(entry => {
-          const score = qTokens.filter(t => entry.tokens.includes(t)).length;
-          if (score > bestScore) { bestScore = score; best = entry; }
-        });
-        if (best && bestScore > 0) return best.answer;
-        return "I'm not sure about that one — try asking about dates, entry fee, registration, rules, or results, or check the FAQ section below. 🙂";
-      }
-
-      // Wire up the chat widget UI
-      const chatToggle = document.getElementById("chat-toggle");
-      const chatWindow = document.getElementById("chat-window");
-      const closeChat = document.getElementById("close-chat");
-      const chatMessages = document.getElementById("chat-messages");
-      const chatInput = document.getElementById("chat-input");
-      const sendBtn = document.getElementById("send-btn");
-
-      function addMessage(text, fromUser) {
-        const bubble = document.createElement("div");
-        bubble.className = "p-3 rounded-lg text-sm max-w-[85%]";
-        if (fromUser) {
-          bubble.style.background = "var(--cube-red)";
-          bubble.style.color = "#fff";
-          bubble.style.marginLeft = "auto";
-        } else {
-          bubble.style.background = "rgba(255,255,255,0.06)";
+    // NxN cube-style scramble (222/333/444/555/666/777 and their oh/bf variants)
+    function cubeScramble(faces, length, wideMode /* null | "simple" | "deep" */, restrictAxis) {
+      const moves = [];
+      let lastAxis = -1, lastFace = null;
+      for (let i = 0; i < length; i++) {
+        let face;
+        do { face = faces[randInt(0, faces.length - 1)]; }
+        while (face === lastFace || (restrictAxis && AXIS_OF[face] === lastAxis));
+        let prefix = "", suffix = "";
+        if (wideMode === "deep") {
+          if (Math.random() < 0.5) suffix = "w"; else { prefix = "3"; suffix = "w"; }
+        } else if (wideMode === "simple") {
+          if (Math.random() < 0.5) suffix = "w";
         }
-        bubble.textContent = text;
-        chatMessages.appendChild(bubble);
-        chatMessages.scrollTop = chatMessages.scrollHeight;
+        moves.push(prefix + face + suffix + randMod(true));
+        lastFace = face; lastAxis = AXIS_OF[face] ?? -1;
+      }
+      return moves.join(" ");
+    }
+
+    function pyraminxScramble() {
+      const faces = ["U", "L", "R", "B"];
+      const moves = [];
+      let last = null;
+      for (let i = 0; i < 10; i++) {
+        let f; do { f = faces[randInt(0, 3)]; } while (f === last);
+        moves.push(f + randMod(false));
+        last = f;
+      }
+      const tips = ["u", "l", "r", "b"].filter(() => Math.random() < 0.5);
+      tips.forEach(t => moves.push(t + randMod(false)));
+      return moves.join(" ");
+    }
+
+    function skewbScramble() {
+      const faces = ["U", "L", "R", "B"];
+      const moves = [];
+      let last = null;
+      for (let i = 0; i < 11; i++) {
+        let f; do { f = faces[randInt(0, 3)]; } while (f === last);
+        moves.push(f + randMod(false));
+        last = f;
+      }
+      return moves.join(" ");
+    }
+
+    function ftoScramble() {
+      const faces = ["U", "D", "L", "R", "F", "B", "BL", "BR"];
+      const moves = [];
+      let last = null;
+      for (let i = 0; i < 25; i++) {
+        let f; do { f = faces[randInt(0, faces.length - 1)]; } while (f === last);
+        moves.push(f + randMod(false));
+        last = f;
+      }
+      return moves.join(" ");
+    }
+
+    function clockHour() {
+      const n = randInt(0, 6);
+      const sign = Math.random() < 0.5 ? "+" : "-";
+      return n + sign;
+    }
+    function clockScramble() {
+      const front = ["UR", "DR", "DL", "UL", "U", "R", "D", "L", "ALL"].map(k => k + clockHour());
+      const back = ["U", "R", "D", "L", "ALL"].map(k => k + clockHour());
+      return front.join(" ") + " y2 " + back.join(" ");
+    }
+
+    function megaminxScramble() {
+      const moves = [];
+      for (let round = 0; round < 7; round++) {
+        for (let pair = 0; pair < 5; pair++) {
+          const sign = Math.random() < 0.5 ? "++" : "--";
+          moves.push("R" + sign, "D" + sign);
+        }
+        moves.push(Math.random() < 0.5 ? "U" : "U'");
+      }
+      return moves.join(" ");
+    }
+
+    function mbldScramble(count) {
+      const scrambles = [];
+      for (let i = 0; i < count; i++) scrambles.push(`${i + 1}) ${cubeScramble(["U", "D", "L", "R", "F", "B"], 20, null, true)}`);
+      return scrambles.join("\n");
+    }
+
+    const FALLBACK_SCRAMBLERS = {
+      "555": () => cubeScramble(["U", "D", "L", "R", "F", "B"], 60, "simple", true),
+      "555bf": () => cubeScramble(["U", "D", "L", "R", "F", "B"], 60, "simple", true),
+      "666": () => cubeScramble(["U", "D", "L", "R", "F", "B"], 80, "deep", true),
+      "777": () => cubeScramble(["U", "D", "L", "R", "F", "B"], 100, "deep", true),
+      "minx": megaminxScramble,
+      "fto": ftoScramble,
+    };
+
+    const LOCAL_PRIMARY_SCRAMBLERS = {
+      "clock": clockScramble,
+    };
+
+    // All 18 events: always use cubing.js for true WCA-legal random-state scrambles.
+    async function getNewScramble() {
+      customScrambleActive = false; // fresh scramble cancels any custom one
+      scrambleLoading = true;
+      scrambleTextEl.textContent = "Generating scramble…";
+      scramblePreviewBox.style.display = "none";
+
+      if (LOCAL_PRIMARY_SCRAMBLERS[currentEvent]) {
+        scrambleTextEl.textContent = LOCAL_PRIMARY_SCRAMBLERS[currentEvent]();
+        updateScramblePreview(scrambleTextEl.textContent);
+        scrambleLoading = false;
+        return;
       }
 
-      function handleSend() {
-        const text = chatInput.value.trim();
-        if (!text) return;
-        addMessage(text, true);
-        chatInput.value = "";
-        setTimeout(() => addMessage(findAnswer(text), false), 300);
+      const MAX_TRIES = 3;
+      for (let attempt = 1; attempt <= MAX_TRIES; attempt++) {
+        try {
+          const scramble = await randomScrambleForEvent(currentEvent);
+          scrambleTextEl.textContent = scramble.toString();
+          updateScramblePreview(scrambleTextEl.textContent);
+          scrambleLoading = false;
+          return;
+        } catch (err) {
+          console.error(`Scramble attempt ${attempt} failed for event "${currentEvent}":`, err);
+          if (attempt < MAX_TRIES) await new Promise(r => setTimeout(r, 400 * attempt));
+        }
       }
 
-      chatToggle.addEventListener("click", () => chatWindow.classList.toggle("hidden"));
-      closeChat.addEventListener("click", () => chatWindow.classList.add("hidden"));
-      sendBtn.addEventListener("click", handleSend);
-      chatInput.addEventListener("keydown", (e) => { if (e.key === "Enter") handleSend(); });
+      console.error(`cubing.js failed repeatedly for "${currentEvent}", using local fallback if available.`);
+      if (FALLBACK_SCRAMBLERS[currentEvent]) {
+        try {
+          scrambleTextEl.textContent = FALLBACK_SCRAMBLERS[currentEvent]();
+          updateScramblePreview(scrambleTextEl.textContent);
+        } catch (err) {
+          scrambleTextEl.textContent = `Couldn't generate a scramble — check your connection and hit "New".`;
+        }
+      } else {
+        scrambleTextEl.textContent = `Couldn't generate a scramble — check your connection and hit "New".`;
+      }
+      scrambleLoading = false;
+    }
+    document.getElementById("new-scramble-btn").addEventListener("click", () => { if (!scrambleLoading) getNewScramble(); });
+
+    // ---- Custom scramble input (pencil icon) ----
+    const scrambleEditBtn = document.getElementById("scramble-edit-btn");
+    const scrambleEditWrap = document.getElementById("scramble-edit-wrap");
+    const scrambleEditArea = document.getElementById("scramble-edit-area");
+    scrambleEditBtn.addEventListener("click", () => {
+      scrambleEditArea.value = customScrambleActive ? scrambleTextEl.textContent : "";
+      scrambleEditWrap.classList.remove("hidden");
+      scrambleEditArea.focus();
     });
-  </script>
+    document.getElementById("scramble-edit-cancel").addEventListener("click", () => {
+      scrambleEditWrap.classList.add("hidden");
+    });
+    document.getElementById("scramble-edit-save").addEventListener("click", () => {
+      const val = scrambleEditArea.value.trim();
+      if (!val) return;
+      scrambleTextEl.textContent = val;
+      customScrambleActive = true;
+      updateScramblePreview(val);
+      scrambleEditWrap.classList.add("hidden");
+    });
 
-  <a id="whatsapp-btn" href="#" target="_blank" class="hidden fixed bottom-6 left-6 z-50 p-4 rounded-full shadow-2xl" style="background:#25D366;">
-    <svg viewBox="0 0 24 24" width="28" height="28" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12.004 2C6.477 2 2 6.478 2 12.004c0 2.115.573 4.145 1.658 5.923L2 22l4.204-1.632A9.96 9.96 0 0012.004 22C17.531 22 22 17.522 22 11.996 22 6.47 17.531 2 12.004 2zm0 18.09a8.06 8.06 0 01-4.116-1.128l-.295-.176-2.497.969.822-2.585-.192-.312A8.06 8.06 0 013.91 12.004c0-4.464 3.63-8.094 8.094-8.094 4.464 0 8.09 3.63 8.09 8.094 0 4.464-3.626 8.086-8.09 8.086z"/></svg>
-  </a>
+    // ==========================================================
+    // Storage — solves are kept per event
+    // Solves are kept per event AND per session within that event.
+    // ==========================================================
+    const SESSIONS_KEY = "tt-timer-sessions"; // { [eventId]: [{id, name}, ...] }
+    function escapeHtml(s) {
+      return String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+    }
+    function loadSessionsMap() {
+      try { return JSON.parse(localStorage.getItem(SESSIONS_KEY)) || {}; }
+      catch { return {}; }
+    }
+    function saveSessionsMap(map) { localStorage.setItem(SESSIONS_KEY, JSON.stringify(map)); }
+    function ensureSessionsForEvent(ev) {
+      const map = loadSessionsMap();
+      if (!map[ev] || map[ev].length === 0) {
+        map[ev] = [{ id: "s1", name: "Session 1" }];
+        saveSessionsMap(map);
+      }
+      return map[ev];
+    }
+    function activeSessionStorageKey(ev) { return "tt-timer-active-session-" + ev; }
+    function getActiveSessionId(ev) {
+      const sessions = ensureSessionsForEvent(ev);
+      let id = localStorage.getItem(activeSessionStorageKey(ev));
+      if (!id || !sessions.some(s => s.id === id)) id = sessions[0].id;
+      return id;
+    }
+    function setActiveSessionId(ev, id) { localStorage.setItem(activeSessionStorageKey(ev), id); }
 
-  <div id="chat-widget" class="fixed bottom-6 right-6 z-50">
-    <button id="chat-toggle" class="btn-primary p-4 rounded-full shadow-2xl transition">
-      <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"></path></svg>
-    </button>
-    <div id="chat-window" class="hidden absolute bottom-16 right-0 w-80 rounded-2xl shadow-2xl border border-white/10 overflow-hidden flex flex-col h-96 surface-card">
-      <div class="p-4 font-bold flex justify-between items-center font-display" style="background:var(--cube-red); color:#fff;">
-        <span>Cubing Assistant</span>
-        <button id="close-chat" class="hover:text-white/70">✕</button>
-      </div>
-      <div id="chat-messages" class="flex-grow p-4 overflow-y-auto space-y-3" style="background:var(--bg-base);">
-        <div class="p-3 rounded-lg text-sm" style="background:rgba(255,255,255,0.06);">Hello! How can I help you with Twist &amp; Turn or speedcubing today?</div>
-      </div>
-      <div class="p-3 border-t border-white/10 flex">
-        <input type="text" id="chat-input" placeholder="Ask a rule..." class="flex-grow rounded-l-lg p-2 focus:outline-none" style="background:var(--bg-surface); color:var(--ink); border:1px solid rgba(255,255,255,0.1);">
-        <button id="send-btn" class="btn-primary px-4 rounded-r-lg">Send</button>
-      </div>
-    </div>
-  </div>
+    let currentSessionId = getActiveSessionId(currentEvent);
 
-  <section id="organizer" class="py-16">
-    <div class="max-w-4xl mx-auto px-4">
-      <p class="eyebrow mb-2">Who's Behind It</p>
-      <h2 class="font-display text-3xl font-bold mb-8">About the Organizer</h2>
-      <div class="interactive-card surface-card accent-border-blue flex flex-col md:flex-row items-center gap-8 p-8 rounded-2xl shadow-md">
-        <img src="organizer.jpg.jpeg" alt="Junaid Ekhlaque" class="w-48 h-48 rounded-full object-cover shadow-lg" style="border:4px solid var(--cube-blue);" onerror="this.onerror=null;this.src='https://placehold.co/200x200/2F6FE0/white?text=Organizer';">
+    function storageKey(ev, sessionId) { return "tt-timer-solves-" + ev + "-" + sessionId; }
+    function loadSolves() {
+      const key = storageKey(currentEvent, currentSessionId);
+      let raw = localStorage.getItem(key);
+      if (raw == null && currentSessionId === "s1") {
+        const legacy = localStorage.getItem("tt-timer-solves-" + currentEvent);
+        if (legacy != null) { raw = legacy; localStorage.setItem(key, legacy); }
+      }
+      try { return JSON.parse(raw || "[]"); }
+      catch { return []; }
+    }
+    function saveSolves(solves) {
+      localStorage.setItem(storageKey(currentEvent, currentSessionId), JSON.stringify(solves));
+    }
+
+    function renderSessionSelect() {
+      const sessions = ensureSessionsForEvent(currentEvent);
+      const sel = document.getElementById("session-select");
+      sel.innerHTML = sessions.map(s =>
+        `<option value="${s.id}" ${s.id === currentSessionId ? "selected" : ""}>${escapeHtml(s.name)}</option>`
+      ).join("");
+      document.getElementById("session-delete-btn").disabled = sessions.length <= 1;
+      document.getElementById("session-delete-btn").style.opacity = sessions.length <= 1 ? "0.35" : "1";
+      if (typeof updateIoSessionLabel === "function") updateIoSessionLabel();
+    }
+    document.getElementById("session-select").addEventListener("change", (e) => {
+      if (state !== "idle") { e.target.value = currentSessionId; return; }
+      currentSessionId = e.target.value;
+      setActiveSessionId(currentEvent, currentSessionId);
+      renderSolves();
+      renderStats();
+    });
+    document.getElementById("session-add-btn").addEventListener("click", () => {
+      const sessions = ensureSessionsForEvent(currentEvent);
+      const name = prompt("New session name:", "Session " + (sessions.length + 1));
+      if (!name || !name.trim()) return;
+      const map = loadSessionsMap();
+      const id = "s" + Date.now();
+      map[currentEvent] = [...(map[currentEvent] || sessions), { id, name: name.trim().slice(0, 40) }];
+      saveSessionsMap(map);
+      currentSessionId = id;
+      setActiveSessionId(currentEvent, id);
+      renderSessionSelect();
+      renderSolves();
+      renderStats();
+    });
+    document.getElementById("session-rename-btn").addEventListener("click", () => {
+      const sessions = ensureSessionsForEvent(currentEvent);
+      const cur = sessions.find(s => s.id === currentSessionId);
+      const name = prompt("Rename session:", cur ? cur.name : "");
+      if (!name || !name.trim()) return;
+      const map = loadSessionsMap();
+      map[currentEvent] = (map[currentEvent] || sessions).map(s =>
+        s.id === currentSessionId ? { ...s, name: name.trim().slice(0, 40) } : s
+      );
+      saveSessionsMap(map);
+      renderSessionSelect();
+    });
+    document.getElementById("session-delete-btn").addEventListener("click", () => {
+      const sessions = ensureSessionsForEvent(currentEvent);
+      if (sessions.length <= 1) return;
+      if (!confirm("Delete this session and all its solves? This can't be undone.")) return;
+      localStorage.removeItem(storageKey(currentEvent, currentSessionId));
+      const map = loadSessionsMap();
+      map[currentEvent] = (map[currentEvent] || sessions).filter(s => s.id !== currentSessionId);
+      saveSessionsMap(map);
+      currentSessionId = map[currentEvent][0].id;
+      setActiveSessionId(currentEvent, currentSessionId);
+      renderSessionSelect();
+      renderSolves();
+      renderStats();
+    });
+
+    // ==========================================================
+    // Timer state machine
+    // ==========================================================
+    const zone = document.getElementById("timer-zone");
+    const display = document.getElementById("timer-display");
+    const hint = document.getElementById("timer-hint");
+    const phaseReadout = document.getElementById("phase-readout");
+
+    let state = "idle"; // idle | inspecting | holding | ready | running
+    let holdStartAt = 0;
+    let holdTimeout = null;
+    let inspectionStartAt = 0;
+    let inspectionInterval = null;
+    let runStartAt = 0;
+    let runInterval = null;
+    let pendingPenalty = null; // null | "+2" | "DNF"
+    let HOLD_THRESHOLD_MS = 300; // overridden by settings.holdTimeMs once settings load
+
+    // ---- phases state ----
+    let phaseSplits = []; // ms since runStartAt for each split mark recorded so far
+
+    function fmt(ms) {
+      if (ms == null) return "—";
+      const totalCs = Math.round(ms / 10);
+      const cs = totalCs % 100;
+      const totalSec = Math.floor(totalCs / 100);
+      const sec = totalSec % 60;
+      const min = Math.floor(totalSec / 60);
+      const csStr = String(cs).padStart(2, "0");
+      if (min > 0) return `${min}:${String(sec).padStart(2, "0")}.${csStr}`;
+      return `${sec}.${csStr}`;
+    }
+
+    const csMain = document.querySelector(".cs-main");
+    function setZoneState(s) {
+      zone.classList.remove("state-holding", "state-ready", "state-running");
+      csMain.classList.remove("state-holding", "state-ready", "state-running");
+      if (s) { zone.classList.add("state-" + s); csMain.classList.add("state-" + s); }
+    }
+
+    function isTypingInField() {
+      const el = document.activeElement;
+      return el && (el.tagName === "INPUT" || el.tagName === "TEXTAREA");
+    }
+
+    function renderPhaseReadout() {
+      if (!settings.phasesEnabled) { phaseReadout.style.display = "none"; return; }
+      phaseReadout.style.display = "flex";
+      const n = settings.phasesCount;
+      let prev = 0;
+      const parts = [];
+      for (let i = 0; i < n; i++) {
+        if (i < phaseSplits.length) {
+          const dur = phaseSplits[i] - prev;
+          parts.push(`<span>P${i + 1}: <b>${fmt(dur)}</b></span>`);
+          prev = phaseSplits[i];
+        } else if (i === phaseSplits.length && state === "running") {
+          parts.push(`<span class="ph-current">P${i + 1}: …</span>`);
+        } else {
+          parts.push(`<span>P${i + 1}: -</span>`);
+        }
+      }
+      phaseReadout.innerHTML = parts.join("");
+    }
+
+    // ---- begin sequence (keydown / touchstart / manual button) ----
+    function beginPress() {
+      if (typeMode) return;
+      if (isTypingInField()) return;
+      hidePostSolvePanel();
+
+      // While running: if phases are enabled, a tap/press marks a split
+      // instead of stopping — until the final phase is reached, then it stops.
+      if (state === "running") {
+        if (settings.phasesEnabled && phaseSplits.length < settings.phasesCount - 1) {
+          phaseSplits.push(performance.now() - runStartAt);
+          renderPhaseReadout();
+          return;
+        }
+        stopTimer();
+        return;
+      }
+      if (state !== "idle") return; // already holding/inspecting
+
+      if (settings.inspection) {
+        state = "inspecting";
+        inspectionStartAt = performance.now();
+        setZoneState(null);
+        hint.textContent = "Inspecting… keep holding to get ready";
+        inspectionInterval = setInterval(() => {
+          const elapsed = (performance.now() - inspectionStartAt) / 1000;
+          const remain = Math.max(0, 15 - elapsed);
+          display.textContent = elapsed <= 15 ? remain.toFixed(0) + "s" : (elapsed <= 17 ? "+2" : "DNF");
+        }, 100);
+      } else {
+        state = "holding";
+        holdStartAt = performance.now();
+        setZoneState("holding");
+        hint.textContent = "Keep holding…";
+      }
+
+      holdTimeout = setTimeout(() => {
+        if (state === "holding" || state === "inspecting") {
+          state = "ready";
+          setZoneState("ready");
+          hint.textContent = "Release to start!";
+          display.textContent = "0.00";
+        }
+      }, HOLD_THRESHOLD_MS);
+    }
+
+    // ---- end sequence (keyup / touchend) ----
+    function endPress() {
+      if (isTypingInField()) return;
+
+      if (state === "ready") {
+        pendingPenalty = null;
+        if (settings.inspection && inspectionInterval) {
+          const elapsed = (performance.now() - inspectionStartAt) / 1000;
+          if (elapsed > 17) pendingPenalty = "DNF";
+          else if (elapsed > 15) pendingPenalty = "+2";
+        }
+        clearInterval(inspectionInterval); inspectionInterval = null;
+        clearTimeout(holdTimeout);
+        startTimer();
+        return;
+      }
+
+      if (state === "holding" || state === "inspecting") {
+        clearTimeout(holdTimeout);
+        clearInterval(inspectionInterval); inspectionInterval = null;
+        state = "idle";
+        setZoneState(null);
+        display.textContent = "0.00";
+        hint.textContent = "Hold SPACE (or press & hold here on mobile) to start";
+      }
+    }
+
+    function startTimer() {
+      state = "running";
+      phaseSplits = [];
+      renderPhaseReadout();
+      setZoneState("running");
+      hint.textContent = settings.phasesEnabled ? "Tap / SPACE to mark each phase" : "Tap / press SPACE to stop";
+      runStartAt = performance.now();
+      runInterval = setInterval(() => {
+        display.textContent = settings.hideRunningTime ? "●" : fmt(performance.now() - runStartAt);
+      }, 30);
+    }
+
+    function stopTimer() {
+      clearInterval(runInterval);
+      const elapsed = performance.now() - runStartAt;
+      if (settings.phasesEnabled) phaseSplits.push(elapsed); // final phase boundary = solve end
+      display.textContent = fmt(elapsed);
+      state = "idle";
+      setZoneState(null);
+      hint.textContent = "Hold SPACE (or press & hold here on mobile) to start";
+      renderPhaseReadout();
+
+      const prevBest = currentBestMs();
+      const newSolve = {
+        ms: Math.round(elapsed),
+        penalty: pendingPenalty,
+        scramble: scrambleTextEl.textContent,
+        at: new Date().toISOString(),
+        phases: settings.phasesEnabled ? phaseSplits.map(v => Math.round(v)) : null
+      };
+      addSolve(newSolve);
+      pendingPenalty = null;
+
+      const newMs = solveEffectiveMs(newSolve);
+      const isPb = newMs !== Infinity && (prevBest === null || newMs < prevBest);
+      showPostSolvePanel(isPb ? newSolve : null);
+      getNewScramble();
+    }
+
+    // ==========================================================
+    // Post-solve penalty panel (OK / +2 / DNF)
+    // ==========================================================
+    const postSolvePanel = document.getElementById("post-solve-panel");
+    const postSolveShareBtn = document.getElementById("post-solve-share-btn");
+    let postSolveHideTimeout = null;
+
+    function showPostSolvePanel(pbSolve) {
+      postSolvePanel.classList.remove("hidden");
+      postSolvePanel.classList.add("flex");
+      if (pbSolve) {
+        postSolveShareBtn.classList.remove("hidden");
+        postSolveShareBtn.onclick = () => openShareModal(buildShareText(pbSolve));
+        celebratePB();
+      } else {
+        postSolveShareBtn.classList.add("hidden");
+      }
+      checkForNewAchievements();
+      if (settings.competitionMode) maybeFinishCompetitionAttempt();
+      clearTimeout(postSolveHideTimeout);
+      postSolveHideTimeout = setTimeout(hidePostSolvePanel, 8000);
+    }
+    function hidePostSolvePanel() {
+      postSolvePanel.classList.add("hidden");
+      postSolvePanel.classList.remove("flex");
+      clearTimeout(postSolveHideTimeout);
+    }
+    postSolvePanel.querySelectorAll(".post-penalty-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const solves = loadSolves();
+        if (solves.length === 0) return;
+        const p = btn.dataset.p;
+        solves[0].penalty = p === "ok" ? null : p === "+2" ? "+2" : "DNF";
+        saveSolves(solves);
+        renderSolves();
+        renderStats();
+        hidePostSolvePanel();
+      });
+    });
+
+    // Keyboard
+    document.addEventListener("keydown", (e) => {
+      if (e.code !== "Space" || e.repeat) return;
+      if (isTypingInField()) return;
+      e.preventDefault();
+      beginPress();
+    });
+    document.addEventListener("keyup", (e) => {
+      if (e.code !== "Space") return;
+      if (isTypingInField()) return;
+      e.preventDefault();
+      endPress();
+    });
+
+    function setLastSolvePenalty(penalty) {
+      const solves = loadSolves();
+      if (solves.length === 0) return;
+      solves[0].penalty = solves[0].penalty === penalty ? null : penalty;
+      saveSolves(solves);
+      renderSolves();
+      renderStats();
+    }
+    document.addEventListener("keydown", (e) => {
+      if (isTypingInField() || state !== "idle" || e.repeat) return;
+      if (e.code === "Backspace" || e.code === "Delete") {
+        const solves = loadSolves();
+        if (solves.length === 0) return;
+        e.preventDefault();
+        deleteSolve(0);
+      } else if (e.key === "2") {
+        setLastSolvePenalty("+2");
+      } else if (e.key === "d" || e.key === "D") {
+        setLastSolvePenalty("DNF");
+      }
+    });
+
+    const TOUCH_ZONE_EXCLUDE_SELECTOR = [
+      ".cs-topbar", ".cs-scramble-bar", ".cs-sidebar", "#below-timer-avgs",
+      "#post-solve-panel", "#settings-drawer", "#settings-backdrop",
+      "#sidebar-backdrop", "#share-backdrop", "#scramble-preview-box",
+      "button", "select", "input", "textarea", "a", "scramble-display"
+    ].join(", ");
+    function isExcludedFromTimerZone(target) {
+      return !!(target && target.closest && target.closest(TOUCH_ZONE_EXCLUDE_SELECTOR));
+    }
+    document.addEventListener("touchstart", (e) => {
+      if (isExcludedFromTimerZone(e.target)) return;
+      e.preventDefault();
+      beginPress();
+    }, { passive: false });
+    document.addEventListener("touchend", (e) => {
+      if (isExcludedFromTimerZone(e.target)) return;
+      e.preventDefault();
+      endPress();
+    }, { passive: false });
+    document.addEventListener("mousedown", (e) => {
+      if (isExcludedFromTimerZone(e.target)) return;
+      beginPress();
+    });
+    document.addEventListener("mouseup", (e) => {
+      if (isExcludedFromTimerZone(e.target)) return;
+      endPress();
+    });
+
+    const manualBtn = document.getElementById("manual-start-btn");
+    manualBtn.addEventListener("click", () => {
+      if (state === "running") { beginPress(); return; } // reuse phase/stop logic
+      if (state === "idle") {
+        beginPress();
+        setTimeout(() => { if (state === "holding" || state === "ready" || state === "inspecting") endPress(); }, HOLD_THRESHOLD_MS + 20);
+      }
+    });
+
+    // ==========================================================
+    // Type-a-time mode
+    // ==========================================================
+    let typeMode = false;
+    const typeInput = document.getElementById("type-time-input");
+
+    function setTypeMode(on) {
+      typeMode = on;
+      hidePostSolvePanel();
+      if (on) {
+        display.classList.add("hidden");
+        typeInput.classList.remove("hidden");
+        manualBtn.classList.add("hidden");
+        typeInput.value = "";
+        hint.textContent = "Type digits (e.g. 1234 → 12.34, 10345 → 1:03.45) and press Enter. Type dnf for a DNF.";
+        setZoneState(null);
+        typeInput.focus();
+      } else {
+        display.classList.remove("hidden");
+        typeInput.classList.add("hidden");
+        manualBtn.classList.remove("hidden");
+        hint.textContent = "Hold SPACE (or press & hold here on mobile) to start";
+      }
+    }
+
+    function digitsToTimeString(digits) {
+      digits = digits.replace(/\D/g, "");
+      if (digits.length === 0) return "";
+      digits = digits.slice(-7);
+      const padded = digits.padStart(3, "0");
+      const cs = padded.slice(-2);
+      let secMin = padded.slice(0, -2).padStart(2, "0");
+      const sec = secMin.slice(-2);
+      const minPart = secMin.slice(0, -2);
+      if (minPart.length > 0) {
+        return `${parseInt(minPart, 10)}:${sec}.${cs}`;
+      }
+      return `${parseInt(sec, 10)}.${cs}`;
+    }
+
+    typeInput.addEventListener("input", () => {
+      const raw = typeInput.value;
+      if (/^dnf$/i.test(raw.trim())) { typeInput.value = raw.trim().toUpperCase(); return; }
+      if (/^[dnf]*$/i.test(raw.trim()) && /[a-z]/i.test(raw)) return;
+      const hasPlus = raw.trim().endsWith("+");
+      const digitsOnly = raw.replace(/[^\d]/g, "");
+      if (digitsOnly.length === 0) { typeInput.value = ""; return; }
+      let formatted = digitsToTimeString(digitsOnly);
+      if (hasPlus) formatted += "+";
+      typeInput.value = formatted;
+    });
+
+    function parseTypedTime(str) {
+      str = str.trim().toLowerCase();
+      if (str === "dnf") return { ms: null, penalty: "DNF" };
+      let penalty = null;
+      if (str.endsWith("+2") || str.endsWith("+")) {
+        penalty = "+2";
+        str = str.replace(/\+2$|\+$/, "").trim();
+      }
+      const m = str.match(/^(?:(\d+):)?(\d+(?:\.\d+)?)$/);
+      if (!m) return null;
+      const min = m[1] ? parseInt(m[1], 10) : 0;
+      const sec = parseFloat(m[2]);
+      const ms = Math.round((min * 60 + sec) * 1000);
+      return { ms, penalty };
+    }
+
+    function addTypedTime() {
+      const parsed = parseTypedTime(typeInput.value);
+      if (!parsed) {
+        typeInput.classList.add("ring-2");
+        setTimeout(() => typeInput.classList.remove("ring-2"), 400);
+        return;
+      }
+      const prevBest = currentBestMs();
+      const newSolve = {
+        ms: parsed.ms,
+        penalty: parsed.penalty,
+        scramble: scrambleTextEl.textContent,
+        at: new Date().toISOString(),
+        phases: null
+      };
+      addSolve(newSolve);
+      const newMs = solveEffectiveMs(newSolve);
+      const isPb = newMs !== Infinity && (prevBest === null || newMs < prevBest);
+      showPostSolvePanel(isPb ? newSolve : null);
+      typeInput.value = "";
+      getNewScramble();
+    }
+    typeInput.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") { e.preventDefault(); addTypedTime(); }
+    });
+
+    // ==========================================================
+    // Solves — storage, list, stats
+    // ==========================================================
+    function solveEffectiveMs(solve) {
+      if (solve.penalty === "DNF") return Infinity;
+      if (solve.penalty === "+2") return solve.ms + 2000;
+      return solve.ms;
+    }
+    function currentBestMs() {
+      const valid = loadSolves().map(solveEffectiveMs).filter(v => v !== Infinity);
+      return valid.length ? Math.min(...valid) : null;
+    }
+    function computePbFlags(solves) {
+      const flags = new Array(solves.length).fill(false);
+      let runningBest = Infinity;
+      for (let i = solves.length - 1; i >= 0; i--) {
+        const ms = solveEffectiveMs(solves[i]);
+        if (ms !== Infinity && ms < runningBest) {
+          runningBest = ms;
+          flags[i] = true;
+        }
+      }
+      return flags;
+    }
+    function buildShareText(solve) {
+      const d = new Date(solve.at);
+      const dateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+      const timeStr = solveDisplay(solve);
+      const eventLabel = (EVENTS.find(e => e.id === currentEvent) || {}).label || currentEvent;
+      let text = `Generated By Twist & Turn on ${dateStr}\n${eventLabel}: ${timeStr}\nTime List:\n1. ${timeStr}   ${solve.scramble}`;
+      if (solve.phases && solve.phases.length) {
+        let prev = 0;
+        const parts = solve.phases.map((p, i) => { const d2 = p - prev; prev = p; return `P${i + 1} ${fmt(d2)}`; });
+        text += `\nPhases: ${parts.join(" / ")}`;
+      }
+      return text;
+    }
+    function solveDisplay(solve) {
+      if (solve.penalty === "DNF") return "DNF";
+      const base = fmt(solve.ms);
+      return solve.penalty === "+2" ? base + "+" : base;
+    }
+
+    function addSolve(solve) {
+      const solves = loadSolves();
+      solves.unshift(solve);
+      saveSolves(solves);
+      renderSolves();
+      renderStats();
+    }
+
+    function deleteSolve(index) {
+      const solves = loadSolves();
+      solves.splice(index, 1);
+      saveSolves(solves);
+      renderSolves();
+      renderStats();
+    }
+
+    function cyclePenalty(index) {
+      const solves = loadSolves();
+      const s = solves[index];
+      s.penalty = s.penalty === null ? "+2" : s.penalty === "+2" ? "DNF" : null;
+      saveSolves(solves);
+      renderSolves();
+      renderStats();
+    }
+
+    function renderSolves() {
+      const solves = loadSolves();
+      const listEl = document.getElementById("solve-list");
+      if (solves.length === 0) {
+        listEl.innerHTML = `<p class="p-6 text-center text-xs" style="color:var(--ink-muted);">No solves yet</p>`;
+        return;
+      }
+      const pbFlags = computePbFlags(solves);
+      listEl.innerHTML = solves.map((s, i) => {
+        const n = solves.length - i;
+        const ao5win = solves.slice(i, i + 5).map(solveEffectiveMs);
+        const ao12win = solves.slice(i, i + 12).map(solveEffectiveMs);
+        const ao5 = ao5win.length === 5 ? average(ao5win) : null;
+        const ao12 = ao12win.length === 12 ? average(ao12win) : null;
+        const fmtAvg = v => v == null ? "-" : v === "DNF" ? "DNF" : fmt(v);
+        return `
+        <div class="cs-solve-row" title="${s.scramble}">
+          <span style="color:var(--ink-muted);">${n}</span>
+          <span class="truncate flex items-center gap-1" style="${s.penalty === "DNF" ? "color:var(--cube-red);" : ""}">
+            ${solveDisplay(s)}${pbFlags[i] ? ` <span title="Personal best at the time">🏆</span>` : ""}
+          </span>
+          <span style="color:var(--ink-muted);">${fmtAvg(ao5)}</span>
+          <span style="color:var(--ink-muted);">${fmtAvg(ao12)}</span>
+          <span class="flex items-center gap-1">
+            <button data-i="${i}" class="share-btn cs-del" style="color:var(--cube-blue);" title="Share">📤</button>
+            <button data-i="${i}" class="penalty-btn cs-del" style="color:var(--ink-muted);" title="+2 / DNF">⚑</button>
+            <button data-i="${i}" class="delete-btn cs-del" title="Delete">✕</button>
+          </span>
+        </div>`;
+      }).join("");
+      listEl.querySelectorAll(".penalty-btn").forEach(b => b.addEventListener("click", () => cyclePenalty(parseInt(b.dataset.i))));
+      listEl.querySelectorAll(".delete-btn").forEach(b => b.addEventListener("click", () => deleteSolve(parseInt(b.dataset.i))));
+      listEl.querySelectorAll(".share-btn").forEach(b => b.addEventListener("click", () => openShareModal(buildShareText(solves[parseInt(b.dataset.i)]))));
+    }
+
+    function average(msArray) {
+      if (msArray.length === 0) return null;
+      const dnfCount = msArray.filter(v => v === Infinity).length;
+      if (dnfCount >= 2) return "DNF";
+      const sorted = [...msArray].sort((a, b) => a - b);
+      const trimmed = sorted.slice(1, -1);
+      if (trimmed.some(v => v === Infinity)) return "DNF";
+      const sum = trimmed.reduce((a, b) => a + b, 0);
+      return sum / trimmed.length;
+    }
+
+    function computeAvgText(solves, n) {
+      if (solves.length < n) return "-";
+      const avg = average(solves.slice(0, n).map(solveEffectiveMs));
+      return avg === "DNF" ? "DNF" : avg == null ? "-" : fmt(avg);
+    }
+
+    function bpaFromWindow(msArray) {
+      if (msArray.length === 0) return null;
+      const trimmed = [...msArray].sort((a, b) => a - b).slice(0, -1);
+      if (trimmed.length === 0) return null;
+      if (trimmed.some(v => v === Infinity)) return "DNF";
+      return trimmed.reduce((a, b) => a + b, 0) / trimmed.length;
+    }
+    function wpaFromWindow(msArray) {
+      if (msArray.length === 0) return null;
+      const trimmed = [...msArray].sort((a, b) => a - b).slice(1);
+      if (trimmed.length === 0) return null;
+      if (trimmed.some(v => v === Infinity)) return "DNF";
+      return trimmed.reduce((a, b) => a + b, 0) / trimmed.length;
+    }
+    function computeBpaWpaText(solves, n) {
+      if (solves.length < n - 1) return { bpa: "-", wpa: "-" };
+      const win = solves.slice(0, n - 1).map(solveEffectiveMs);
+      const bpa = bpaFromWindow(win);
+      const wpa = wpaFromWindow(win);
+      return {
+        bpa: bpa === "DNF" ? "DNF" : bpa == null ? "-" : fmt(bpa),
+        wpa: wpa === "DNF" ? "DNF" : wpa == null ? "-" : fmt(wpa)
+      };
+    }
+
+    function renderStats() {
+      const solves = loadSolves();
+      const validCount = solves.filter(s => s.penalty !== "DNF").length;
+      document.getElementById("stat-count").textContent = `${validCount}/${solves.length}`;
+
+      document.getElementById("stat-current").textContent = solves.length ? solveDisplay(solves[0]) : "-";
+
+      const valid = solves.map(solveEffectiveMs).filter(v => v !== Infinity);
+      const best = valid.length ? Math.min(...valid) : null;
+      document.getElementById("stat-best").textContent = best != null ? fmt(best) : "-";
+
+      const meanEl = document.getElementById("stat-mean");
+      const meanMs = valid.length ? valid.reduce((a, b) => a + b, 0) / valid.length : null;
+      meanEl.textContent = valid.length === 0 ? "DNF" : fmt(meanMs);
+
+      const stddevEl = document.getElementById("stat-stddev");
+      if (valid.length < 2) {
+        stddevEl.textContent = "-";
+      } else {
+        const variance = valid.reduce((a, v) => a + (v - meanMs) ** 2, 0) / valid.length;
+        stddevEl.textContent = fmt(Math.sqrt(variance));
+      }
+
+      // Ao5 / Ao12 stay right below the timer, each with its own share icon
+      const belowEl = document.getElementById("below-timer-avgs");
+      belowEl.innerHTML = [5, 12].map(n => {
+        const { bpa, wpa } = computeBpaWpaText(solves, n);
+        return `
         <div>
-          <h3 class="font-display text-2xl font-bold">Junaid Ekhlaque</h3>
-          <p class="font-semibold mb-4" style="color:var(--cube-blue);">Founder, Twist &amp; Turn</p>
-          <p class="leading-relaxed" style="color:var(--ink-muted);">
-            A passionate speedcuber dedicated to building a fair and competitive environment. Twist &amp; Turn was born from the desire to bring cubers together, regardless of their skill level, to learn, compete, and grow.
-          </p>
-          <div class="mt-6 flex flex-wrap gap-4">
-            <a href="https://www.worldcubeassociation.org/persons/2024EKHL01" target="_blank" class="btn-primary inline-block py-3 px-6 rounded-lg shadow-md transition transform hover:-translate-y-1">WCA PROFILE</a>
-            <a href="https://www.instagram.com/cuber_junaid_007/" target="_blank" class="inline-block font-display font-semibold py-3 px-6 rounded-lg shadow-md transition transform hover:-translate-y-1" style="background:var(--cube-blue); color:#fff;">INSTAGRAM</a>
+          <span class="cs-avg-label">Ao${n}: </span><span class="cs-avg-value">${computeAvgText(solves, n)}</span>
+          <button type="button" class="cs-avg-share-btn share-avg-btn" data-n="${n}" title="Share Ao${n}">📤</button>
+          <div class="font-mono" style="font-size:0.65rem; color:var(--ink-muted); margin-top:0.15rem;">BPA ${bpa} · WPA ${wpa}</div>
+        </div>`;
+      }).join("");
+      belowEl.querySelectorAll(".share-avg-btn").forEach(b => b.addEventListener("click", () => shareAverage(parseInt(b.dataset.n))));
+
+      const extraEl = document.getElementById("sidebar-extra-avgs");
+      const extras = [...settings.avgs].filter(n => n !== 5 && n !== 12).sort((a, b) => a - b);
+      extraEl.innerHTML = extras.map(n => {
+        const { bpa, wpa } = computeBpaWpaText(solves, n);
+        return `
+        <div class="cs-sidebar-avg-row" style="align-items:flex-start;">
+          <div style="display:flex; flex-direction:column; gap:0.15rem;">
+            <span>Ao${n}: <b>${computeAvgText(solves, n)}</b></span>
+            <span style="font-size:0.65rem; color:var(--ink-muted);">BPA ${bpa} · WPA ${wpa}</span>
           </div>
-        </div>
-      </div>
-    </div>
-  </section>
+          <button type="button" class="cs-avg-share-btn share-avg-btn" data-n="${n}" title="Share Ao${n}">📤</button>
+        </div>`;
+      }).join("");
+      extraEl.querySelectorAll(".share-avg-btn").forEach(b => b.addEventListener("click", () => shareAverage(parseInt(b.dataset.n))));
+    }
 
-  <section id="contact" class="py-16" style="background:var(--bg-surface);">
-    <div class="max-w-4xl mx-auto px-4">
-      <p class="eyebrow mb-2">Get In Touch</p>
-      <h2 class="font-display text-3xl font-bold mb-8">Contact Us</h2>
-      <div class="rounded-2xl shadow-xl p-8 md:p-10" style="background:var(--cube-red);">
-        <p class="text-lg text-white/90">For queries, registrations, or event-related details, feel free to reach out.</p>
-        <div class="mt-6 space-y-4 text-lg text-white">
-          <div>
-            <span class="font-semibold">Email:</span>
-            <a href="mailto:twistandturn.organization@gmail.com" class="underline hover:text-white/80">twistandturn.organization@gmail.com</a>
-          </div>
-          <div>
-            <span class="font-semibold">Instagram:</span>
-            <a href="https://www.instagram.com/cuber_junaid_007/" target="_blank" class="underline hover:text-white/80">@cuber_junaid_007</a>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
+    function shareAverage(n) {
+      const solves = loadSolves();
+      if (solves.length < n) return;
+      const windowSolves = solves.slice(0, n);
+      const avg = average(windowSolves.map(solveEffectiveMs));
+      const avgStr = avg === "DNF" ? "DNF" : avg == null ? "-" : fmt(avg);
+      const d = new Date();
+      const dateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+      const eventLabel = (EVENTS.find(e => e.id === currentEvent) || {}).label || currentEvent;
+      const chronological = [...windowSolves].reverse();
+      const lines = chronological.map((s, i) => `${i + 1}. ${solveDisplay(s)}   ${s.scramble}`);
+      const text = `Generated By Twist & Turn on ${dateStr}\n${eventLabel} - Ao${n}: ${avgStr}\nTime List:\n${lines.join("\n")}`;
+      openShareModal(text);
+    }
 
-</main>
+    document.getElementById("clear-session-btn").addEventListener("click", () => {
+      if (!confirm("Clear all solves in this session? This can't be undone.")) return;
+      saveSolves([]);
+      renderSolves();
+      renderStats();
+    });
 
-<footer class="py-8 text-center font-mono text-xs" style="color:var(--ink-muted); border-top:1px solid rgba(255,255,255,0.06);">
-  © 2026 Twist &amp; Turn — Speedcubing Arena
-</footer>
+    // ==========================================================
+    // Settings
+    // ==========================================================
+    const SETTINGS_KEY = "tt-timer-settings";
+    const DEFAULT_SETTINGS = {
+      manualMode: false, inspection: false, theme: "dark", avgs: [5, 12, 25], showPreview: true,
+      holdTimeMs: 300, hideRunningTime: false, timerColor: "var(--cube-blue)",
+      phasesEnabled: false, phasesCount: 3, competitionMode: false,
+      customColors: { board: null, scramble: null, sidebar: null, page: null, text: null }
+    };
+    function loadSettings() {
+      try {
+        const s = { ...DEFAULT_SETTINGS, ...JSON.parse(localStorage.getItem(SETTINGS_KEY)) };
+        s.customColors = { ...DEFAULT_SETTINGS.customColors, ...(s.customColors || {}) };
+        if (!s.avgs.includes(25)) s.avgs.push(25);
+        return s;
+      }
+      catch { return { ...DEFAULT_SETTINGS }; }
+    }
+    function saveSettings(s) { localStorage.setItem(SETTINGS_KEY, JSON.stringify(s)); }
+    let settings = loadSettings();
 
-  <script src="script.js"></script>
+    function applyTheme(theme) {
+      document.documentElement.setAttribute("data-theme", theme);
+      document.querySelectorAll(".theme-btn").forEach(b => {
+        const active = b.dataset.themeBtn === theme;
+        b.style.background = active ? "var(--cube-blue)" : "var(--bg-base)";
+        b.style.color = active ? "#fff" : "var(--ink-muted)";
+        b.style.border = active ? "none" : "1px solid rgba(255,255,255,0.1)";
+      });
+    }
+    document.querySelectorAll(".theme-btn").forEach(b => {
+      b.addEventListener("click", () => {
+        settings.theme = b.dataset.themeBtn;
+        saveSettings(settings);
+        applyTheme(settings.theme);
+      });
+    });
+
+    const settingsBtn = document.getElementById("settings-btn");
+    const settingsDrawer = document.getElementById("settings-drawer");
+    const settingsBackdrop = document.getElementById("settings-backdrop");
+    const settingsCloseBtn = document.getElementById("settings-close-btn");
+    function openSettings() { settingsBackdrop.classList.remove("hidden"); settingsDrawer.style.transform = "translateX(0)"; }
+    function closeSettings() { settingsBackdrop.classList.add("hidden"); settingsDrawer.style.transform = "translateX(100%)"; }
+    settingsBtn.addEventListener("click", openSettings);
+    settingsCloseBtn.addEventListener("click", closeSettings);
+    settingsBackdrop.addEventListener("click", closeSettings);
+
+    const settingManual = document.getElementById("setting-manual");
+    const settingInspection = document.getElementById("setting-inspection");
+    settingManual.checked = settings.manualMode;
+    settingInspection.checked = settings.inspection;
+    settingManual.addEventListener("change", () => {
+      if (state !== "idle") { settingManual.checked = settings.manualMode; return; }
+      settings.manualMode = settingManual.checked;
+      saveSettings(settings);
+      setTypeMode(settings.manualMode);
+    });
+    settingInspection.addEventListener("change", () => {
+      settings.inspection = settingInspection.checked;
+      saveSettings(settings);
+    });
+
+    const settingPreview = document.getElementById("setting-preview");
+    settingPreview.checked = settings.showPreview;
+    settingPreview.addEventListener("change", () => {
+      settings.showPreview = settingPreview.checked;
+      saveSettings(settings);
+      updateScramblePreview(scrambleTextEl.textContent);
+    });
+
+    // ---- Phases settings ----
+    const settingPhasesEnabled = document.getElementById("setting-phases-enabled");
+    const settingPhasesCount = document.getElementById("setting-phases-count");
+    settingPhasesEnabled.checked = settings.phasesEnabled;
+    settingPhasesCount.value = String(settings.phasesCount);
+    settingPhasesEnabled.addEventListener("change", () => {
+      settings.phasesEnabled = settingPhasesEnabled.checked;
+      saveSettings(settings);
+      renderPhaseReadout();
+    });
+    settingPhasesCount.addEventListener("change", () => {
+      settings.phasesCount = parseInt(settingPhasesCount.value, 10);
+      saveSettings(settings);
+      renderPhaseReadout();
+    });
+
+    const settingHoldTime = document.getElementById("setting-hold-time");
+    settingHoldTime.value = String(settings.holdTimeMs);
+    HOLD_THRESHOLD_MS = settings.holdTimeMs;
+    settingHoldTime.addEventListener("change", () => {
+      settings.holdTimeMs = parseInt(settingHoldTime.value, 10);
+      saveSettings(settings);
+      HOLD_THRESHOLD_MS = settings.holdTimeMs;
+    });
+
+    const settingHideRunning = document.getElementById("setting-hide-running");
+    settingHideRunning.checked = settings.hideRunningTime;
+    settingHideRunning.addEventListener("change", () => {
+      settings.hideRunningTime = settingHideRunning.checked;
+      saveSettings(settings);
+    });
+
+    function applyTimerColor(color) {
+      document.documentElement.style.setProperty("--timer-running-color", color);
+      document.querySelectorAll(".timer-color-btn").forEach(b => {
+        b.classList.toggle("selected", b.dataset.color === color);
+      });
+    }
+    applyTimerColor(settings.timerColor);
+    document.querySelectorAll(".timer-color-btn").forEach(b => {
+      b.addEventListener("click", () => {
+        settings.timerColor = b.dataset.color;
+        saveSettings(settings);
+        applyTimerColor(settings.timerColor);
+      });
+    });
+
+    document.querySelectorAll(".avg-toggle").forEach(cb => {
+      const n = parseInt(cb.dataset.avg, 10);
+      cb.checked = settings.avgs.includes(n);
+      cb.addEventListener("change", () => {
+        if (cb.checked) { if (!settings.avgs.includes(n)) settings.avgs.push(n); }
+        else { settings.avgs = settings.avgs.filter(v => v !== n); }
+        saveSettings(settings);
+        renderStats();
+      });
+    });
+
+    // ---- Full color customization wiring ----
+    // Maps each customizable area to the CSS variable it should override.
+    const COLOR_TARGET_VAR = {
+      board: "--board-bg-color",
+      scramble: "--scramble-bg-color",
+      sidebar: "--bg-surface",
+      page: "--bg-base",
+      text: "--ink"
+    };
+    function applyCustomColors() {
+      Object.entries(settings.customColors).forEach(([target, value]) => {
+        const cssVar = COLOR_TARGET_VAR[target];
+        if (!cssVar) return;
+        if (value) document.documentElement.style.setProperty(cssVar, value);
+        else document.documentElement.style.removeProperty(cssVar);
+      });
+    }
+    document.querySelectorAll(".color-pick").forEach(input => {
+      const target = input.dataset.target;
+      if (settings.customColors[target]) input.value = settings.customColors[target];
+      input.addEventListener("input", () => {
+        settings.customColors[target] = input.value;
+        saveSettings(settings);
+        applyCustomColors();
+      });
+    });
+    document.getElementById("color-reset-btn").addEventListener("click", () => {
+      settings.customColors = { ...DEFAULT_SETTINGS.customColors };
+      saveSettings(settings);
+      applyCustomColors();
+      document.querySelectorAll(".color-pick").forEach(input => {
+        input.value = input.getAttribute("value");
+      });
+    });
+    applyCustomColors();
+
+    // ==========================================================
+    // Mobile session drawer
+    // ==========================================================
+    const csSidebar = document.getElementById("cs-sidebar");
+    const sidebarBackdrop = document.getElementById("sidebar-backdrop");
+    const sidebarOpenBtn = document.getElementById("sidebar-open-btn");
+    const sidebarCloseBtn = document.getElementById("sidebar-close-btn");
+    function openSidebar() {
+      csSidebar.classList.add("cs-sidebar-open");
+      sidebarBackdrop.classList.remove("hidden");
+    }
+    function closeSidebar() {
+      csSidebar.classList.remove("cs-sidebar-open");
+      sidebarBackdrop.classList.add("hidden");
+    }
+    sidebarOpenBtn.addEventListener("click", openSidebar);
+    sidebarCloseBtn.addEventListener("click", closeSidebar);
+    sidebarBackdrop.addEventListener("click", closeSidebar);
+
+    // ==========================================================
+    // Fullscreen practice mode
+    // ==========================================================
+    const fsBtn = document.getElementById("fullscreen-btn");
+    async function enterFullscreen() {
+      try { await document.documentElement.requestFullscreen(); } catch (e) { }
+      document.body.classList.add("fs-active");
+      fsBtn.textContent = "✕";
+      fsBtn.title = "Exit Fullscreen";
+    }
+    async function exitFullscreen() {
+      if (document.fullscreenElement) { try { await document.exitFullscreen(); } catch (e) { } }
+      document.body.classList.remove("fs-active");
+      fsBtn.textContent = "⛶";
+      fsBtn.title = "Fullscreen";
+    }
+    fsBtn.addEventListener("click", () => {
+      document.body.classList.contains("fs-active") ? exitFullscreen() : enterFullscreen();
+    });
+    document.addEventListener("fullscreenchange", () => {
+      if (!document.fullscreenElement) { document.body.classList.remove("fs-active"); fsBtn.textContent = "⛶"; fsBtn.title = "Fullscreen"; }
+    });
+
+    // ==========================================================
+    // Share modal
+    // ==========================================================
+    const shareBackdrop = document.getElementById("share-backdrop");
+    const sharePreview = document.getElementById("share-preview");
+    const shareNativeBtn = document.getElementById("share-native-btn");
+    const shareWhatsappBtn = document.getElementById("share-whatsapp-btn");
+    const shareCopyBtn = document.getElementById("share-copy-btn");
+    let currentShareText = "";
+
+    function openShareModal(text) {
+      currentShareText = text;
+      sharePreview.textContent = text;
+      shareWhatsappBtn.href = "https://wa.me/?text=" + encodeURIComponent(text);
+      shareNativeBtn.classList.toggle("hidden", !navigator.share);
+      shareBackdrop.classList.remove("hidden");
+      shareBackdrop.classList.add("flex");
+    }
+    function closeShareModal() {
+      shareBackdrop.classList.add("hidden");
+      shareBackdrop.classList.remove("flex");
+    }
+    document.getElementById("share-close-btn").addEventListener("click", closeShareModal);
+    shareBackdrop.addEventListener("click", (e) => { if (e.target === shareBackdrop) closeShareModal(); });
+    shareNativeBtn.addEventListener("click", async () => {
+      try { await navigator.share({ text: currentShareText }); } catch (e) { }
+    });
+    shareCopyBtn.addEventListener("click", async () => {
+      try {
+        await navigator.clipboard.writeText(currentShareText);
+        shareCopyBtn.textContent = "✅ Copied";
+      } catch (e) {
+        shareCopyBtn.textContent = "⚠️ Failed";
+      }
+      setTimeout(() => { shareCopyBtn.textContent = "📋 Copy"; }, 1500);
+    });
+
+    // ==========================================================
+    // Hardware Timer Support (Web Bluetooth)
+    // ==========================================================
+    function crc16CcittFalse(bytes) {
+      let crc = 0xFFFF;
+      for (let i = 0; i < bytes.length; i++) {
+        crc ^= (bytes[i] << 8);
+        for (let b = 0; b < 8; b++) {
+          crc = (crc & 0x8000) ? ((crc << 1) ^ 0x1021) & 0xFFFF : (crc << 1) & 0xFFFF;
+        }
+      }
+      return crc;
+    }
+
+    const GAN_STATE = {
+      GET_SET: 0x01, HANDS_OFF: 0x02, RUNNING: 0x03, STOPPED: 0x04,
+      IDLE: 0x05, HANDS_ON: 0x06, FINISHED: 0x07,
+    };
+
+    function parseGanTimerFrame(dataView) {
+      const bytes = new Uint8Array(dataView.buffer, dataView.byteOffset, dataView.byteLength);
+      if (bytes.length < 4 || bytes[0] !== 0xFE) return null;
+      const len = bytes[1];
+      if (bytes.length < 2 + len || len < 4) return null;
+      const dataAndCrc = bytes.slice(2, 2 + len);
+      const dataPart = dataAndCrc.slice(0, dataAndCrc.length - 2);
+      const crcBytes = dataAndCrc.slice(dataAndCrc.length - 2);
+      const expectedCrc = crcBytes[0] | (crcBytes[1] << 8);
+      if (crc16CcittFalse(dataPart) !== expectedCrc) {
+        console.warn("[HardwareTimer] CRC mismatch, dropping frame:", bytes);
+        return null;
+      }
+      if (dataPart[0] !== 0x01) return null;
+      const stateCode = dataPart[1];
+      let elapsedMs = null;
+      if (dataPart.length >= 6 && (stateCode === GAN_STATE.STOPPED || stateCode === GAN_STATE.IDLE)) {
+        const minutes = dataPart[2], seconds = dataPart[3];
+        const millis = dataPart[4] | (dataPart[5] << 8);
+        elapsedMs = (minutes * 60 + seconds) * 1000 + millis;
+      }
+      return { stateCode, elapsedMs };
+    }
+
+    function finalizeSolveFromHardware(elapsedMs) {
+      clearInterval(runInterval);
+      display.textContent = fmt(elapsedMs);
+      state = "idle";
+      setZoneState(null);
+      hint.textContent = "Hold SPACE (or press & hold here on mobile) to start";
+
+      const prevBest = currentBestMs();
+      const newSolve = {
+        ms: Math.round(elapsedMs),
+        penalty: pendingPenalty,
+        scramble: scrambleTextEl.textContent,
+        at: new Date().toISOString(),
+        phases: null
+      };
+      addSolve(newSolve);
+      pendingPenalty = null;
+
+      const newMs = solveEffectiveMs(newSolve);
+      const isPb = newMs !== Infinity && (prevBest === null || newMs < prevBest);
+      showPostSolvePanel(isPb ? newSolve : null);
+      getNewScramble();
+    }
+
+    function routeHardwareState(stateCode, elapsedMs) {
+      if (typeMode) return;
+
+      switch (stateCode) {
+        case GAN_STATE.HANDS_ON:
+          if (state === "idle") {
+            hidePostSolvePanel();
+            state = "holding";
+            setZoneState("holding");
+            hint.textContent = "Hardware: hands on — keep them on the timer…";
+          }
+          break;
+
+        case GAN_STATE.HANDS_OFF:
+          if (state === "holding" || state === "ready") {
+            state = "idle";
+            setZoneState(null);
+            display.textContent = "0.00";
+            hint.textContent = "Hold SPACE (or press & hold here on mobile) to start";
+          }
+          break;
+
+        case GAN_STATE.GET_SET:
+          if (state === "holding") {
+            state = "ready";
+            setZoneState("ready");
+            hint.textContent = "Hardware ready — lift hands to start!";
+            display.textContent = "0.00";
+          }
+          break;
+
+        case GAN_STATE.RUNNING:
+          if (state === "ready" || state === "idle" || state === "holding") {
+            startTimer();
+          }
+          break;
+
+        case GAN_STATE.STOPPED:
+          if (state === "running") {
+            const ms = elapsedMs != null ? elapsedMs : (performance.now() - runStartAt);
+            finalizeSolveFromHardware(ms);
+          }
+          break;
+
+        case GAN_STATE.IDLE:
+        case GAN_STATE.FINISHED:
+        default:
+          break;
+      }
+    }
+
+    const GAN_SERVICE_UUID = "0000fff0-0000-1000-8000-00805f9b34fb";
+    const GAN_TIMER_STATE_CHAR_UUID = "0000fff5-0000-1000-8000-00805f9b34fb";
+
+    const ganDriver = {
+      name: "GAN Smart Timer",
+      async connect({ onEvent, onDisconnect }) {
+        if (!navigator.bluetooth) throw new Error("Web Bluetooth isn't supported in this browser.");
+
+        const device = await navigator.bluetooth.requestDevice({
+          filters: [{ services: [GAN_SERVICE_UUID] }],
+          optionalServices: [GAN_SERVICE_UUID],
+        });
+
+        const handleGattDisconnect = () => { if (onDisconnect) onDisconnect(); };
+        device.addEventListener("gattserverdisconnected", handleGattDisconnect);
+
+        const server = await device.gatt.connect();
+        const service = await server.getPrimaryService(GAN_SERVICE_UUID);
+        const stateChar = await service.getCharacteristic(GAN_TIMER_STATE_CHAR_UUID);
+
+        const handleNotify = (e) => {
+          const parsed = parseGanTimerFrame(e.target.value);
+          if (parsed) onEvent(parsed.stateCode, parsed.elapsedMs);
+        };
+        await stateChar.startNotifications();
+        stateChar.addEventListener("characteristicvaluechanged", handleNotify);
+
+        return {
+          disconnect() {
+            try { stateChar.removeEventListener("characteristicvaluechanged", handleNotify); } catch (e) {}
+            try { device.removeEventListener("gattserverdisconnected", handleGattDisconnect); } catch (e) {}
+            try { if (device.gatt && device.gatt.connected) device.gatt.disconnect(); } catch (e) {}
+          }
+        };
+      }
+    };
+
+    const stackmatDriver = {
+      name: "Stackmat Timer",
+      async connect() {
+        throw new Error("Stackmat support is coming soon.");
+      }
+    };
+
+    const qiyiDriver = {
+      name: "QiYi Smart Timer",
+      async connect() {
+        throw new Error("QiYi Smart Timer isn't supported yet — its Bluetooth protocol isn't publicly documented. It currently only pairs with QiYi's own Smart Player Pro app.");
+      }
+    };
+
+    const moyuDriver = {
+      name: "MoYu Smart Timer",
+      async connect() {
+        throw new Error("MoYu Smart Timer isn't supported yet — its Bluetooth protocol isn't publicly documented. It currently only pairs with MoYu's own WCU Cube app.");
+      }
+    };
+
+    const HARDWARE_DRIVERS = { gan: ganDriver, qiyi: qiyiDriver, moyu: moyuDriver, stackmat: stackmatDriver };
+
+    const HardwareTimer = (function () {
+      let activeConnection = null;
+      let activeDriverKey = null;
+
+      async function connect(driverKey, { onDisconnect } = {}) {
+        const driver = HARDWARE_DRIVERS[driverKey];
+        if (!driver) throw new Error("Unknown hardware timer driver: " + driverKey);
+        if (activeConnection) disconnect();
+        activeConnection = await driver.connect({
+          onEvent: routeHardwareState,
+          onDisconnect: () => {
+            activeConnection = null;
+            activeDriverKey = null;
+            if (onDisconnect) onDisconnect();
+          }
+        });
+        activeDriverKey = driverKey;
+        return driver.name;
+      }
+
+      function disconnect() {
+        if (activeConnection) { try { activeConnection.disconnect(); } catch (e) {} }
+        activeConnection = null;
+        activeDriverKey = null;
+      }
+
+      function isConnected() { return activeConnection !== null; }
+
+      return { connect, disconnect, isConnected };
+    })();
+
+    const hwConnectBtn = document.getElementById("hw-connect-btn");
+    const hwDisconnectBtn = document.getElementById("hw-disconnect-btn");
+    const hwStatusEl = document.getElementById("hw-timer-status");
+    const hwBrandSelect = document.getElementById("hw-brand-select");
+
+    function setHwStatus(text, connected) {
+      hwStatusEl.textContent = text;
+      hwConnectBtn.classList.toggle("hidden", connected);
+      hwDisconnectBtn.classList.toggle("hidden", !connected);
+    }
+
+    hwConnectBtn.addEventListener("click", async () => {
+      if (!navigator.bluetooth) {
+        setHwStatus("Web Bluetooth isn't supported in this browser — try Chrome or Edge on desktop/Android.", false);
+        return;
+      }
+      const driverKey = hwBrandSelect.value;
+      hwConnectBtn.disabled = true;
+      setHwStatus("Connecting…", false);
+      try {
+        const name = await HardwareTimer.connect(driverKey, {
+          onDisconnect: () => setHwStatus("Disconnected (device out of range or turned off)", false)
+        });
+        setHwStatus("✅ Connected: " + name, true);
+      } catch (err) {
+        console.error("[HardwareTimer] connect failed:", err);
+        setHwStatus("Connection failed: " + (err && err.message ? err.message : "unknown error"), false);
+      } finally {
+        hwConnectBtn.disabled = false;
+      }
+    });
+
+    hwDisconnectBtn.addEventListener("click", () => {
+      HardwareTimer.disconnect();
+      setHwStatus("Not connected", false);
+    });
+
+    // ==========================================================
+    // Import / Export
+    // ==========================================================
+    const ioStatusEl = document.getElementById("io-status");
+    const ioSessionLabelEl = document.getElementById("io-current-session-label");
+    function updateIoSessionLabel() {
+      const sessions = ensureSessionsForEvent(currentEvent);
+      const cur = sessions.find(s => s.id === currentSessionId);
+      const eventLabel = (EVENTS.find(e => e.id === currentEvent) || {}).label || currentEvent;
+      ioSessionLabelEl.textContent = `${eventLabel} — ${cur ? cur.name : ""}`;
+    }
+
+    function downloadTextFile(filename, text, mime) {
+      const blob = new Blob([text], { type: mime || "application/octet-stream" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url; a.download = filename;
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      setTimeout(() => URL.revokeObjectURL(url), 2000);
+    }
+
+    // ---- Export: this app's own format (round-trips perfectly) ----
+    document.getElementById("export-json-btn").addEventListener("click", () => {
+      const solves = loadSolves();
+      const sessions = ensureSessionsForEvent(currentEvent);
+      const cur = sessions.find(s => s.id === currentSessionId);
+      const payload = {
+        app: "twist-turn-timer", version: 1,
+        event: currentEvent, sessionName: cur ? cur.name : "Session",
+        exportedAt: new Date().toISOString(),
+        solves // {ms, penalty, scramble, at, phases}
+      };
+      downloadTextFile(`twist-turn-${currentEvent}-${(cur ? cur.name : "session").replace(/\s+/g, "_")}.json`,
+        JSON.stringify(payload, null, 2), "application/json");
+      ioStatusEl.textContent = `✅ Exported ${solves.length} solves.`;
+    });
+
+    // ---- Export: cstimer-compatible session format ----
+    // cstimer stores each solve as [[penalty, ms], "scramble", "comment", unixSecondsTimestamp]
+    // penalty: 0 = OK, 2000 = +2, -1 = DNF. ms is the *unpenalized* time.
+    document.getElementById("export-cstimer-btn").addEventListener("click", () => {
+      const solves = loadSolves();
+      const cstimerSolves = solves.slice().reverse().map(s => {
+        const penaltyCode = s.penalty === "+2" ? 2000 : s.penalty === "DNF" ? -1 : 0;
+        const ts = Math.floor(new Date(s.at).getTime() / 1000);
+        return [[penaltyCode, s.ms], s.scramble || "", "", ts];
+      });
+      const payload = { [`session1`]: cstimerSolves, properties: { sessionData: JSON.stringify({ 1: { name: "Session 1", opt: {} } }) } };
+      downloadTextFile(`cstimer-export-${currentEvent}.txt`, JSON.stringify(payload), "text/plain");
+      ioStatusEl.textContent = `✅ Exported ${solves.length} solves in cstimer format.`;
+    });
+
+    // ---- Import: auto-detect this-app JSON, cstimer JSON, or plain CSV ----
+    function importOwnFormat(data) {
+      if (!Array.isArray(data.solves)) return 0;
+      const existing = loadSolves();
+      const imported = data.solves.map(s => ({
+        ms: Math.round(s.ms), penalty: s.penalty || null,
+        scramble: s.scramble || "", at: s.at || new Date().toISOString(),
+        phases: s.phases || null
+      }));
+      saveSolves([...imported, ...existing]); // newest-first convention, imported treated as most recent batch
+      return imported.length;
+    }
+
+    function cstimerPenaltyToApp(code) {
+      if (code === 2000) return "+2";
+      if (code === -1 || code === -2) return "DNF";
+      return null;
+    }
+
+    function importCstimerFormat(data) {
+      const existing = loadSolves();
+      const importedAll = [];
+      Object.keys(data).forEach(key => {
+        if (!/^session/i.test(key) || !Array.isArray(data[key])) return;
+        data[key].forEach(entry => {
+          if (!Array.isArray(entry) || !Array.isArray(entry[0])) return;
+          const [penaltyCode, ms] = entry[0];
+          const scramble = typeof entry[1] === "string" ? entry[1] : "";
+          const ts = entry[3] ? new Date(entry[3] * 1000).toISOString() : new Date().toISOString();
+          importedAll.push({
+            ms: Math.round(ms), penalty: cstimerPenaltyToApp(penaltyCode),
+            scramble, at: ts, phases: null
+          });
+        });
+      });
+      if (importedAll.length === 0) return 0;
+      // cstimer's arrays are oldest-first; keep newest-first convention here.
+      importedAll.reverse();
+      saveSolves([...importedAll, ...existing]);
+      return importedAll.length;
+    }
+
+    // Very small CSV fallback: one time (seconds, e.g. 12.34) per line, optional
+    // ",scramble" after a comma, optional trailing "DNF" or "+2".
+    function importCsvFormat(text) {
+      const existing = loadSolves();
+      const lines = text.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+      const importedAll = [];
+      for (const line of lines) {
+        const parts = line.split(",");
+        const timeToken = parts[0].trim();
+        let penalty = null;
+        let timeStr = timeToken;
+        if (/dnf/i.test(timeToken)) { penalty = "DNF"; timeStr = timeToken.replace(/dnf/i, "").trim(); }
+        else if (timeToken.endsWith("+")) { penalty = "+2"; timeStr = timeToken.slice(0, -1); }
+        const sec = parseFloat(timeStr);
+        if (isNaN(sec)) continue;
+        importedAll.push({
+          ms: Math.round(sec * 1000), penalty,
+          scramble: parts[1] ? parts[1].trim() : "",
+          at: new Date().toISOString(), phases: null
+        });
+      }
+      if (importedAll.length === 0) return 0;
+      saveSolves([...importedAll, ...existing]);
+      return importedAll.length;
+    }
+
+    document.getElementById("import-file-input").addEventListener("change", async (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      ioStatusEl.textContent = "Reading file…";
+      try {
+        const text = await file.text();
+        let count = 0;
+        try {
+          const data = JSON.parse(text);
+          if (data && data.app === "twist-turn-timer") {
+            count = importOwnFormat(data);
+          } else if (data && typeof data === "object") {
+            count = importCstimerFormat(data);
+          }
+        } catch (jsonErr) {
+          // not JSON — try CSV / plain-times fallback
+          count = importCsvFormat(text);
+        }
+        if (count > 0) {
+          renderSolves();
+          renderStats();
+          ioStatusEl.textContent = `✅ ${count} solves imported into "${(ensureSessionsForEvent(currentEvent).find(s => s.id === currentSessionId) || {}).name}".`;
+        } else {
+          ioStatusEl.textContent = "⚠️ File samajh nahi aayi — cstimer .txt/.json, is app ka .json, ya CSV try karo.";
+        }
+      } catch (err) {
+        console.error("[Import] failed:", err);
+        ioStatusEl.textContent = "⚠️ Import fail ho gaya: " + (err && err.message ? err.message : "unknown error");
+      } finally {
+        e.target.value = "";
+      }
+    });
+
+    // ==========================================================
+    // PWA install support
+    // ==========================================================
+    let deferredInstallPrompt = null;
+    const installTopBtn = document.getElementById("install-pwa-btn");
+    const installSettingsBtn = document.getElementById("settings-install-btn");
+    const pwaInstallStatus = document.getElementById("pwa-install-status");
+
+    // Installability requires https (or localhost) — service workers and the
+    // install prompt both refuse to run on file:// or plain http. We detect
+    // that up front so the message the user sees is accurate instead of the
+    // browser's generic "not available" text.
+    const isSecureHost = window.isSecureContext && location.protocol !== "file:";
+    const isStandaloneAlready =
+      window.matchMedia("(display-mode: standalone)").matches || navigator.standalone === true;
+
+    if (isStandaloneAlready) {
+      installTopBtn.classList.add("hidden");
+      pwaInstallStatus.textContent = "✅ Already running as an installed app.";
+    } else if (!isSecureHost) {
+      pwaInstallStatus.textContent = "Install sirf tab kaam karega jab ye file HTTPS pe host ho (jaise GitHub Pages / Netlify / Vercel) — seedha file kholne (file://) ya sirf http pe install available nahi hota, ye browser ki apni requirement hai.";
+    }
+
+    if ("serviceWorker" in navigator && isSecureHost) {
+      window.addEventListener("load", () => {
+        navigator.serviceWorker.register("./sw.js").catch(err => {
+          console.warn("[PWA] service worker registration failed:", err);
+        });
+      });
+    }
+
+    window.addEventListener("beforeinstallprompt", (e) => {
+      e.preventDefault();
+      deferredInstallPrompt = e;
+      installTopBtn.classList.remove("hidden");
+      pwaInstallStatus.textContent = "Install ke liye ready hai — button dabao.";
+    });
+
+    async function triggerInstall() {
+      if (!isSecureHost) {
+        pwaInstallStatus.textContent = "Pehle is folder ko HTTPS pe host karo (GitHub Pages/Netlify/Vercel free hain), tab install button kaam karega.";
+        return;
+      }
+      if (!deferredInstallPrompt) {
+        pwaInstallStatus.textContent = "Chrome/Edge address bar me install (⊕) icon try karo, ya browser menu me 'Install app' / 'Add to Home Screen' dhoondo.";
+        return;
+      }
+      deferredInstallPrompt.prompt();
+      const choice = await deferredInstallPrompt.userChoice;
+      pwaInstallStatus.textContent = choice.outcome === "accepted" ? "✅ Installed!" : "Install cancelled.";
+      deferredInstallPrompt = null;
+      installTopBtn.classList.add("hidden");
+    }
+    installTopBtn.addEventListener("click", triggerInstall);
+    installSettingsBtn.addEventListener("click", triggerInstall);
+
+    window.addEventListener("appinstalled", () => {
+      installTopBtn.classList.add("hidden");
+      pwaInstallStatus.textContent = "✅ App installed.";
+    });
+
+    // ==========================================================
+    // Confetti (PB celebration)
+    // ==========================================================
+    function celebratePB() {
+      const canvas = document.getElementById("confetti-canvas");
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+      canvas.style.display = "block";
+      const ctx = canvas.getContext("2d");
+      const colors = ["#E8412B", "#F2B705", "#2F6FE0", "#22A35C", "#9B59B6"];
+      const pieces = Array.from({ length: 90 }, () => ({
+        x: Math.random() * canvas.width,
+        y: -20 - Math.random() * canvas.height * 0.3,
+        vx: (Math.random() - 0.5) * 4,
+        vy: 2 + Math.random() * 4,
+        size: 5 + Math.random() * 5,
+        color: colors[Math.floor(Math.random() * colors.length)],
+        rot: Math.random() * 360,
+        vr: (Math.random() - 0.5) * 12
+      }));
+      let frame = 0;
+      function tick() {
+        frame++;
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        pieces.forEach(p => {
+          p.x += p.vx; p.y += p.vy; p.vy += 0.05; p.rot += p.vr;
+          ctx.save();
+          ctx.translate(p.x, p.y);
+          ctx.rotate(p.rot * Math.PI / 180);
+          ctx.fillStyle = p.color;
+          ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size * 0.6);
+          ctx.restore();
+        });
+        if (frame < 110) {
+          requestAnimationFrame(tick);
+        } else {
+          canvas.style.display = "none";
+        }
+      }
+      tick();
+    }
+
+    // ==========================================================
+    // Achievements
+    // ==========================================================
+    function allSolvesForEvent(ev) {
+      const sessions = ensureSessionsForEvent(ev);
+      let all = [];
+      sessions.forEach(s => {
+        const raw = localStorage.getItem(storageKey(ev, s.id));
+        if (raw) { try { all = all.concat(JSON.parse(raw)); } catch (e) {} }
+      });
+      return all;
+    }
+
+    const ACHIEVEMENTS = [
+      { id: "first-solve", icon: "🎯", label: "First Solve", check: (s) => s.length >= 1 },
+      { id: "solves-10", icon: "🔟", label: "10 Solves", check: (s) => s.length >= 10 },
+      { id: "solves-50", icon: "🌟", label: "50 Solves", check: (s) => s.length >= 50 },
+      { id: "solves-100", icon: "💯", label: "100 Solves", check: (s) => s.length >= 100 },
+      { id: "solves-500", icon: "🚀", label: "500 Solves", check: (s) => s.length >= 500 },
+      { id: "solves-1000", icon: "👑", label: "1000 Solves", check: (s) => s.length >= 1000 },
+      { id: "sub-60", icon: "⏱️", label: "Sub-60 Single", check: (s) => bestOf(s) < 60000 },
+      { id: "sub-30", icon: "⚡", label: "Sub-30 Single", check: (s) => bestOf(s) < 30000 },
+      { id: "sub-20", icon: "🔥", label: "Sub-20 Single", check: (s) => bestOf(s) < 20000 },
+      { id: "sub-15", icon: "💎", label: "Sub-15 Single", check: (s) => bestOf(s) < 15000 },
+      { id: "sub-10", icon: "🏆", label: "Sub-10 Single", check: (s) => bestOf(s) < 10000 },
+      { id: "ao5-sub30", icon: "🎖️", label: "Sub-30 Ao5", check: (s) => bestAoN(s, 5) < 30000 },
+      { id: "ao12-sub30", icon: "🥇", label: "Sub-30 Ao12", check: (s) => bestAoN(s, 12) < 30000 },
+    ];
+    function bestOf(solves) {
+      const valid = solves.map(solveEffectiveMs).filter(v => v !== Infinity);
+      return valid.length ? Math.min(...valid) : Infinity;
+    }
+    function bestAoN(solves, n) {
+      if (solves.length < n) return Infinity;
+      let best = Infinity;
+      for (let i = 0; i <= solves.length - n; i++) {
+        const win = solves.slice(i, i + n).map(solveEffectiveMs);
+        const avg = average(win);
+        if (avg !== "DNF" && avg != null && avg < best) best = avg;
+      }
+      return best;
+    }
+    function computeUnlockedAchievements(solves) {
+      return ACHIEVEMENTS.filter(a => { try { return a.check(solves); } catch (e) { return false; } });
+    }
+    function checkForNewAchievements() {
+      const solves = allSolvesForEvent(currentEvent);
+      const unlocked = computeUnlockedAchievements(solves);
+      const seenKey = "tt-timer-achv-seen-" + currentEvent;
+      const seen = new Set(JSON.parse(localStorage.getItem(seenKey) || "[]"));
+      const fresh = unlocked.filter(a => !seen.has(a.id));
+      if (fresh.length > 0) {
+        fresh.forEach(a => seen.add(a.id));
+        localStorage.setItem(seenKey, JSON.stringify([...seen]));
+        showAchievementToast(fresh[0]);
+      }
+    }
+    function showAchievementToast(a) {
+      const toast = document.createElement("div");
+      toast.className = "fixed left-1/2 top-6 z-[95] font-mono text-sm px-4 py-3 rounded-xl shadow-2xl";
+      toast.style.cssText = "transform:translateX(-50%); background:var(--cube-yellow); color:#101218; font-weight:700;";
+      toast.textContent = `${a.icon} Achievement Unlocked: ${a.label}`;
+      document.body.appendChild(toast);
+      setTimeout(() => toast.remove(), 4000);
+    }
+
+    // ==========================================================
+    // Stats & Achievements modal
+    // ==========================================================
+    const statsBtn = document.getElementById("stats-btn");
+    const statsBackdrop = document.getElementById("stats-backdrop");
+    document.getElementById("stats-close-btn").addEventListener("click", () => { statsBackdrop.classList.add("hidden"); statsBackdrop.classList.remove("flex"); });
+    statsBackdrop.addEventListener("click", (e) => { if (e.target === statsBackdrop) { statsBackdrop.classList.add("hidden"); statsBackdrop.classList.remove("flex"); } });
+
+    statsBtn.addEventListener("click", () => {
+      renderStatsModal();
+      statsBackdrop.classList.remove("hidden");
+      statsBackdrop.classList.add("flex");
+    });
+
+    function renderStatsModal() {
+      const solves = allSolvesForEvent(currentEvent);
+      const valid = solves.map(solveEffectiveMs).filter(v => v !== Infinity);
+      const best = valid.length ? Math.min(...valid) : null;
+      const mean = valid.length ? valid.reduce((a, b) => a + b, 0) / valid.length : null;
+      const worst = valid.length ? Math.max(...valid) : null;
+
+      document.getElementById("stats-summary").innerHTML = `
+        <div class="surface-card rounded-lg py-2"><div style="color:var(--ink-muted);">Total</div><div class="font-display font-bold">${solves.length}</div></div>
+        <div class="surface-card rounded-lg py-2"><div style="color:var(--ink-muted);">Best</div><div class="font-display font-bold" style="color:var(--cube-green);">${best != null ? fmt(best) : "-"}</div></div>
+        <div class="surface-card rounded-lg py-2"><div style="color:var(--ink-muted);">Mean</div><div class="font-display font-bold">${mean != null ? fmt(mean) : "-"}</div></div>
+        <div class="surface-card rounded-lg py-2"><div style="color:var(--ink-muted);">Worst</div><div class="font-display font-bold" style="color:var(--cube-red);">${worst != null ? fmt(worst) : "-"}</div></div>
+      `;
+
+      drawTrendChart(solves);
+      drawHistogram(valid);
+      renderInsights(solves);
+      renderAchievementsGrid(solves);
+    }
+
+    function drawTrendChart(solves) {
+      const canvas = document.getElementById("stats-trend-canvas");
+      const ctx = canvas.getContext("2d");
+      const dpr = window.devicePixelRatio || 1;
+      const w = canvas.clientWidth, h = canvas.clientHeight || 140;
+      canvas.width = w * dpr; canvas.height = h * dpr;
+      ctx.scale(dpr, dpr);
+      ctx.clearRect(0, 0, w, h);
+
+      const chronological = [...solves].reverse().slice(-100);
+      const pts = chronological.map(solveEffectiveMs).filter(v => v !== Infinity);
+      if (pts.length < 2) {
+        ctx.fillStyle = "rgba(255,255,255,0.3)";
+        ctx.font = "12px monospace";
+        ctx.fillText("Not enough data yet", 12, h / 2);
+        return;
+      }
+      const min = Math.min(...pts), max = Math.max(...pts);
+      const pad = 10;
+      ctx.strokeStyle = "#2F6FE0";
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      pts.forEach((v, i) => {
+        const x = pad + (i / (pts.length - 1)) * (w - pad * 2);
+        const y = h - pad - ((v - min) / (max - min || 1)) * (h - pad * 2);
+        if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+      });
+      ctx.stroke();
+    }
+
+    function drawHistogram(valid) {
+      const canvas = document.getElementById("stats-hist-canvas");
+      const ctx = canvas.getContext("2d");
+      const dpr = window.devicePixelRatio || 1;
+      const w = canvas.clientWidth, h = canvas.clientHeight || 120;
+      canvas.width = w * dpr; canvas.height = h * dpr;
+      ctx.scale(dpr, dpr);
+      ctx.clearRect(0, 0, w, h);
+      if (valid.length < 3) {
+        ctx.fillStyle = "rgba(255,255,255,0.3)";
+        ctx.font = "12px monospace";
+        ctx.fillText("Not enough data yet", 12, h / 2);
+        return;
+      }
+      const min = Math.min(...valid), max = Math.max(...valid);
+      const bucketCount = 12;
+      const bucketSize = (max - min) / bucketCount || 1;
+      const buckets = new Array(bucketCount).fill(0);
+      valid.forEach(v => {
+        let idx = Math.floor((v - min) / bucketSize);
+        if (idx >= bucketCount) idx = bucketCount - 1;
+        if (idx < 0) idx = 0;
+        buckets[idx]++;
+      });
+      const maxCount = Math.max(...buckets);
+      const barW = (w - 8) / bucketCount;
+      ctx.fillStyle = "#22A35C";
+      buckets.forEach((count, i) => {
+        const barH = (count / maxCount) * (h - 10);
+        ctx.fillRect(4 + i * barW, h - barH, barW - 2, barH);
+      });
+    }
+
+    function renderInsights(solves) {
+      const el = document.getElementById("stats-insights");
+      const withPhases = solves.filter(s => s.phases && s.phases.length);
+      if (withPhases.length < 3) {
+        el.innerHTML = "";
+        return;
+      }
+      const phaseCount = withPhases[0].phases.length;
+      const phaseAvgs = new Array(phaseCount).fill(0);
+      withPhases.forEach(s => {
+        let prev = 0;
+        s.phases.forEach((p, i) => { phaseAvgs[i] += (p - prev); prev = p; });
+      });
+      for (let i = 0; i < phaseCount; i++) phaseAvgs[i] /= withPhases.length;
+      const slowestIdx = phaseAvgs.indexOf(Math.max(...phaseAvgs));
+      el.innerHTML = `
+        <p class="font-mono text-xs uppercase tracking-widest mb-2" style="color:var(--ink-muted);">💡 Insight (rule-based, based on your phase splits)</p>
+        <p class="text-sm surface-card rounded-lg p-3" style="color:var(--ink-muted);">
+          Phase ${slowestIdx + 1} aapka sabse zyada time leta hai (avg ${fmt(phaseAvgs[slowestIdx])}) — isi phase pe practice focus karna sabse zyada time bacha sakta hai.
+        </p>`;
+    }
+
+    function renderAchievementsGrid(solves) {
+      const unlocked = new Set(computeUnlockedAchievements(solves).map(a => a.id));
+      document.getElementById("achievements-grid").innerHTML = ACHIEVEMENTS.map(a => `
+        <div class="surface-card rounded-lg p-3 text-center" style="opacity:${unlocked.has(a.id) ? 1 : 0.3};">
+          <div class="text-xl">${a.icon}</div>
+          <div class="text-[10px] font-mono mt-1" style="color:var(--ink-muted);">${a.label}</div>
+        </div>`).join("");
+    }
+
+    // ==========================================================
+    // Algorithm Practice
+    // ==========================================================
+    const ALGORITHM_SETS = {
+      cross: [
+        { name: "Cross Tip 1", alg: "Cross ko pehle 8 moves ke andar solve karne ki koshish karo — color neutrality practice karo." },
+        { name: "Cross Tip 2", alg: "Cross solve karte waqt agle F2L pair ko bhi dekhna shuru karo (lookahead)." },
+        { name: "Cross Tip 3", alg: "Inspection ke 15 seconds mein pura cross plan kar lo, execution mein na socho." }
+      ],
+      f2l: [
+        { name: "Basic Pair (Case 1)", alg: "U R U' R'" },
+        { name: "Basic Pair (Case 2)", alg: "U' F' U F" },
+        { name: "Corner in slot, edge in top", alg: "R U' R' U R U' R'" },
+        { name: "Edge in slot, corner in top", alg: "U' R U R' U R U' R'" },
+        { name: "Both pieces in top (split)", alg: "U R U2 R' U R U' R'" },
+        { name: "Pair already made in top", alg: "U R U' R'" },
+        { name: "Corner-edge swap", alg: "R U R' U' R U R' U' R U R'" }
+      ],
+      oll: [
+        { name: "OLL 21 (H)", alg: "R U R' U R U' R' U R U2 R'" },
+        { name: "OLL 22 (Pi)", alg: "R U2 R2 U' R2 U' R2 U2 R" },
+        { name: "OLL 23 (U)", alg: "R2 D R' U2 R D' R' U2 R'" },
+        { name: "OLL 24 (T)", alg: "R U R' U' R' F R2 U' R' U' R U R' F'" },
+        { name: "OLL 25 (Sune Var)", alg: "F' R U R' U' R' F R2 U' R' U' R U R' U R" },
+        { name: "OLL 26 (Anti-Sune)", alg: "R U2 R' U' R U' R'" },
+        { name: "OLL 27 (Sune)", alg: "R U R' U R U2 R'" },
+        { name: "OLL 33 (Corner Cutting)", alg: "R U R' U' R' F R F'" },
+        { name: "OLL 44 (Fish)", alg: "F U R U' R' F'" },
+        { name: "OLL 45 (Fish)", alg: "F R U R' U' F'" }
+      ],
+      pll: [
+        { name: "Aa Perm", alg: "x R' U R' D2 R U' R' D2 R2 x'" },
+        { name: "Ab Perm", alg: "x R2 D2 R U R' D2 R U' R x'" },
+        { name: "H Perm", alg: "M2 U M2 U2 M2 U M2" },
+        { name: "Ua Perm", alg: "R U' R U R U R U' R' U' R2" },
+        { name: "Ub Perm", alg: "R2 U R U R' U' R' U' R' U R'" },
+        { name: "Z Perm", alg: "M2 U M2 U M' U2 M2 U2 M'" },
+        { name: "T Perm", alg: "R U R' U' R' F R2 U' R' U' R U R' F'" },
+        { name: "Y Perm", alg: "F R U' R' U' R U R' F' R U R' U' R' F R F'" },
+        { name: "J Perm (Ja)", alg: "x R2 F R F' R U2 r' U r U2 x'" },
+        { name: "F Perm", alg: "R' U' F' R U R' U' R' F R2 U' R' U' R U R' U R" },
+        { name: "R Perm (Ra)", alg: "R U' R' U' R U R D R' U' R D' R' U2 R'" },
+        { name: "V Perm", alg: "R' U R' U' y R' F' R2 U' R' U R' F R F" },
+        { name: "N Perm (Na)", alg: "R U R' U R U R' F' R U R' U' R' F R2 U' R' U2 R U' R'" }
+      ]
+    };
+    let practiceQueue = [];
+    let practiceIndex = 0;
+
+    function shuffleArray(arr) {
+      const a = [...arr];
+      for (let i = a.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [a[i], a[j]] = [a[j], a[i]];
+      }
+      return a;
+    }
+    function loadPracticeSet() {
+      const setKey = document.getElementById("practice-set-select").value;
+      practiceQueue = shuffleArray(ALGORITHM_SETS[setKey]);
+      practiceIndex = 0;
+      showPracticeCase();
+    }
+    function showPracticeCase() {
+      const c = practiceQueue[practiceIndex];
+      document.getElementById("practice-case-name").textContent = c.name;
+      document.getElementById("practice-alg").textContent = c.alg;
+      document.getElementById("practice-alg").classList.add("hidden");
+      document.getElementById("practice-count").textContent = `Case ${practiceIndex + 1} / ${practiceQueue.length}`;
+    }
+    document.getElementById("practice-set-select").addEventListener("change", loadPracticeSet);
+    document.getElementById("practice-reveal-btn").addEventListener("click", () => {
+      document.getElementById("practice-alg").classList.remove("hidden");
+    });
+    document.getElementById("practice-next-btn").addEventListener("click", () => {
+      practiceIndex = (practiceIndex + 1) % practiceQueue.length;
+      if (practiceIndex === 0) practiceQueue = shuffleArray(ALGORITHM_SETS[document.getElementById("practice-set-select").value]);
+      showPracticeCase();
+    });
+
+    const practiceBtn = document.getElementById("practice-btn");
+    const practiceBackdrop = document.getElementById("practice-backdrop");
+    practiceBtn.addEventListener("click", () => {
+      if (practiceQueue.length === 0) loadPracticeSet();
+      practiceBackdrop.classList.remove("hidden");
+      practiceBackdrop.classList.add("flex");
+    });
+    document.getElementById("practice-close-btn").addEventListener("click", () => { practiceBackdrop.classList.add("hidden"); practiceBackdrop.classList.remove("flex"); });
+    practiceBackdrop.addEventListener("click", (e) => { if (e.target === practiceBackdrop) { practiceBackdrop.classList.add("hidden"); practiceBackdrop.classList.remove("flex"); } });
+
+    // ==========================================================
+    // Cloud Sync + Leaderboard (Firebase — reuses the Twist & Turn
+    // competition site's Firebase project; needs firebase-config.js
+    // in this same folder)
+    // ==========================================================
+    let cloudAuth = null, cloudDb = null, cloudUser = null;
+    let cloudUserName = localStorage.getItem("tt-timer-cloud-name") || "";
+
+    async function initCloud() {
+      try {
+        const { initializeApp } = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js");
+        const authMod = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js");
+        const fsMod = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js");
+        const { firebaseConfig } = await import("./firebase-config.js");
+
+        const app = initializeApp(firebaseConfig, "timerApp");
+        cloudAuth = authMod.getAuth(app);
+        cloudDb = fsMod.getFirestore(app);
+        window._cloudAuthMod = authMod;
+        window._cloudFsMod = fsMod;
+
+        authMod.onAuthStateChanged(cloudAuth, (user) => {
+          cloudUser = user;
+          document.getElementById("cloud-logged-out").classList.toggle("hidden", !!user);
+          document.getElementById("cloud-logged-in").classList.toggle("hidden", !user);
+          if (user) document.getElementById("cloud-user-email").textContent = user.email;
+        });
+      } catch (err) {
+        console.warn("[Cloud] Firebase not available — is firebase-config.js present in this folder?", err);
+        document.getElementById("cloud-auth-msg").textContent = "⚠️ Cloud sync abhi available nahi hai (firebase-config.js is folder mein nahi mila).";
+        document.getElementById("cloud-auth-msg").classList.remove("hidden");
+      }
+    }
+    initCloud();
+
+    document.getElementById("cloud-signup-btn").addEventListener("click", async () => {
+      const msg = document.getElementById("cloud-auth-msg");
+      try {
+        const name = document.getElementById("cloud-name").value.trim() || "Cuber";
+        const email = document.getElementById("cloud-email").value.trim();
+        const password = document.getElementById("cloud-password").value;
+        const cred = await window._cloudAuthMod.createUserWithEmailAndPassword(cloudAuth, email, password);
+        await window._cloudAuthMod.updateProfile(cred.user, { displayName: name });
+        cloudUserName = name;
+        localStorage.setItem("tt-timer-cloud-name", name);
+        msg.textContent = "✅ Account created!";
+        msg.style.color = "var(--cube-green)";
+        msg.classList.remove("hidden");
+      } catch (err) {
+        msg.textContent = "⚠️ " + err.message.replace("Firebase: ", "");
+        msg.style.color = "var(--cube-red)";
+        msg.classList.remove("hidden");
+      }
+    });
+
+    document.getElementById("cloud-login-btn").addEventListener("click", async () => {
+      const msg = document.getElementById("cloud-auth-msg");
+      try {
+        const email = document.getElementById("cloud-email").value.trim();
+        const password = document.getElementById("cloud-password").value;
+        await window._cloudAuthMod.signInWithEmailAndPassword(cloudAuth, email, password);
+        msg.classList.add("hidden");
+      } catch (err) {
+        msg.textContent = "⚠️ " + err.message.replace("Firebase: ", "");
+        msg.style.color = "var(--cube-red)";
+        msg.classList.remove("hidden");
+      }
+    });
+
+    document.getElementById("cloud-logout-btn").addEventListener("click", async () => {
+      await window._cloudAuthMod.signOut(cloudAuth);
+    });
+
+    document.getElementById("cloud-sync-up-btn").addEventListener("click", async () => {
+      const msg = document.getElementById("cloud-sync-msg");
+      try {
+        const solves = loadSolves();
+        const { doc, setDoc } = window._cloudFsMod;
+        await setDoc(doc(cloudDb, "timerBackups", cloudUser.uid + "_" + currentEvent + "_" + currentSessionId), {
+          event: currentEvent, sessionId: currentSessionId, solves: solves, updatedAt: new Date().toISOString()
+        });
+        msg.textContent = "✅ Backed up to cloud!";
+        msg.style.color = "var(--cube-green)";
+        msg.classList.remove("hidden");
+      } catch (err) {
+        msg.textContent = "⚠️ " + err.message;
+        msg.style.color = "var(--cube-red)";
+        msg.classList.remove("hidden");
+      }
+    });
+
+    document.getElementById("cloud-sync-down-btn").addEventListener("click", async () => {
+      const msg = document.getElementById("cloud-sync-msg");
+      if (!confirm("Ye cloud se solves laa kar isi session mein rakh dega (current local solves replace ho jayenge). Continue?")) return;
+      try {
+        const { doc, getDoc } = window._cloudFsMod;
+        const snap = await getDoc(doc(cloudDb, "timerBackups", cloudUser.uid + "_" + currentEvent + "_" + currentSessionId));
+        if (snap.exists()) {
+          saveSolves(snap.data().solves || []);
+          renderSolves();
+          renderStats();
+          msg.textContent = "✅ Restored from cloud!";
+          msg.style.color = "var(--cube-green)";
+        } else {
+          msg.textContent = "Is session ka koi cloud backup nahi mila.";
+          msg.style.color = "var(--cube-yellow)";
+        }
+        msg.classList.remove("hidden");
+      } catch (err) {
+        msg.textContent = "⚠️ " + err.message;
+        msg.style.color = "var(--cube-red)";
+        msg.classList.remove("hidden");
+      }
+    });
+
+    document.getElementById("cloud-submit-best-btn").addEventListener("click", async () => {
+      const msg = document.getElementById("cloud-sync-msg");
+      try {
+        const solves = allSolvesForEvent(currentEvent);
+        const best = bestOf(solves);
+        if (best === Infinity) { msg.textContent = "Is event mein abhi koi valid solve nahi hai."; msg.classList.remove("hidden"); return; }
+        const { doc, setDoc } = window._cloudFsMod;
+        await setDoc(doc(cloudDb, "timerLeaderboard", currentEvent + "_" + cloudUser.uid), {
+          name: cloudUserName || cloudUser.email, ms: best, event: currentEvent, updatedAt: new Date().toISOString()
+        });
+        msg.textContent = "✅ Submitted to leaderboard!";
+        msg.style.color = "var(--cube-green)";
+        msg.classList.remove("hidden");
+        loadLeaderboard();
+      } catch (err) {
+        msg.textContent = "⚠️ " + err.message;
+        msg.style.color = "var(--cube-red)";
+        msg.classList.remove("hidden");
+      }
+    });
+
+    async function loadLeaderboard() {
+      const listEl = document.getElementById("leaderboard-list");
+      const eventLabel = (EVENTS.find(e => e.id === currentEvent) || {}).label || currentEvent;
+      document.getElementById("leaderboard-event-label").textContent = eventLabel;
+      if (!cloudDb) { listEl.innerHTML = `<p style="color:var(--ink-muted);">Cloud not available.</p>`; return; }
+      try {
+        const { collection, getDocs, query, where } = window._cloudFsMod;
+        const q = query(collection(cloudDb, "timerLeaderboard"), where("event", "==", currentEvent));
+        const snap = await getDocs(q);
+        const entries = snap.docs.map(d => d.data()).sort((a, b) => a.ms - b.ms).slice(0, 20);
+        if (entries.length === 0) {
+          listEl.innerHTML = `<p style="color:var(--ink-muted);">Abhi koi entry nahi hai.</p>`;
+          return;
+        }
+        const medals = ["🥇", "🥈", "🥉"];
+        listEl.innerHTML = entries.map((e, i) => `
+          <div class="flex justify-between surface-card rounded-lg px-3 py-2">
+            <span>${medals[i] || (i + 1) + "."} ${e.name}</span>
+            <span style="color:var(--cube-green);">${fmt(e.ms)}</span>
+          </div>`).join("");
+      } catch (err) {
+        listEl.innerHTML = `<p style="color:var(--cube-red);">⚠️ ${err.message}</p>`;
+      }
+    }
+
+    const leaderboardBtn = document.getElementById("leaderboard-btn");
+    const leaderboardBackdrop = document.getElementById("leaderboard-backdrop");
+    leaderboardBtn.addEventListener("click", () => {
+      leaderboardBackdrop.classList.remove("hidden");
+      leaderboardBackdrop.classList.add("flex");
+      loadLeaderboard();
+    });
+    document.getElementById("leaderboard-close-btn").addEventListener("click", () => { leaderboardBackdrop.classList.add("hidden"); leaderboardBackdrop.classList.remove("flex"); });
+    leaderboardBackdrop.addEventListener("click", (e) => { if (e.target === leaderboardBackdrop) { leaderboardBackdrop.classList.add("hidden"); leaderboardBackdrop.classList.remove("flex"); } });
+
+    // ==========================================================
+    // Competition Mode
+    // ==========================================================
+    // ==========================================================
+    // Competition Mode
+    // ==========================================================
+    function maybeFinishCompetitionAttempt() {
+      const solves = loadSolves();
+      if (solves.length > 0 && solves.length % 5 === 0) {
+        setTimeout(() => shareAverage(5), 500);
+      }
+    }
+    const competitionModeCheckbox = document.getElementById("setting-competition-mode");
+    competitionModeCheckbox.checked = !!settings.competitionMode;
+    competitionModeCheckbox.addEventListener("change", () => {
+      settings.competitionMode = competitionModeCheckbox.checked;
+      saveSettings(settings);
+      if (settings.competitionMode) {
+        settings.inspection = true;
+        document.getElementById("setting-inspection").checked = true;
+        saveSettings(settings);
+        const d = new Date();
+        const label = "Comp " + d.toLocaleDateString();
+        const map = getSessionsMap();
+        const sessions = ensureSessionsForEvent(currentEvent);
+        const id = "s" + Date.now();
+        map[currentEvent] = [...(map[currentEvent] || sessions), { id, name: label.slice(0, 40) }];
+        saveSessionsMap(map);
+        currentSessionId = id;
+        setActiveSessionId(currentEvent, id);
+        renderSessionSelect();
+        renderSolves();
+        renderStats();
+      }
+    });
+
+    // ==========================================================
+    // Init
+    // ==========================================================
+    applyTheme(settings.theme);
+    setTypeMode(settings.manualMode);
+    renderTabs();
+    renderSessionSelect();
+    renderSolves();
+    renderStats();
+    getNewScramble();
+  </script>
 </body>
 </html>
