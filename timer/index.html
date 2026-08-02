@@ -2551,16 +2551,31 @@
           document.getElementById("cloud-logged-in").classList.toggle("hidden", !user);
           if (user) document.getElementById("cloud-user-email").textContent = user.email;
         });
+        return true;
       } catch (err) {
         console.warn("[Cloud] Firebase not available — is firebase-config.js present in this folder?", err);
         document.getElementById("cloud-auth-msg").textContent = "⚠️ Cloud sync abhi available nahi hai (firebase-config.js is folder mein nahi mila).";
         document.getElementById("cloud-auth-msg").classList.remove("hidden");
+        return false;
       }
     }
-    initCloud();
+    const cloudReady = initCloud();
+
+    // Every cloud button waits for init to finish first, so clicking
+    // immediately after page load never hits "undefined" errors.
+    async function ensureCloudReady(msgEl) {
+      const ok = await cloudReady;
+      if (!ok && msgEl) {
+        msgEl.textContent = "⚠️ Cloud abhi load ho raha hai / available nahi hai — thoda ruk kar dobara try karein.";
+        msgEl.style.color = "var(--cube-red)";
+        msgEl.classList.remove("hidden");
+      }
+      return ok;
+    }
 
     document.getElementById("cloud-signup-btn").addEventListener("click", async () => {
       const msg = document.getElementById("cloud-auth-msg");
+      if (!(await ensureCloudReady(msg))) return;
       try {
         const name = document.getElementById("cloud-name").value.trim() || "Cuber";
         const email = document.getElementById("cloud-email").value.trim();
@@ -2581,6 +2596,7 @@
 
     document.getElementById("cloud-login-btn").addEventListener("click", async () => {
       const msg = document.getElementById("cloud-auth-msg");
+      if (!(await ensureCloudReady(msg))) return;
       try {
         const email = document.getElementById("cloud-email").value.trim();
         const password = document.getElementById("cloud-password").value;
@@ -2599,6 +2615,7 @@
 
     document.getElementById("cloud-sync-up-btn").addEventListener("click", async () => {
       const msg = document.getElementById("cloud-sync-msg");
+      if (!(await ensureCloudReady(msg))) return;
       try {
         const solves = loadSolves();
         const { doc, setDoc } = window._cloudFsMod;
@@ -2618,6 +2635,7 @@
     document.getElementById("cloud-sync-down-btn").addEventListener("click", async () => {
       const msg = document.getElementById("cloud-sync-msg");
       if (!confirm("Ye cloud se solves laa kar isi session mein rakh dega (current local solves replace ho jayenge). Continue?")) return;
+      if (!(await ensureCloudReady(msg))) return;
       try {
         const { doc, getDoc } = window._cloudFsMod;
         const snap = await getDoc(doc(cloudDb, "timerBackups", cloudUser.uid + "_" + currentEvent + "_" + currentSessionId));
@@ -2641,6 +2659,7 @@
 
     document.getElementById("cloud-submit-best-btn").addEventListener("click", async () => {
       const msg = document.getElementById("cloud-sync-msg");
+      if (!(await ensureCloudReady(msg))) return;
       try {
         const solves = allSolvesForEvent(currentEvent);
         const best = bestOf(solves);
@@ -2664,7 +2683,9 @@
       const listEl = document.getElementById("leaderboard-list");
       const eventLabel = (EVENTS.find(e => e.id === currentEvent) || {}).label || currentEvent;
       document.getElementById("leaderboard-event-label").textContent = eventLabel;
-      if (!cloudDb) { listEl.innerHTML = `<p style="color:var(--ink-muted);">Cloud not available.</p>`; return; }
+      listEl.innerHTML = `<p style="color:var(--ink-muted);">Loading…</p>`;
+      const ok = await cloudReady;
+      if (!ok || !cloudDb) { listEl.innerHTML = `<p style="color:var(--ink-muted);">Cloud not available.</p>`; return; }
       try {
         const { collection, getDocs, query, where } = window._cloudFsMod;
         const q = query(collection(cloudDb, "timerLeaderboard"), where("event", "==", currentEvent));
