@@ -706,8 +706,33 @@
   </aside>
 
   <script type="module">
-    import { randomScrambleForEvent } from "https://cdn.cubing.net/v0/js/cubing/scramble";
-    import "https://cdn.cubing.net/v0/js/scramble-display"; // registers <scramble-display> for the scramble image preview
+    // ==========================================================
+    // cubing.js (scramble engine + preview) — loaded DYNAMICALLY
+    // ==========================================================
+    // These used to be static top-level `import` statements. A static import
+    // is blocking: if the network request fails (offline, no cache yet, slow
+    // CDN, etc.) the browser throws before this module even starts running —
+    // which used to take down the ENTIRE app (timer, sessions, stats, all of
+    // it), not just the scramble feature. Loading them dynamically means a
+    // failure here only disables the WCA-accurate scramble engine / image
+    // preview; every local scrambler and the rest of the timer still works
+    // completely offline.
+    let randomScrambleForEvent = null;
+    let scrambleDisplayReady = false;
+    const cubingLibReady = (async () => {
+      try {
+        const mod = await import("https://cdn.cubing.net/v0/js/cubing/scramble");
+        randomScrambleForEvent = mod.randomScrambleForEvent;
+      } catch (err) {
+        console.warn("[TT Timer] cubing.js scramble engine unavailable (offline?) — falling back to local scramblers.", err);
+      }
+      try {
+        await import("https://cdn.cubing.net/v0/js/scramble-display"); // registers <scramble-display> for the scramble image preview
+        scrambleDisplayReady = true;
+      } catch (err) {
+        console.warn("[TT Timer] scramble-display preview unavailable (offline?).", err);
+      }
+    })();
 
     // ==========================================================
     // Events
@@ -762,11 +787,12 @@
     const scramblePreviewEl = document.getElementById("scramble-preview");
     let scrambleLoading = false;
     let customScrambleActive = false; // true once the user has typed their own scramble — "New" clears it
+    let offlineScrambleNoticeShown = false; // only toast about offline/basic scrambles once per session
 
     function updateScramblePreview(scrambleStr) {
       // 333mbf shows several scrambles at once (one per line) — an image
       // preview doesn't make sense there, so we just skip it.
-      if (!settings.showPreview || currentEvent === "333mbf" || !scrambleStr || scrambleStr.includes("\n")) {
+      if (!settings.showPreview || !scrambleDisplayReady || currentEvent === "333mbf" || !scrambleStr || scrambleStr.includes("\n")) {
         scramblePreviewBox.style.display = "none";
         return;
       }
@@ -876,20 +902,49 @@
       return scrambles.join("\n");
     }
 
+    function sq1Scramble() {
+      // (top,bottom) turns in 30° units [-5..6], plus the "/" slice move.
+      const moves = [];
+      for (let i = 0; i < 10; i++) {
+        let top = randInt(-5, 6), bottom = randInt(-5, 6);
+        if (top === 0 && bottom === 0) top = 1; // skip the no-op turn
+        moves.push(`(${top},${bottom})`);
+      }
+      return moves.join(" / ") + " /";
+    }
+
+    // Local (offline-safe, no network needed) scramblers used whenever the
+    // cubing.js WCA scramble engine isn't available — either it failed to
+    // load (offline / no cache yet) or it errored out for this event. These
+    // are simple random-move generators rather than true WCA random-state
+    // scrambles, but they keep every event fully usable with zero internet.
     const FALLBACK_SCRAMBLERS = {
+      "222": () => cubeScramble(["U", "D", "L", "R", "F", "B"], 11, null, true),
+      "333": () => cubeScramble(["U", "D", "L", "R", "F", "B"], 20, null, true),
+      "333bf": () => cubeScramble(["U", "D", "L", "R", "F", "B"], 20, null, true),
+      "333fm": () => cubeScramble(["U", "D", "L", "R", "F", "B"], 20, null, true),
+      "333oh": () => cubeScramble(["U", "D", "L", "R", "F", "B"], 20, null, true),
+      "444": () => cubeScramble(["U", "D", "L", "R", "F", "B"], 40, "simple", true),
+      "444bf": () => cubeScramble(["U", "D", "L", "R", "F", "B"], 40, "simple", true),
       "555": () => cubeScramble(["U", "D", "L", "R", "F", "B"], 60, "simple", true),
       "555bf": () => cubeScramble(["U", "D", "L", "R", "F", "B"], 60, "simple", true),
       "666": () => cubeScramble(["U", "D", "L", "R", "F", "B"], 80, "deep", true),
       "777": () => cubeScramble(["U", "D", "L", "R", "F", "B"], 100, "deep", true),
       "minx": megaminxScramble,
       "fto": ftoScramble,
+      "pyram": pyraminxScramble,
+      "skewb": skewbScramble,
+      "sq1": sq1Scramble,
+      "333mbf": () => mbldScramble(3),
     };
 
     const LOCAL_PRIMARY_SCRAMBLERS = {
       "clock": clockScramble,
     };
 
-    // All 18 events: always use cubing.js for true WCA-legal random-state scrambles.
+    // Prefer cubing.js for true WCA-legal random-state scrambles when it's
+    // available; every event also has a local fallback above so the timer
+    // keeps working even with zero internet connectivity.
     async function getNewScramble() {
       customScrambleActive = false; // fresh scramble cancels any custom one
       scrambleLoading = true;
@@ -903,21 +958,32 @@
         return;
       }
 
-      const MAX_TRIES = 3;
-      for (let attempt = 1; attempt <= MAX_TRIES; attempt++) {
-        try {
-          const scramble = await randomScrambleForEvent(currentEvent);
-          scrambleTextEl.textContent = scramble.toString();
-          updateScramblePreview(scrambleTextEl.textContent);
-          scrambleLoading = false;
-          return;
-        } catch (err) {
-          console.error(`Scramble attempt ${attempt} failed for event "${currentEvent}":`, err);
-          if (attempt < MAX_TRIES) await new Promise(r => setTimeout(r, 400 * attempt));
+      await cubingLibReady; // make sure we know whether cubing.js actually loaded before deciding
+
+      if (randomScrambleForEvent) {
+        const MAX_TRIES = 3;
+        for (let attempt = 1; attempt <= MAX_TRIES; attempt++) {
+          try {
+            const scramble = await randomScrambleForEvent(currentEvent);
+            scrambleTextEl.textContent = scramble.toString();
+            updateScramblePreview(scrambleTextEl.textContent);
+            scrambleLoading = false;
+            return;
+          } catch (err) {
+            console.error(`Scramble attempt ${attempt} failed for event "${currentEvent}":`, err);
+            if (attempt < MAX_TRIES) await new Promise(r => setTimeout(r, 400 * attempt));
+          }
         }
+        console.error(`cubing.js failed repeatedly for "${currentEvent}", using local fallback if available.`);
+      } else {
+        // cubing.js never loaded (most likely offline) — go straight to the
+        // local scrambler instead of wasting time retrying a dead network call.
+        offlineScrambleNoticeShown ||= (() => {
+          showToast("📴", "Offline scramble mode", "Basic scrambles are being used — connect once online for WCA-accurate ones.");
+          return true;
+        })();
       }
 
-      console.error(`cubing.js failed repeatedly for "${currentEvent}", using local fallback if available.`);
       if (FALLBACK_SCRAMBLERS[currentEvent]) {
         try {
           scrambleTextEl.textContent = FALLBACK_SCRAMBLERS[currentEvent]();

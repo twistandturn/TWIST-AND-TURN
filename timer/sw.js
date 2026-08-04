@@ -1,11 +1,22 @@
-const CACHE_NAME = "tt-timer-cache-v2";
+const CACHE_NAME = "tt-timer-cache-v3";
 const CORE_ASSETS = ["./index.html", "./manifest.json", "./icon-192.png", "./icon-512.png"];
 // Best-effort precache of CDN dependencies so the app still boots offline after
 // a first successful load. Each one is added individually and failures are
 // swallowed — a slow/unreachable CDN asset must never block install.
-const RUNTIME_ASSETS = [
+// Opaque (no-cors) is fine for classic <script src> tags (tailwind, chart.js).
+const RUNTIME_ASSETS_OPAQUE = [
   "https://cdn.tailwindcss.com",
   "https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js",
+];
+// These are loaded via ES module `import()`, which requires a real (non-opaque)
+// CORS response to be usable — so we fetch them normally instead of no-cors.
+// cubing.js also pulls in further chained sub-resources (workers/wasm/data) at
+// runtime that can't be known ahead of time; those get picked up by the
+// generic fetch handler below the first time they're successfully requested,
+// so the app becomes more fully offline-capable the more it's used online.
+const RUNTIME_ASSETS_CORS = [
+  "https://cdn.cubing.net/v0/js/cubing/scramble",
+  "https://cdn.cubing.net/v0/js/scramble-display",
 ];
 
 self.addEventListener("install", (event) => {
@@ -13,11 +24,16 @@ self.addEventListener("install", (event) => {
     (async () => {
       const cache = await caches.open(CACHE_NAME);
       await cache.addAll(CORE_ASSETS).catch(() => {});
-      await Promise.all(
-        RUNTIME_ASSETS.map((url) =>
+      await Promise.all([
+        ...RUNTIME_ASSETS_OPAQUE.map((url) =>
           cache.add(new Request(url, { mode: "no-cors" })).catch(() => {})
-        )
-      );
+        ),
+        ...RUNTIME_ASSETS_CORS.map((url) =>
+          fetch(url)
+            .then((res) => (res.ok ? cache.put(url, res) : null))
+            .catch(() => {})
+        ),
+      ]);
       self.skipWaiting();
     })()
   );
