@@ -177,6 +177,20 @@
   .feature-panel{ background:var(--bg-surface); }
   .feature-header{ display:flex; align-items:center; justify-content:space-between; padding:0.9rem 1.1rem; border-bottom:1px solid rgba(255,255,255,0.06); flex-shrink:0; }
   .feature-body{ flex:1; overflow-y:auto; padding:1.1rem; }
+
+  #mp-race-overlay{
+    position:fixed; left:0.75rem; bottom:0.75rem; z-index:60;
+    background:var(--bg-surface); border:1px solid rgba(255,255,255,0.08);
+    border-radius:0.75rem; padding:0.6rem 0.75rem; max-width:min(260px, 42vw);
+    box-shadow:0 4px 18px rgba(0,0,0,0.35);
+  }
+  #mp-race-list{ display:flex; flex-direction:column; gap:0.35rem; }
+  .mp-race-row{ display:flex; align-items:center; justify-content:space-between; gap:0.6rem; font-family:'JetBrains Mono', monospace; font-size:0.72rem; }
+  .mp-race-row .mp-race-name{ color:var(--ink-muted); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:120px; }
+  .mp-race-row.is-me .mp-race-name{ color:var(--ink); font-weight:700; }
+  .mp-race-row .mp-race-time{ font-weight:700; }
+  .mp-player-row{ display:flex; align-items:center; justify-content:space-between; gap:0.5rem; padding:0.5rem 0.6rem; border-radius:0.5rem; background:rgba(255,255,255,0.04); }
+  #target-solve-readout{ font-size:0.65rem; color:var(--ink-muted); margin-top:0.25rem; }
   .subtab-btn{ font-family:'Space Grotesk',sans-serif; font-weight:600; font-size:0.8rem; padding:0.45rem 0.9rem; border-radius:999px; border:1px solid rgba(255,255,255,0.12); color:var(--ink-muted); background:transparent; cursor:pointer; white-space:nowrap; }
   .subtab-btn.active{ background:var(--cube-blue); color:#fff; border-color:transparent; }
   .stat-tile{ background:var(--bg-base); border:1px solid rgba(255,255,255,0.08); border-radius:12px; padding:0.8rem 0.9rem; }
@@ -285,6 +299,7 @@
         <button id="analytics-btn" type="button" class="cs-icon-btn" title="Analytics dashboard" aria-label="Open analytics dashboard">📊</button>
         <button id="practice-btn" type="button" class="cs-icon-btn" title="Algorithm trainer" aria-label="Open algorithm trainer">🎓</button>
         <button id="compete-btn" type="button" class="cs-icon-btn" title="Competition mode" aria-label="Start competition mode">🏁</button>
+        <button id="mp-btn" type="button" class="cs-icon-btn" title="Multiplayer — race friends" aria-label="Open multiplayer">👥</button>
         <button id="achv-btn" type="button" class="cs-icon-btn" title="Achievements & records" aria-label="Open achievements">🏆</button>
         <a id="home-link" href="index.html" class="cs-icon-btn" title="Home">🏠</a>
         <button id="settings-btn" type="button" class="cs-icon-btn" title="Settings">⚙️</button>
@@ -462,6 +477,23 @@
         <label class="flex items-center justify-between py-2"><span class="text-sm">Ao200</span><input type="checkbox" data-avg="200" class="toggle-switch-input avg-toggle"></label>
         <label class="flex items-center justify-between py-2"><span class="text-sm">Ao500</span><input type="checkbox" data-avg="500" class="toggle-switch-input avg-toggle"></label>
         <label class="flex items-center justify-between py-2"><span class="text-sm">Ao1000</span><input type="checkbox" data-avg="1000" class="toggle-switch-input avg-toggle"></label>
+      </div>
+      <div>
+        <p class="font-mono text-xs uppercase tracking-widest mb-3" style="color:var(--ink-muted);">🎯 Target Solve</p>
+        <p class="text-xs mb-3" style="color:var(--ink-muted);">Set a target average — the app works out the time you need on your next solve to hit it (BPA-style), and shows it live under that average.</p>
+        <label class="flex items-center justify-between py-2">
+          <span class="text-sm">Enable Target Solve</span>
+          <input type="checkbox" id="setting-target-enabled" class="toggle-switch-input">
+        </label>
+        <label class="flex items-center justify-between py-2">
+          <span class="text-sm">Target average</span>
+          <select id="setting-target-avg-n" class="field text-sm rounded-lg px-2 py-1.5"></select>
+        </label>
+        <label class="flex items-center justify-between py-2">
+          <span class="text-sm">Target time</span>
+          <input id="setting-target-avg-time" type="text" inputmode="decimal" placeholder="8.50 or 1:05.00" class="field text-sm rounded-lg px-2 py-1.5" style="width:120px; text-align:right;">
+        </label>
+        <p id="setting-target-status" class="text-xs" style="color:var(--ink-muted);"></p>
       </div>
       <div>
         <p class="font-mono text-xs uppercase tracking-widest mb-3" style="color:var(--ink-muted);">Hardware Timer</p>
@@ -705,6 +737,85 @@
     </div>
   </aside>
 
+  <!-- Multiplayer drawer -->
+  <div id="mp-backdrop" class="hidden fixed inset-0 z-[75] feature-backdrop"></div>
+  <aside id="mp-panel" class="hidden fixed top-0 right-0 h-full w-full max-w-md z-[76] feature-panel flex flex-col">
+    <div class="feature-header">
+      <h2 class="font-display font-bold text-lg">👥 Multiplayer</h2>
+      <button id="mp-close-btn" type="button" class="btn-ghost text-sm px-3 py-1.5 rounded-lg">✕</button>
+    </div>
+    <div class="feature-body">
+
+      <!-- Lobby: not in a room yet -->
+      <div id="mp-lobby">
+        <p class="text-xs mb-4" style="color:var(--ink-muted);">Race friends live — same scramble, real-time times. Direct browser-to-browser (WebRTC), no account needed. Both of you need to be online at the same time.</p>
+
+        <div class="surface-card rounded-xl p-4 mb-4">
+          <p class="font-mono text-xs uppercase tracking-widest mb-2" style="color:var(--ink-muted);">Create a room</p>
+          <label class="block text-sm mb-1">Your name</label>
+          <input id="mp-host-name" type="text" maxlength="16" placeholder="Your name" class="field w-full rounded-lg text-sm px-3 py-2 mb-3">
+          <label class="block text-sm mb-1">Max players (including you)</label>
+          <select id="mp-max-players" class="field w-full rounded-lg text-sm px-3 py-2 mb-3">
+            <option value="2">2</option>
+            <option value="3">3</option>
+            <option value="4" selected>4</option>
+            <option value="5">5</option>
+            <option value="6">6</option>
+          </select>
+          <button id="mp-create-btn" type="button" class="btn-primary w-full py-2.5 rounded-lg text-sm">🏠 Create Room</button>
+        </div>
+
+        <div class="surface-card rounded-xl p-4 mb-4">
+          <p class="font-mono text-xs uppercase tracking-widest mb-2" style="color:var(--ink-muted);">Join a room</p>
+          <label class="block text-sm mb-1">Your name</label>
+          <input id="mp-join-name" type="text" maxlength="16" placeholder="Your name" class="field w-full rounded-lg text-sm px-3 py-2 mb-3">
+          <label class="block text-sm mb-1">Room code</label>
+          <input id="mp-join-code" type="text" maxlength="12" placeholder="TT12342026" autocapitalize="characters" class="field w-full rounded-lg text-sm px-3 py-2 mb-1 font-mono uppercase">
+          <p class="text-xs mb-3" style="color:var(--ink-muted);">Format: TT + 4 digits + year, e.g. TT48512026</p>
+          <button id="mp-join-btn" type="button" class="btn-primary w-full py-2.5 rounded-lg text-sm">🔗 Join Room</button>
+        </div>
+        <p id="mp-lobby-status" class="text-xs" style="color:var(--ink-muted);"></p>
+      </div>
+
+      <!-- In-room view -->
+      <div id="mp-room" class="hidden">
+        <div class="surface-card rounded-xl p-4 mb-4">
+          <div class="flex items-center justify-between mb-2">
+            <p class="font-mono text-xs uppercase tracking-widest" style="color:var(--ink-muted);">Room code</p>
+            <span id="mp-role-badge" class="font-mono text-[10px] px-2 py-0.5 rounded-full" style="background:rgba(47,111,224,0.15); color:var(--cube-blue);">HOST</span>
+          </div>
+          <p id="mp-room-code" class="font-display font-bold text-2xl tracking-widest mb-3">-</p>
+          <div class="flex gap-2">
+            <button id="mp-copy-code-btn" type="button" class="btn-ghost flex-1 text-xs px-3 py-2 rounded-lg">📋 Copy code</button>
+            <button id="mp-copy-link-btn" type="button" class="btn-ghost flex-1 text-xs px-3 py-2 rounded-lg">🔗 Copy link</button>
+          </div>
+        </div>
+
+        <div id="mp-host-controls" class="hidden surface-card rounded-xl p-4 mb-4">
+          <p class="font-mono text-xs uppercase tracking-widest mb-2" style="color:var(--ink-muted);">Host controls</p>
+          <p class="text-xs mb-2" style="color:var(--ink-muted);">Event and scramble are controlled from the main toolbar (event dropdown / 🔄 New) and shared with everyone automatically.</p>
+          <button id="mp-new-round-btn" type="button" class="btn-primary w-full py-2 rounded-lg text-sm">🔄 New scramble for everyone</button>
+        </div>
+
+        <div class="surface-card rounded-xl p-4 mb-4">
+          <p class="font-mono text-xs uppercase tracking-widest mb-2" style="color:var(--ink-muted);">Players</p>
+          <div id="mp-players-list" class="space-y-2 font-mono text-sm"></div>
+        </div>
+
+        <button id="mp-leave-btn" type="button" class="btn-ghost w-full py-2 rounded-lg text-sm">🚪 Leave room</button>
+        <p id="mp-room-status" class="text-xs mt-2" style="color:var(--ink-muted);"></p>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Bottom-left live race overlay (visible while in a multiplayer room) -->
+  <div id="mp-race-overlay" class="hidden">
+    <div id="mp-race-list"></div>
+  </div>
+
+  <!-- PeerJS (WebRTC multiplayer) — classic script so it works alongside the module script below -->
+  <script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js"></script>
+
   <script type="module">
     // ==========================================================
     // cubing.js (scramble engine + preview) — loaded DYNAMICALLY
@@ -770,6 +881,7 @@
     }
     eventSelectEl.addEventListener("change", () => {
       if (state !== "idle") { eventSelectEl.value = currentEvent; return; } // don't switch mid-solve
+      if (typeof mpBlockIfGuest === "function" && mpBlockIfGuest()) { eventSelectEl.value = currentEvent; return; } // guests can't change event
       currentEvent = eventSelectEl.value;
       localStorage.setItem("tt-timer-event", currentEvent);
       currentSessionId = getActiveSessionId(currentEvent);
@@ -945,7 +1057,7 @@
     // Prefer cubing.js for true WCA-legal random-state scrambles when it's
     // available; every event also has a local fallback above so the timer
     // keeps working even with zero internet connectivity.
-    async function getNewScramble() {
+    async function getNewScrambleLocal() {
       customScrambleActive = false; // fresh scramble cancels any custom one
       scrambleLoading = true;
       scrambleTextEl.textContent = "Generating scramble…";
@@ -996,7 +1108,18 @@
       }
       scrambleLoading = false;
     }
-    document.getElementById("new-scramble-btn").addEventListener("click", () => { if (!scrambleLoading) getNewScramble(); });
+    // Multiplayer-aware wrapper: guests never generate their own scramble
+    // (they receive one from the host); the host broadcasts every fresh one.
+    async function getNewScramble() {
+      if (typeof mpState !== "undefined" && mpState.active && !mpState.isHost) return;
+      await getNewScrambleLocal();
+      if (typeof mpBroadcastScramble === "function") mpBroadcastScramble();
+    }
+    document.getElementById("new-scramble-btn").addEventListener("click", () => {
+      if (scrambleLoading) return;
+      if (typeof mpBlockIfGuest === "function" && mpBlockIfGuest()) return; // guests can't force a new scramble
+      getNewScramble();
+    });
 
     // ---- Custom scramble input (pencil icon) ----
     const scrambleEditBtn = document.getElementById("scramble-edit-btn");
@@ -1569,6 +1692,7 @@
       renderStats();
       if (typeof checkAchievements === "function") checkAchievements(solves, solve);
       if (typeof onCompeteSolveLogged === "function") onCompeteSolveLogged(solve);
+      if (typeof onMultiplayerSolveLogged === "function") onMultiplayerSolveLogged(solve);
     }
 
     function deleteSolve(index) {
@@ -1670,6 +1794,40 @@
       };
     }
 
+    // ---- Target Solve ----
+    // Given the n-1 most recent effective solve times and a target AoN, works
+    // out (via binary search, since WCA trimmed-mean isn't invertible in
+    // closed form) the slowest next-solve time that still hits the target.
+    function timeNeededForTargetAvg(existingMs, n, targetMs) {
+      const win = existingMs.slice(0, n - 1);
+      const avgWith = (x) => average([...win, x]);
+      const bestCase = avgWith(0);
+      if (bestCase === "DNF" || bestCase == null || bestCase > targetMs) return { status: "impossible" };
+      const worstCase = avgWith(Infinity);
+      if (worstCase !== "DNF" && worstCase != null && worstCase <= targetMs) return { status: "guaranteed" };
+      let lo = 0, hi = 24 * 3600 * 1000;
+      for (let i = 0; i < 40; i++) {
+        const mid = (lo + hi) / 2;
+        const a = avgWith(mid);
+        const ok = a !== "DNF" && a != null && a <= targetMs;
+        if (ok) lo = mid; else hi = mid;
+      }
+      return { status: "ok", neededMs: lo };
+    }
+    function targetSolveReadoutHtml(n, solves) {
+      if (!settings.targetSolveEnabled || settings.targetAvgN !== n || !settings.targetAvgMs) return "";
+      const win = solves.slice(0, n - 1).map(solveEffectiveMs);
+      if (win.length < n - 1) {
+        const more = n - 1 - win.length;
+        return `<div id="target-solve-readout">🎯 ${more} more solve${more === 1 ? "" : "s"} to unlock target Ao${n}</div>`;
+      }
+      const r = timeNeededForTargetAvg(win, n, settings.targetAvgMs);
+      const targetStr = fmt(settings.targetAvgMs);
+      if (r.status === "impossible") return `<div id="target-solve-readout">🎯 Ao${n} ${targetStr} is out of reach this round</div>`;
+      if (r.status === "guaranteed") return `<div id="target-solve-readout">🎯 Ao${n} ${targetStr} already locked in — even a DNF keeps it</div>`;
+      return `<div id="target-solve-readout">🎯 Solve ≤ <b>${fmt(r.neededMs)}</b> to hit Ao${n} ${targetStr}</div>`;
+    }
+
     function renderStats() {
       const solves = loadSolves();
       const validCount = solves.filter(s => s.penalty !== "DNF").length;
@@ -1702,6 +1860,7 @@
           <span class="cs-avg-label">Ao${n}: </span><span class="cs-avg-value">${computeAvgText(solves, n)}</span>
           <button type="button" class="cs-avg-share-btn share-avg-btn" data-n="${n}" title="Share Ao${n}">📤</button>
           <div class="font-mono" style="font-size:0.65rem; color:var(--ink-muted); margin-top:0.15rem;">BPA ${bpa} · WPA ${wpa}</div>
+          ${targetSolveReadoutHtml(n, solves)}
         </div>`;
       }).join("");
       belowEl.querySelectorAll(".share-avg-btn").forEach(b => b.addEventListener("click", () => shareAverage(parseInt(b.dataset.n))));
@@ -1715,6 +1874,7 @@
           <div style="display:flex; flex-direction:column; gap:0.15rem;">
             <span>Ao${n}: <b>${computeAvgText(solves, n)}</b></span>
             <span style="font-size:0.65rem; color:var(--ink-muted);">BPA ${bpa} · WPA ${wpa}</span>
+            ${targetSolveReadoutHtml(n, solves)}
           </div>
           <button type="button" class="cs-avg-share-btn share-avg-btn" data-n="${n}" title="Share Ao${n}">📤</button>
         </div>`;
@@ -1753,7 +1913,8 @@
       holdTimeMs: 300, hideRunningTime: false, timerColor: "var(--cube-blue)",
       phasesEnabled: false, phasesCount: 3,
       customColors: { board: null, scramble: null, sidebar: null, page: null, text: null },
-      soundEnabled: false, highContrast: false, reduceMotion: false
+      soundEnabled: false, highContrast: false, reduceMotion: false,
+      targetSolveEnabled: false, targetAvgN: 5, targetAvgMs: null
     };
     function loadSettings() {
       try {
@@ -1871,8 +2032,57 @@
         if (cb.checked) { if (!settings.avgs.includes(n)) settings.avgs.push(n); }
         else { settings.avgs = settings.avgs.filter(v => v !== n); }
         saveSettings(settings);
+        rebuildTargetAvgOptions();
         renderStats();
       });
+    });
+
+    // ---- Target Solve settings wiring ----
+    const settingTargetEnabled = document.getElementById("setting-target-enabled");
+    const settingTargetAvgN = document.getElementById("setting-target-avg-n");
+    const settingTargetAvgTime = document.getElementById("setting-target-avg-time");
+    const settingTargetStatus = document.getElementById("setting-target-status");
+
+    function rebuildTargetAvgOptions() {
+      const opts = [5, 12, ...settings.avgs].filter((v, i, a) => a.indexOf(v) === i).sort((a, b) => a - b);
+      settingTargetAvgN.innerHTML = opts.map(n => `<option value="${n}">Ao${n}</option>`).join("");
+      if (!opts.includes(settings.targetAvgN)) settings.targetAvgN = opts[0] || 5;
+      settingTargetAvgN.value = String(settings.targetAvgN);
+    }
+    rebuildTargetAvgOptions();
+
+    settingTargetEnabled.checked = settings.targetSolveEnabled;
+    settingTargetAvgTime.value = settings.targetAvgMs ? fmt(settings.targetAvgMs) : "";
+
+    settingTargetEnabled.addEventListener("change", () => {
+      settings.targetSolveEnabled = settingTargetEnabled.checked;
+      saveSettings(settings);
+      renderStats();
+    });
+    settingTargetAvgN.addEventListener("change", () => {
+      settings.targetAvgN = parseInt(settingTargetAvgN.value, 10);
+      saveSettings(settings);
+      renderStats();
+    });
+    settingTargetAvgTime.addEventListener("change", () => {
+      const raw = settingTargetAvgTime.value.trim();
+      if (!raw) {
+        settings.targetAvgMs = null;
+        saveSettings(settings);
+        settingTargetStatus.textContent = "";
+        renderStats();
+        return;
+      }
+      const parsed = parseTypedTime(raw);
+      if (!parsed || parsed.ms == null) {
+        settingTargetStatus.textContent = "Couldn't read that time — try 8.50 or 1:05.00";
+        return;
+      }
+      settings.targetAvgMs = parsed.ms;
+      settingTargetAvgTime.value = fmt(parsed.ms);
+      settingTargetStatus.textContent = "";
+      saveSettings(settings);
+      renderStats();
     });
 
     // ---- Full color customization wiring ----
@@ -3373,6 +3583,339 @@
         else clipBtn.classList.add("hidden");
       };
       camRecorder.stop();
+    }
+
+    // ==========================================================
+    // Multiplayer (WebRTC via PeerJS) — race friends live
+    // ==========================================================
+    let mpState = {
+      active: false, isHost: false, peer: null, myId: null, myName: "You",
+      roomCode: null, maxPlayers: 4,
+      conns: {},       // host: peerId -> DataConnection
+      hostConn: null,  // guest: DataConnection to host
+      players: {},     // peerId -> { name, lastMs, lastText, connected }
+    };
+
+    function mpGenRoomCode() { return "TT" + String(randInt(1000, 9999)) + new Date().getFullYear(); }
+    function mpNormalizeCode(raw) { return (raw || "").toUpperCase().replace(/[^A-Z0-9]/g, ""); }
+    function mpRoomCodeDisplay(code) { return code ? code.replace(/^(TT)(\d{4})(\d{4})$/, "$1-$2-$3") : "-"; }
+    function mpBuildLink(code) {
+      const url = new URL(window.location.href);
+      url.search = ""; url.hash = "";
+      url.searchParams.set("mp", code);
+      return url.toString();
+    }
+    function mpBlockIfGuest() {
+      if (mpState.active && !mpState.isHost) {
+        showToast("👥", "Host controls this", "Only the room host can change the event or scramble.");
+        return true;
+      }
+      return false;
+    }
+
+    const mpBtn = document.getElementById("mp-btn");
+    const mpBackdrop = document.getElementById("mp-backdrop");
+    const mpPanel = document.getElementById("mp-panel");
+    const mpLobby = document.getElementById("mp-lobby");
+    const mpRoom = document.getElementById("mp-room");
+    const mpLobbyStatus = document.getElementById("mp-lobby-status");
+    const mpRoomStatus = document.getElementById("mp-room-status");
+    const mpHostControls = document.getElementById("mp-host-controls");
+    const mpRoleBadge = document.getElementById("mp-role-badge");
+    const mpRoomCodeEl = document.getElementById("mp-room-code");
+    const mpPlayersListEl = document.getElementById("mp-players-list");
+    const mpRaceOverlay = document.getElementById("mp-race-overlay");
+    const mpRaceListEl = document.getElementById("mp-race-list");
+
+    function openMpPanel() { mpBackdrop.classList.remove("hidden"); mpPanel.classList.remove("hidden"); }
+    function closeMpPanel() { mpBackdrop.classList.add("hidden"); mpPanel.classList.add("hidden"); }
+    mpBtn.addEventListener("click", openMpPanel);
+    document.getElementById("mp-close-btn").addEventListener("click", closeMpPanel);
+    mpBackdrop.addEventListener("click", closeMpPanel);
+
+    function mpShowRoomView() {
+      mpLobby.classList.add("hidden");
+      mpRoom.classList.remove("hidden");
+      mpRoleBadge.textContent = mpState.isHost ? "HOST" : "GUEST";
+      mpRoleBadge.style.color = mpState.isHost ? "var(--cube-blue)" : "var(--cube-green)";
+      mpRoleBadge.style.background = mpState.isHost ? "rgba(47,111,224,0.15)" : "rgba(34,163,92,0.15)";
+      mpHostControls.classList.toggle("hidden", !mpState.isHost);
+      mpRoomCodeEl.textContent = mpRoomCodeDisplay(mpState.roomCode);
+    }
+    function mpShowLobbyView() { mpRoom.classList.add("hidden"); mpLobby.classList.remove("hidden"); }
+
+    function mpEnsurePeerLib() {
+      if (typeof Peer === "undefined") {
+        mpLobbyStatus.textContent = "Multiplayer needs an internet connection — try again once you're online.";
+        return false;
+      }
+      return true;
+    }
+
+    // ---- Create room (host) ----
+    document.getElementById("mp-create-btn").addEventListener("click", () => {
+      if (!mpEnsurePeerLib()) return;
+      const name = document.getElementById("mp-host-name").value.trim().slice(0, 16) || "Host";
+      const maxPlayers = parseInt(document.getElementById("mp-max-players").value, 10);
+      mpLobbyStatus.textContent = "Creating room…";
+      mpCreateRoom(name, maxPlayers, 0);
+    });
+
+    function mpCreateRoom(name, maxPlayers, attempt) {
+      const code = mpGenRoomCode();
+      const peer = new Peer(code, { debug: 0 });
+      let settled = false;
+      peer.on("open", (id) => {
+        settled = true;
+        mpState.active = true;
+        mpState.isHost = true;
+        mpState.peer = peer;
+        mpState.myId = id;
+        mpState.myName = name;
+        mpState.roomCode = id;
+        mpState.maxPlayers = maxPlayers;
+        mpState.conns = {};
+        mpState.players = { [id]: { name, lastMs: null, lastText: null, connected: true } };
+        peer.on("connection", (conn) => mpHostHandleConnection(conn));
+        peer.on("disconnected", () => { mpRoomStatus.textContent = "Connection lost — trying to reconnect…"; try { peer.reconnect(); } catch (e) {} });
+        mpShowRoomView();
+        mpRenderPlayers();
+        mpShowRaceOverlay();
+        mpLobbyStatus.textContent = "";
+        mpRoomStatus.textContent = "Room created — share the code or link with friends.";
+        showToast("👥", "Room created", mpRoomCodeDisplay(id));
+      });
+      peer.on("error", (err) => {
+        if (settled) return;
+        if (err && err.type === "unavailable-id" && attempt < 4) {
+          try { peer.destroy(); } catch (e) {}
+          mpCreateRoom(name, maxPlayers, attempt + 1);
+        } else {
+          mpLobbyStatus.textContent = "Couldn't create a room (network issue). Please try again.";
+        }
+      });
+    }
+
+    function mpHostHandleConnection(conn) {
+      conn.on("open", () => {
+        if (Object.keys(mpState.players).length >= mpState.maxPlayers) {
+          try { conn.send({ type: "full" }); } catch (e) {}
+          setTimeout(() => conn.close(), 300);
+          return;
+        }
+        mpState.conns[conn.peer] = conn;
+        conn.on("data", (msg) => mpHostHandleMessage(conn, msg));
+        conn.on("close", () => mpHostHandlePeerLeft(conn.peer));
+      });
+    }
+
+    function mpHostHandleMessage(conn, msg) {
+      if (!msg || !msg.type) return;
+      if (msg.type === "hello") {
+        const name = (msg.name || "Player").slice(0, 16);
+        mpState.players[conn.peer] = { name, lastMs: null, lastText: null, connected: true };
+        try {
+          conn.send({
+            type: "welcome", roomCode: mpState.roomCode, maxPlayers: mpState.maxPlayers,
+            event: currentEvent, scramble: scrambleTextEl.textContent, players: mpState.players
+          });
+        } catch (e) {}
+        mpBroadcastPlayers();
+        showToast("👥", `${name} joined`, mpRoomCodeDisplay(mpState.roomCode));
+      } else if (msg.type === "result") {
+        const p = mpState.players[conn.peer];
+        if (p) { p.lastMs = msg.ms; p.lastText = msg.text; }
+        mpBroadcastPlayers();
+      }
+    }
+
+    function mpHostHandlePeerLeft(peerId) {
+      const p = mpState.players[peerId];
+      delete mpState.conns[peerId];
+      delete mpState.players[peerId];
+      if (p) showToast("👋", `${p.name} left`, "");
+      mpBroadcastPlayers();
+    }
+
+    function mpSendToAll(msg) {
+      if (!mpState.isHost) return;
+      Object.values(mpState.conns).forEach((c) => { try { c.send(msg); } catch (e) {} });
+    }
+    function mpBroadcastPlayers() {
+      mpSendToAll({ type: "players", players: mpState.players });
+      mpRenderPlayers();
+    }
+    function mpBroadcastScramble() {
+      if (!mpState.active || !mpState.isHost) return;
+      Object.keys(mpState.players).forEach((id) => { mpState.players[id].lastMs = null; mpState.players[id].lastText = null; });
+      mpSendToAll({ type: "scramble", event: currentEvent, text: scrambleTextEl.textContent });
+      mpBroadcastPlayers();
+    }
+
+    // ---- Join room (guest) ----
+    document.getElementById("mp-join-btn").addEventListener("click", () => {
+      if (!mpEnsurePeerLib()) return;
+      const name = document.getElementById("mp-join-name").value.trim().slice(0, 16) || "Player";
+      const code = mpNormalizeCode(document.getElementById("mp-join-code").value);
+      if (!/^TT\d{8}$/.test(code)) {
+        mpLobbyStatus.textContent = "That doesn't look like a valid code (format: TT + 4 digits + year, e.g. TT48512026).";
+        return;
+      }
+      mpLobbyStatus.textContent = "Connecting…";
+      mpJoinRoom(name, code);
+    });
+
+    function mpJoinRoom(name, code) {
+      const peer = new Peer(undefined, { debug: 0 });
+      peer.on("open", () => {
+        const conn = peer.connect(code, { reliable: true });
+        let opened = false;
+        const failTimer = setTimeout(() => {
+          if (!opened) {
+            mpLobbyStatus.textContent = "Couldn't reach that room — check the code and that the host is still online.";
+            try { peer.destroy(); } catch (e) {}
+          }
+        }, 10000);
+        conn.on("open", () => {
+          opened = true;
+          clearTimeout(failTimer);
+          mpState.active = true;
+          mpState.isHost = false;
+          mpState.peer = peer;
+          mpState.myId = peer.id;
+          mpState.myName = name;
+          mpState.roomCode = code;
+          mpState.hostConn = conn;
+          conn.send({ type: "hello", name });
+        });
+        conn.on("data", (msg) => mpGuestHandleMessage(msg));
+        conn.on("close", () => {
+          if (mpState.active) {
+            showToast("👋", "Room closed", "The host disconnected.");
+            mpLeaveRoom(false);
+          }
+        });
+        conn.on("error", () => { mpLobbyStatus.textContent = "Connection error — please try again."; });
+      });
+      peer.on("error", (err) => {
+        if (err && err.type === "peer-unavailable") mpLobbyStatus.textContent = "No room found with that code.";
+        else if (!mpState.active) mpLobbyStatus.textContent = "Couldn't connect (network issue). Please try again.";
+      });
+    }
+
+    function mpGuestHandleMessage(msg) {
+      if (!msg || !msg.type) return;
+      if (msg.type === "full") {
+        mpLobbyStatus.textContent = "That room is full.";
+        mpLeaveRoom(false);
+      } else if (msg.type === "welcome") {
+        mpState.maxPlayers = msg.maxPlayers;
+        mpState.players = msg.players || {};
+        currentEvent = msg.event;
+        localStorage.setItem("tt-timer-event", currentEvent);
+        eventSelectEl.value = currentEvent;
+        eventSelectEl.disabled = true;
+        currentSessionId = getActiveSessionId(currentEvent);
+        renderSessionSelect(); renderSolves(); renderStats();
+        scrambleTextEl.textContent = msg.scramble;
+        customScrambleActive = false;
+        updateScramblePreview(msg.scramble);
+        mpShowRoomView();
+        mpRenderPlayers();
+        mpShowRaceOverlay();
+        mpLobbyStatus.textContent = "";
+        mpRoomStatus.textContent = "Connected — good luck!";
+      } else if (msg.type === "players") {
+        mpState.players = msg.players || {};
+        mpRenderPlayers();
+      } else if (msg.type === "scramble") {
+        currentEvent = msg.event;
+        eventSelectEl.value = currentEvent;
+        currentSessionId = getActiveSessionId(currentEvent);
+        renderSessionSelect(); renderSolves(); renderStats();
+        scrambleTextEl.textContent = msg.text;
+        customScrambleActive = false;
+        updateScramblePreview(msg.text);
+        showToast("🔄", "New scramble", "The host started a new round.");
+      }
+    }
+
+    // ---- Leave / cleanup ----
+    function mpLeaveRoom(userInitiated) {
+      try { if (mpState.peer) mpState.peer.destroy(); } catch (e) {}
+      const keepName = mpState.myName;
+      mpState = { active: false, isHost: false, peer: null, myId: null, myName: keepName, roomCode: null, maxPlayers: 4, conns: {}, hostConn: null, players: {} };
+      eventSelectEl.disabled = false;
+      mpHideRaceOverlay();
+      mpShowLobbyView();
+      if (userInitiated) mpLobbyStatus.textContent = "You left the room.";
+    }
+    document.getElementById("mp-leave-btn").addEventListener("click", () => {
+      if (!confirm("Leave this multiplayer room?")) return;
+      mpLeaveRoom(true);
+    });
+
+    document.getElementById("mp-new-round-btn").addEventListener("click", () => { if (!scrambleLoading) getNewScramble(); });
+
+    document.getElementById("mp-copy-code-btn").addEventListener("click", async () => {
+      try { await navigator.clipboard.writeText(mpState.roomCode); mpRoomStatus.textContent = "Code copied."; }
+      catch (e) { mpRoomStatus.textContent = mpState.roomCode || ""; }
+    });
+    document.getElementById("mp-copy-link-btn").addEventListener("click", async () => {
+      const link = mpBuildLink(mpState.roomCode);
+      try { await navigator.clipboard.writeText(link); mpRoomStatus.textContent = "Link copied — send it to a friend."; }
+      catch (e) { mpRoomStatus.textContent = link; }
+    });
+
+    // ---- Players list + bottom-left live race overlay ----
+    function mpRenderPlayers() {
+      const entries = Object.entries(mpState.players);
+      mpPlayersListEl.innerHTML = entries.map(([id, p]) => `
+        <div class="mp-player-row">
+          <span>${id === mpState.myId ? "🟢" : "⚪"} ${p.name}${id === mpState.myId ? " (you)" : ""}</span>
+          <span style="color:var(--ink-muted);">${p.lastText || "—"}</span>
+        </div>`).join("") || `<p class="text-xs" style="color:var(--ink-muted);">No one here yet.</p>`;
+      mpRenderRaceOverlay();
+    }
+    function mpRenderRaceOverlay() {
+      if (!mpState.active) return;
+      const entries = Object.entries(mpState.players);
+      mpRaceListEl.innerHTML = entries.map(([id, p]) => `
+        <div class="mp-race-row ${id === mpState.myId ? "is-me" : ""}">
+          <span class="mp-race-name">${p.name}${id === mpState.myId ? " (you)" : ""}</span>
+          <span class="mp-race-time">${p.lastText || "—"}</span>
+        </div>`).join("");
+    }
+    function mpShowRaceOverlay() { mpRaceOverlay.classList.remove("hidden"); mpRenderRaceOverlay(); }
+    function mpHideRaceOverlay() { mpRaceOverlay.classList.add("hidden"); }
+
+    // ---- Hook (called from addSolve): broadcast/send this player's result ----
+    function onMultiplayerSolveLogged(solve) {
+      if (!mpState.active) return;
+      const effMs = solveEffectiveMs(solve);
+      const text = solveDisplay(solve);
+      const ms = effMs === Infinity ? null : effMs;
+      if (mpState.isHost) {
+        if (mpState.players[mpState.myId]) { mpState.players[mpState.myId].lastMs = ms; mpState.players[mpState.myId].lastText = text; }
+        mpBroadcastPlayers();
+      } else if (mpState.hostConn) {
+        try { mpState.hostConn.send({ type: "result", ms, text }); } catch (e) {}
+      }
+    }
+
+    // ---- Auto-fill join code from a shared link (?mp=CODE) ----
+    (function mpHandleJoinLink() {
+      const params = new URLSearchParams(window.location.search);
+      const code = mpNormalizeCode(params.get("mp"));
+      if (code) {
+        document.getElementById("mp-join-code").value = code;
+        openMpPanel();
+        mpLobbyStatus.textContent = "Enter your name and tap Join Room to connect.";
+      }
+    })();
+
+    if (typeof Peer === "undefined") {
+      mpLobbyStatus.textContent = "Multiplayer couldn't load (offline?). Reconnect to the internet and reopen this panel.";
     }
 
     // ==========================================================

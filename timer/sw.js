@@ -1,12 +1,13 @@
-const CACHE_NAME = "tt-timer-cache-v3";
+const CACHE_NAME = "tt-timer-cache-v4";
 const CORE_ASSETS = ["./index.html", "./manifest.json", "./icon-192.png", "./icon-512.png"];
 // Best-effort precache of CDN dependencies so the app still boots offline after
 // a first successful load. Each one is added individually and failures are
 // swallowed — a slow/unreachable CDN asset must never block install.
-// Opaque (no-cors) is fine for classic <script src> tags (tailwind, chart.js).
+// Opaque (no-cors) is fine for classic <script src> tags (tailwind, chart.js, peerjs).
 const RUNTIME_ASSETS_OPAQUE = [
   "https://cdn.tailwindcss.com",
   "https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js",
+  "https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js",
 ];
 // These are loaded via ES module `import()`, which requires a real (non-opaque)
 // CORS response to be usable — so we fetch them normally instead of no-cors.
