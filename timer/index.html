@@ -295,6 +295,7 @@
         <button id="sidebar-open-btn" type="button" class="cs-icon-btn cs-mobile-only" title="Session">☰</button>
         <select id="event-select" class="cs-event-select"></select>
         <div class="flex-1"></div>
+        <button id="prev-scramble-btn" type="button" disabled class="btn-ghost text-xs px-3 py-1.5 rounded-lg flex-shrink-0" style="opacity:0.4;" title="Go back to the previous scramble">⏮️ Previous</button>
         <button id="new-scramble-btn" class="btn-ghost text-xs px-3 py-1.5 rounded-lg flex-shrink-0">🔄 New</button>
         <button id="install-pwa-btn" type="button" class="hidden btn-ghost text-xs px-3 py-1.5 rounded-lg flex-shrink-0" title="Install Timer as an app">⬇️ Install</button>
         <button id="analytics-btn" type="button" class="cs-icon-btn" title="Analytics dashboard" aria-label="Open analytics dashboard">📊</button>
@@ -343,6 +344,17 @@
 
           <div class="mt-6">
             <button id="manual-start-btn" class="btn-primary px-6 py-2.5 rounded-lg">Start / Stop</button>
+          </div>
+
+          <!-- Multiplayer players — live inside the timer panel -->
+          <div id="mp-inline-panel" class="hidden mt-6 text-left mx-auto" style="max-width:420px;">
+            <div class="surface-card rounded-xl p-4">
+              <div class="flex items-center justify-between mb-2">
+                <p class="font-mono text-xs uppercase tracking-widest" style="color:var(--ink-muted);">👥 Players — Live</p>
+                <span id="mp-inline-room-code" class="font-mono text-[10px] px-2 py-0.5 rounded-full" style="background:rgba(47,111,224,0.15); color:var(--cube-blue);"></span>
+              </div>
+              <div id="mp-players-list" class="space-y-2 font-mono text-sm"></div>
+            </div>
           </div>
         </div>
       </div>
@@ -433,6 +445,23 @@
           <button type="button" data-color="#9B59B6" class="timer-color-btn flex-1 py-2 rounded-lg" style="background:#9B59B6;" title="Purple"></button>
           <button type="button" data-color="#F2F1ED" class="timer-color-btn flex-1 py-2 rounded-lg" style="background:#F2F1ED; border:1px solid rgba(0,0,0,0.15);" title="White"></button>
         </div>
+      </div>
+
+      <div>
+        <p class="font-mono text-xs uppercase tracking-widest mb-3" style="color:var(--ink-muted);">🖼️ Timer Background Photo</p>
+        <p class="text-xs mb-3" style="color:var(--ink-muted);">Apni gallery se koi bhi photo choose karo — timer ke background me dikhega.</p>
+        <div id="bg-preview-wrap" class="hidden mb-3 rounded-lg overflow-hidden" style="border:1px solid rgba(255,255,255,0.12);">
+          <img id="bg-preview-img" class="w-full h-24 object-cover" alt="Background preview">
+        </div>
+        <div class="flex gap-2">
+          <label for="bg-image-input" class="btn-ghost text-xs px-3 py-2 rounded-lg flex-1 text-center cursor-pointer">📷 Choose from Gallery</label>
+          <button type="button" id="bg-image-remove-btn" class="btn-ghost text-xs px-3 py-2 rounded-lg">✕ Remove</button>
+        </div>
+        <input type="file" id="bg-image-input" accept="image/*" class="hidden">
+        <label class="flex items-center justify-between py-2 mt-2">
+          <span class="text-sm">Dim overlay (for readability)</span>
+          <input type="checkbox" id="setting-bg-dim" class="toggle-switch-input">
+        </label>
       </div>
 
       <div>
@@ -798,10 +827,7 @@
           <button id="mp-new-round-btn" type="button" class="btn-primary w-full py-2 rounded-lg text-sm">🔄 New scramble for everyone</button>
         </div>
 
-        <div class="surface-card rounded-xl p-4 mb-4">
-          <p class="font-mono text-xs uppercase tracking-widest mb-2" style="color:var(--ink-muted);">Players</p>
-          <div id="mp-players-list" class="space-y-2 font-mono text-sm"></div>
-        </div>
+        <p class="text-xs mb-4" style="color:var(--ink-muted);">👥 Players' names and times are now shown live right inside the timer screen — no need to open this panel while racing.</p>
 
         <button id="mp-leave-btn" type="button" class="btn-ghost w-full py-2 rounded-lg text-sm">🚪 Leave room</button>
         <p id="mp-room-status" class="text-xs mt-2" style="color:var(--ink-muted);"></p>
@@ -812,6 +838,25 @@
   <!-- Bottom-left live race overlay (visible while in a multiplayer room) -->
   <div id="mp-race-overlay" class="hidden">
     <div id="mp-race-list"></div>
+  </div>
+
+  <!-- "What's New" popup — shown once per update, whenever a real new
+       feature (not a bug fix) is shipped. To announce a future feature,
+       add an entry to WHATS_NEW and bump CURRENT_FEATURE_VERSION in the
+       script below; this popup will then show automatically on next open. -->
+  <div id="whats-new-backdrop" class="hidden fixed inset-0 z-[90]" style="background:rgba(0,0,0,0.6);"></div>
+  <div id="whats-new-popup" class="hidden fixed inset-0 z-[91] flex items-center justify-center p-4">
+    <div class="surface-card rounded-2xl w-full max-w-sm overflow-hidden" style="max-height:85vh; display:flex; flex-direction:column;">
+      <div class="flex flex-col items-center text-center px-6 pt-6 pb-4" style="border-bottom:1px solid rgba(255,255,255,0.06);">
+        <img src="./icon-192.png" alt="Timer logo" class="w-12 h-12 rounded-xl mb-2">
+        <p class="font-display font-bold text-lg">Twist &amp; Turn Timer</p>
+        <p class="font-mono text-xs mt-1" style="color:var(--ink-muted);">✨ What's New</p>
+      </div>
+      <div id="whats-new-list" class="px-6 py-4 space-y-4 overflow-y-auto"></div>
+      <div class="px-6 pb-6 pt-1">
+        <button id="whats-new-update-btn" type="button" class="btn-primary w-full py-2.5 rounded-lg text-sm">🔄 Update Now</button>
+      </div>
+    </div>
   </div>
 
   <!-- PeerJS (WebRTC multiplayer) — classic script so it works alongside the module script below -->
@@ -1058,7 +1103,38 @@
     // Prefer cubing.js for true WCA-legal random-state scrambles when it's
     // available; every event also has a local fallback above so the timer
     // keeps working even with zero internet connectivity.
+    // ---- Previous scramble history ----
+    // Keeps a small stack of scrambles that were replaced by "New" so the
+    // user can step back to one if they change their mind.
+    let scrambleHistory = [];
+    const MAX_SCRAMBLE_HISTORY = 25;
+    const prevScrambleBtn = document.getElementById("prev-scramble-btn");
+    function updatePrevScrambleBtn() {
+      const empty = scrambleHistory.length === 0;
+      prevScrambleBtn.disabled = empty;
+      prevScrambleBtn.style.opacity = empty ? "0.4" : "1";
+    }
+    function pushScrambleHistory(text) {
+      if (!text) return;
+      if (text === "Loading…" || text === "Generating scramble…") return;
+      if (text.startsWith("Couldn't generate")) return;
+      scrambleHistory.push(text);
+      if (scrambleHistory.length > MAX_SCRAMBLE_HISTORY) scrambleHistory.shift();
+      updatePrevScrambleBtn();
+    }
+    prevScrambleBtn.addEventListener("click", () => {
+      if (scrambleLoading || !scrambleHistory.length) return;
+      if (typeof mpBlockIfGuest === "function" && mpBlockIfGuest()) return; // guests follow the host's scramble
+      const prev = scrambleHistory.pop();
+      customScrambleActive = false;
+      scrambleTextEl.textContent = prev;
+      updateScramblePreview(prev);
+      updatePrevScrambleBtn();
+      if (typeof mpState !== "undefined" && mpState.active && mpState.isHost && typeof mpBroadcastScramble === "function") mpBroadcastScramble();
+    });
+
     async function getNewScrambleLocal() {
+      pushScrambleHistory(scrambleTextEl.textContent); // remember what we're replacing
       customScrambleActive = false; // fresh scramble cancels any custom one
       scrambleLoading = true;
       scrambleTextEl.textContent = "Generating scramble…";
@@ -1922,7 +1998,8 @@
       phasesEnabled: false, phasesCount: 3,
       customColors: { board: null, scramble: null, sidebar: null, page: null, text: null },
       soundEnabled: false, highContrast: false, reduceMotion: false,
-      targetSolveEnabled: false, targetAvgN: 5, targetAvgMs: null
+      targetSolveEnabled: false, targetAvgN: 5, targetAvgMs: null,
+      backgroundImage: null, bgDim: true
     };
     function loadSettings() {
       try {
@@ -1933,7 +2010,18 @@
       }
       catch { return { ...DEFAULT_SETTINGS }; }
     }
-    function saveSettings(s) { localStorage.setItem(SETTINGS_KEY, JSON.stringify(s)); }
+    function saveSettings(s) {
+      try {
+        localStorage.setItem(SETTINGS_KEY, JSON.stringify(s));
+      } catch (e) {
+        // Most likely quota exceeded from a large background photo — drop it and retry once.
+        if (s.backgroundImage) {
+          s.backgroundImage = null;
+          try { localStorage.setItem(SETTINGS_KEY, JSON.stringify(s)); } catch (e2) {}
+          if (typeof showToast === "function") showToast("⚠️", "Background photo too large", "Couldn't save it — try a smaller or different photo.");
+        }
+      }
+    }
     let settings = loadSettings();
 
     function applyTheme(theme) {
@@ -2128,6 +2216,86 @@
       });
     });
     applyCustomColors();
+
+    // ---- Timer background photo (from device gallery) ----
+    const bgImageInput = document.getElementById("bg-image-input");
+    const bgImageRemoveBtn = document.getElementById("bg-image-remove-btn");
+    const bgPreviewWrap = document.getElementById("bg-preview-wrap");
+    const bgPreviewImg = document.getElementById("bg-preview-img");
+    const settingBgDim = document.getElementById("setting-bg-dim");
+
+    function applyBackgroundImage() {
+      const img = settings.backgroundImage;
+      // Reset any previous placement (older versions applied it to just the
+      // small timer box) so switching stays clean.
+      zone.style.backgroundImage = "";
+      if (img) {
+        const overlay = settings.bgDim === false ? "" : "linear-gradient(rgba(10,11,15,0.55), rgba(10,11,15,0.55)), ";
+        csMain.style.backgroundImage = overlay + `url("${img}")`;
+        csMain.style.backgroundSize = "cover";
+        csMain.style.backgroundPosition = "center";
+        csMain.style.backgroundRepeat = "no-repeat";
+        csMain.style.backgroundAttachment = "local";
+        bgPreviewWrap.classList.remove("hidden");
+        bgPreviewImg.src = img;
+      } else {
+        csMain.style.backgroundImage = "";
+        bgPreviewWrap.classList.add("hidden");
+        bgPreviewImg.src = "";
+      }
+    }
+    // Downscales + compresses the chosen photo so it fits comfortably in
+    // localStorage (raw phone photos are often 3-10MB, way over quota).
+    function resizeImageForBackground(file, maxDim, quality) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onerror = () => reject(new Error("Couldn't read that file."));
+        reader.onload = () => {
+          const im = new Image();
+          im.onerror = () => reject(new Error("Couldn't read that image."));
+          im.onload = () => {
+            let { width, height } = im;
+            if (width > maxDim || height > maxDim) {
+              const scale = maxDim / Math.max(width, height);
+              width = Math.round(width * scale);
+              height = Math.round(height * scale);
+            }
+            const canvas = document.createElement("canvas");
+            canvas.width = width; canvas.height = height;
+            canvas.getContext("2d").drawImage(im, 0, 0, width, height);
+            resolve(canvas.toDataURL("image/jpeg", quality));
+          };
+          im.src = reader.result;
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+    bgImageInput.addEventListener("change", async () => {
+      const file = bgImageInput.files && bgImageInput.files[0];
+      if (!file) return;
+      try {
+        const dataUrl = await resizeImageForBackground(file, 1400, 0.82);
+        settings.backgroundImage = dataUrl;
+        saveSettings(settings);
+        applyBackgroundImage();
+      } catch (e) {
+        showToast("⚠️", "Couldn't set background", "Try a different photo from your gallery.");
+      } finally {
+        bgImageInput.value = "";
+      }
+    });
+    bgImageRemoveBtn.addEventListener("click", () => {
+      settings.backgroundImage = null;
+      saveSettings(settings);
+      applyBackgroundImage();
+    });
+    settingBgDim.checked = settings.bgDim !== false;
+    settingBgDim.addEventListener("change", () => {
+      settings.bgDim = settingBgDim.checked;
+      saveSettings(settings);
+      applyBackgroundImage();
+    });
+    applyBackgroundImage();
 
     // ==========================================================
     // Mobile session drawer
@@ -3634,6 +3802,8 @@
     const mpPlayersListEl = document.getElementById("mp-players-list");
     const mpRaceOverlay = document.getElementById("mp-race-overlay");
     const mpRaceListEl = document.getElementById("mp-race-list");
+    const mpInlinePanel = document.getElementById("mp-inline-panel");
+    const mpInlineRoomCode = document.getElementById("mp-inline-room-code");
 
     function openMpPanel() { mpBackdrop.classList.remove("hidden"); mpPanel.classList.remove("hidden"); }
     function closeMpPanel() { mpBackdrop.classList.add("hidden"); mpPanel.classList.add("hidden"); }
@@ -3649,8 +3819,10 @@
       mpRoleBadge.style.background = mpState.isHost ? "rgba(47,111,224,0.15)" : "rgba(34,163,92,0.15)";
       mpHostControls.classList.toggle("hidden", !mpState.isHost);
       mpRoomCodeEl.textContent = mpRoomCodeDisplay(mpState.roomCode);
+      mpInlinePanel.classList.remove("hidden");
+      mpInlineRoomCode.textContent = mpRoomCodeDisplay(mpState.roomCode);
     }
-    function mpShowLobbyView() { mpRoom.classList.add("hidden"); mpLobby.classList.remove("hidden"); }
+    function mpShowLobbyView() { mpRoom.classList.add("hidden"); mpLobby.classList.remove("hidden"); mpInlinePanel.classList.add("hidden"); }
 
     function mpEnsurePeerLib() {
       if (typeof Peer === "undefined") {
@@ -3942,6 +4114,69 @@
     }
 
     // ==========================================================
+    // "What's New" popup
+    // Shown once per feature update — never for plain bug fixes. To
+    // announce the next new feature: bump CURRENT_FEATURE_VERSION and add
+    // matching entries to WHATS_NEW below.
+    // ==========================================================
+    const CURRENT_FEATURE_VERSION = "2.1";
+    const WHATS_NEW = [
+      {
+        version: "2.1", emoji: "🖼️",
+        title: "Custom Background Photo",
+        desc: "Pick any photo from your gallery to use as the timer's background, right from Settings."
+      },
+      {
+        version: "2.1", emoji: "⏮️",
+        title: "Previous Scramble",
+        desc: "Tap \"Previous\" next to New to bring back the scramble you just replaced."
+      },
+      {
+        version: "2.1", emoji: "👥",
+        title: "Live Players in the Timer",
+        desc: "In multiplayer, friends' names and times now show right inside the timer screen — no side panel needed."
+      }
+    ];
+    const WHATS_NEW_KEY = "tt-timer-whats-new-seen";
+    const wnBackdrop = document.getElementById("whats-new-backdrop");
+    const wnPopup = document.getElementById("whats-new-popup");
+    const wnList = document.getElementById("whats-new-list");
+    const wnUpdateBtn = document.getElementById("whats-new-update-btn");
+
+    function showWhatsNewPopup() {
+      const entries = WHATS_NEW.filter(f => f.version === CURRENT_FEATURE_VERSION);
+      if (!entries.length) return;
+      wnList.innerHTML = entries.map(f => `
+        <div>
+          <p class="font-display font-bold text-sm">${f.emoji} ${escapeHtml(f.title)}</p>
+          <p class="text-xs mt-1" style="color:var(--ink-muted);">${escapeHtml(f.desc)}</p>
+        </div>`).join("");
+      wnBackdrop.classList.remove("hidden");
+      wnPopup.classList.remove("hidden");
+    }
+    function hideWhatsNewPopup() {
+      wnBackdrop.classList.add("hidden");
+      wnPopup.classList.add("hidden");
+      localStorage.setItem(WHATS_NEW_KEY, CURRENT_FEATURE_VERSION);
+    }
+    function checkWhatsNew() {
+      const seen = localStorage.getItem(WHATS_NEW_KEY);
+      if (seen === CURRENT_FEATURE_VERSION) return;
+      showWhatsNewPopup();
+    }
+    wnUpdateBtn.addEventListener("click", () => {
+      localStorage.setItem(WHATS_NEW_KEY, CURRENT_FEATURE_VERSION);
+      if ("serviceWorker" in navigator) {
+        navigator.serviceWorker.getRegistrations()
+          .then(regs => Promise.all(regs.map(r => r.update().catch(() => {}))))
+          .finally(() => location.reload());
+      } else {
+        location.reload();
+      }
+    });
+    wnBackdrop.addEventListener("click", hideWhatsNewPopup);
+
+    // ==========================================================
     // Init
     // ==========================================================
     applyTheme(settings.theme);
@@ -3951,6 +4186,7 @@
     renderSolves();
     renderStats();
     getNewScramble();
+    checkWhatsNew();
   </script>
 </body>
 </html>
