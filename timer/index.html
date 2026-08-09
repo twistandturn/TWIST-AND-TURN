@@ -889,7 +889,7 @@
       renderSessionSelect();
       renderSolves();
       renderStats();
-      getNewScramble();
+      getNewScramble(true);
     });
 
     // ==========================================================
@@ -1110,16 +1110,23 @@
       scrambleLoading = false;
     }
     // Multiplayer-aware wrapper: guests never generate their own scramble
-    // (they receive one from the host); the host broadcasts every fresh one.
-    async function getNewScramble() {
-      if (typeof mpState !== "undefined" && mpState.active && !mpState.isHost) return;
+    // (they receive one from the host). While in a room, the shared scramble
+    // only advances on an explicit host action (New / New scramble for
+    // everyone / switching event) — finishing a solve alone never resets it
+    // for the room, so everyone keeps racing the same scramble until the
+    // host moves the room on.
+    async function getNewScramble(userInitiated) {
+      if (typeof mpState !== "undefined" && mpState.active) {
+        if (!mpState.isHost) return;
+        if (!userInitiated) return;
+      }
       await getNewScrambleLocal();
-      if (typeof mpBroadcastScramble === "function") mpBroadcastScramble();
+      if (userInitiated && typeof mpBroadcastScramble === "function") mpBroadcastScramble();
     }
     document.getElementById("new-scramble-btn").addEventListener("click", () => {
       if (scrambleLoading) return;
       if (typeof mpBlockIfGuest === "function" && mpBlockIfGuest()) return; // guests can't force a new scramble
-      getNewScramble();
+      getNewScramble(true);
     });
 
     // ---- Custom scramble input (pencil icon) ----
@@ -3857,7 +3864,7 @@
       mpLeaveRoom(true);
     });
 
-    document.getElementById("mp-new-round-btn").addEventListener("click", () => { if (!scrambleLoading) getNewScramble(); });
+    document.getElementById("mp-new-round-btn").addEventListener("click", () => { if (!scrambleLoading) getNewScramble(true); });
 
     document.getElementById("mp-copy-code-btn").addEventListener("click", async () => {
       try { await navigator.clipboard.writeText(mpState.roomCode); mpRoomStatus.textContent = "Code copied."; }
