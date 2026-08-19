@@ -239,6 +239,7 @@
             <div class="surface-card rounded-xl p-4"><b>🌐 Mode</b><br>${d.mode || "-"}</div>
             <div class="surface-card rounded-xl p-4"><b>👥 Participants</b><br>${d.participantsLimit || "-"}</div>
             <div class="surface-card rounded-xl p-4"><b>🏁 Overall Format</b><br>${d.format || "-"}</div>
+            ${d.baseFee ? `<div class="surface-card rounded-xl p-4"><b>💰 Base Entry Fee</b><br>${d.baseFee}</div>` : ""}
           </div>
           ${eventsHtml}
           ${d.details ? `<p class="mb-6" style="color:var(--ink-muted)">${d.details}</p>` : ""}
@@ -605,9 +606,10 @@
         const d = upcomingSnap.data();
         const events = Array.isArray(d.events) ? d.events.filter(e => e && e.name) : [];
         if (d.date) kb.push({ tokens: tokenize("when date competition schedule event"), answer: `The next competition is on ${d.date}.` });
+        if (d.baseFee) kb.push({ tokens: tokenize("base fee registration fee compulsory"), answer: `Base entry fee is ${d.baseFee} (charged in addition to any per-event fee).` });
         if (events.length > 0) {
           const feeList = events.map(ev => `${ev.name}: ${ev.fee || "-"}`).join(", ");
-          kb.push({ tokens: tokenize("entry fee cost price registration charge"), answer: `Entry fees — ${feeList}.` });
+          kb.push({ tokens: tokenize("entry fee cost price registration charge"), answer: `${d.baseFee ? `Base entry fee is ${d.baseFee}, plus per-event fees — ` : "Entry fees — "}${feeList}.` });
           const eventNames = events.map(ev => ev.name).join(", ");
           kb.push({ tokens: tokenize("event type cube category which events"), answer: `Events: ${eventNames}.` });
           events.forEach(ev => {

@@ -84,6 +84,12 @@
         </div>
 
         <div>
+          <label class="block text-sm font-mono mb-1" style="color:var(--ink-muted);">Base Entry Fee</label>
+          <input type="text" id="baseFee" class="field w-full rounded-lg px-4 py-3" placeholder="₹99 (compulsory base fee, alag se)">
+          <p class="text-xs mt-1" style="color:var(--ink-muted);">Ye sabke liye ek baar wali fee hai (jaise registration/base fee). Har event ki apni alag fee neeche add karo.</p>
+        </div>
+
+        <div>
           <label class="block text-sm font-mono mb-1" style="color:var(--ink-muted);">Events (per-event fee &amp; format)</label>
           <div class="grid grid-cols-4 gap-2 mb-1">
             <span class="text-xs font-mono" style="color:var(--ink-muted);">Event Name</span>
@@ -306,6 +312,7 @@
         document.getElementById("mode").value = d.mode || "";
         document.getElementById("participantsLimit").value = d.participantsLimit || "";
         document.getElementById("format").value = d.format || "";
+        document.getElementById("baseFee").value = d.baseFee || "";
         document.getElementById("reglink").value = d.regLink || "";
         document.getElementById("details").value = d.details || "";
         currentPosterUrl = d.posterUrl || "";
@@ -353,6 +360,7 @@
           events: events,
           participantsLimit: document.getElementById("participantsLimit").value,
           format: document.getElementById("format").value,
+          baseFee: document.getElementById("baseFee").value,
           regLink: document.getElementById("reglink").value,
           details: document.getElementById("details").value,
           posterUrl: posterUrl,
