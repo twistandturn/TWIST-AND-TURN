@@ -74,24 +74,26 @@
 
         <div class="grid grid-cols-2 gap-4">
           <div>
-            <label class="block text-sm font-mono mb-1" style="color:var(--ink-muted);">Event Type</label>
-            <input type="text" id="eventType" class="field w-full rounded-lg px-4 py-3" placeholder="3×3 Cube Only">
-          </div>
-          <div>
-            <label class="block text-sm font-mono mb-1" style="color:var(--ink-muted);">Entry Fee</label>
-            <input type="text" id="entryFee" class="field w-full rounded-lg px-4 py-3" placeholder="₹399">
-          </div>
-        </div>
-
-        <div class="grid grid-cols-2 gap-4">
-          <div>
             <label class="block text-sm font-mono mb-1" style="color:var(--ink-muted);">Participants Limit</label>
             <input type="text" id="participantsLimit" class="field w-full rounded-lg px-4 py-3" placeholder="Only 60">
           </div>
           <div>
-            <label class="block text-sm font-mono mb-1" style="color:var(--ink-muted);">Format</label>
+            <label class="block text-sm font-mono mb-1" style="color:var(--ink-muted);">Overall Format</label>
             <input type="text" id="format" class="field w-full rounded-lg px-4 py-3" placeholder="Qualifier → Top 8 → Finals">
           </div>
+        </div>
+
+        <div>
+          <label class="block text-sm font-mono mb-1" style="color:var(--ink-muted);">Events (per-event fee &amp; format)</label>
+          <div class="grid grid-cols-4 gap-2 mb-1">
+            <span class="text-xs font-mono" style="color:var(--ink-muted);">Event Name</span>
+            <span class="text-xs font-mono" style="color:var(--ink-muted);">Entry Fee</span>
+            <span class="text-xs font-mono" style="color:var(--ink-muted);">Format (optional)</span>
+            <span></span>
+          </div>
+          <div id="events-rows" class="space-y-2"></div>
+          <button id="add-event-btn" type="button" class="w-full py-2 rounded-lg border border-white/15 font-mono text-sm mt-2" style="color:var(--ink-muted);">+ Add Event</button>
+          <p class="text-xs mt-2" style="color:var(--ink-muted);">Har event ka apna naam aur fee daalo (jaise 3x3 – ₹399, 2x2 – ₹199). Format khaali chhodo agar wo "Overall Format" hi follow karega — sirf alag format wale event mein format bharo.</p>
         </div>
 
         <div>
@@ -273,16 +275,35 @@
 
     let currentPosterUrl = "";
 
+    // ============================================
+    // Per-event fee/format rows (competition events)
+    // ============================================
+    const eventsContainer = document.getElementById("events-rows");
+
+    function addEventRow(name = "", fee = "", format = "") {
+      const rowDiv = document.createElement("div");
+      rowDiv.className = "grid grid-cols-4 gap-2 items-center";
+      rowDiv.innerHTML = `
+        <input type="text" class="field rounded-lg px-3 py-2 text-sm event-name" placeholder="e.g. 3x3" value="${name}">
+        <input type="text" class="field rounded-lg px-3 py-2 text-sm event-fee" placeholder="e.g. ₹399" value="${fee}">
+        <input type="text" class="field rounded-lg px-3 py-2 text-sm event-format" placeholder="Same as overall" value="${format}">
+        <button type="button" class="remove-event-btn text-sm py-2 rounded-lg" style="color:var(--cube-red); border:1px solid rgba(255,255,255,0.1);">Remove</button>
+      `;
+      rowDiv.querySelector(".remove-event-btn").addEventListener("click", () => rowDiv.remove());
+      eventsContainer.appendChild(rowDiv);
+    }
+
+    document.getElementById("add-event-btn").addEventListener("click", () => addEventRow());
+
     async function loadCurrentData() {
       const snap = await getDoc(doc(db, "site", "upcomingCompetition"));
+      eventsContainer.innerHTML = "";
       if (snap.exists()) {
         const d = snap.data();
         document.getElementById("status").value = d.status || "none";
         document.getElementById("title").value = d.title || "";
         document.getElementById("date").value = d.date || "";
         document.getElementById("mode").value = d.mode || "";
-        document.getElementById("eventType").value = d.eventType || "";
-        document.getElementById("entryFee").value = d.entryFee || "";
         document.getElementById("participantsLimit").value = d.participantsLimit || "";
         document.getElementById("format").value = d.format || "";
         document.getElementById("reglink").value = d.regLink || "";
@@ -292,6 +313,17 @@
           document.getElementById("poster-preview").innerHTML =
             `<img src="${currentPosterUrl}" class="rounded-lg mt-2 max-h-48">`;
         }
+
+        if (d.events && d.events.length > 0) {
+          d.events.forEach(ev => addEventRow(ev.name, ev.fee, ev.format));
+        } else if (d.eventType || d.entryFee) {
+          // migrate old single event/fee data into the new events list
+          addEventRow(d.eventType || "", d.entryFee || "", "");
+        } else {
+          addEventRow();
+        }
+      } else {
+        addEventRow();
       }
     }
 
@@ -301,6 +333,12 @@
 
       const file = document.getElementById("poster-file").files[0];
       let posterUrl = currentPosterUrl;
+
+      const events = Array.from(eventsContainer.children).map(rowDiv => ({
+        name: rowDiv.querySelector(".event-name").value,
+        fee: rowDiv.querySelector(".event-fee").value,
+        format: rowDiv.querySelector(".event-format").value
+      })).filter(e => e.name.trim() !== "");
 
       try {
         if (file) {
@@ -312,8 +350,7 @@
           title: document.getElementById("title").value,
           date: document.getElementById("date").value,
           mode: document.getElementById("mode").value,
-          eventType: document.getElementById("eventType").value,
-          entryFee: document.getElementById("entryFee").value,
+          events: events,
           participantsLimit: document.getElementById("participantsLimit").value,
           format: document.getElementById("format").value,
           regLink: document.getElementById("reglink").value,

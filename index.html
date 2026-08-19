@@ -215,6 +215,20 @@
       const statusLabel = d.status === "open" ? "🟢 Registration Open" : "🔴 Registration Closed";
       const statusColor = d.status === "open" ? "var(--cube-green)" : "var(--cube-red)";
 
+      const events = Array.isArray(d.events) ? d.events.filter(e => e && e.name) : [];
+
+      const eventsHtml = events.length > 0 ? `
+        <div class="max-w-3xl mx-auto mb-8">
+          <div class="grid gap-3">
+            ${events.map(ev => `
+              <div class="surface-card rounded-xl p-4 flex flex-wrap items-center justify-between gap-2 text-left">
+                <span class="font-display font-bold">🧩 ${ev.name}</span>
+                <span>💰 ${ev.fee || "-"}</span>
+                <span style="color:var(--ink-muted)">🏁 ${ev.format || d.format || "-"}</span>
+              </div>`).join("")}
+          </div>
+        </div>` : "";
+
       box.innerHTML = `
         ${d.posterUrl ? `<img src="${d.posterUrl}" class="w-full h-auto">` : ""}
         <div class="p-8 text-center">
@@ -223,11 +237,10 @@
           <div class="grid md:grid-cols-2 gap-4 text-left max-w-3xl mx-auto mb-8">
             <div class="surface-card rounded-xl p-4"><b>📅 Date</b><br>${d.date || "-"}</div>
             <div class="surface-card rounded-xl p-4"><b>🌐 Mode</b><br>${d.mode || "-"}</div>
-            <div class="surface-card rounded-xl p-4"><b>🧩 Event</b><br>${d.eventType || "-"}</div>
-            <div class="surface-card rounded-xl p-4"><b>💰 Entry Fee</b><br>${d.entryFee || "-"}</div>
             <div class="surface-card rounded-xl p-4"><b>👥 Participants</b><br>${d.participantsLimit || "-"}</div>
-            <div class="surface-card rounded-xl p-4"><b>🏁 Format</b><br>${d.format || "-"}</div>
+            <div class="surface-card rounded-xl p-4"><b>🏁 Overall Format</b><br>${d.format || "-"}</div>
           </div>
+          ${eventsHtml}
           ${d.details ? `<p class="mb-6" style="color:var(--ink-muted)">${d.details}</p>` : ""}
           ${d.regLink ? `<a href="${d.regLink}" target="_blank" class="btn-primary inline-block px-8 py-4 rounded-xl">Register Now 🚀</a>` : ""}
         </div>`;
@@ -590,12 +603,20 @@
       // Upcoming competition facts
       if (upcomingSnap.exists() && upcomingSnap.data().status && upcomingSnap.data().status !== "none") {
         const d = upcomingSnap.data();
+        const events = Array.isArray(d.events) ? d.events.filter(e => e && e.name) : [];
         if (d.date) kb.push({ tokens: tokenize("when date competition schedule event"), answer: `The next competition is on ${d.date}.` });
-        if (d.entryFee) kb.push({ tokens: tokenize("entry fee cost price registration charge"), answer: `Entry fee is ${d.entryFee}.` });
+        if (events.length > 0) {
+          const feeList = events.map(ev => `${ev.name}: ${ev.fee || "-"}`).join(", ");
+          kb.push({ tokens: tokenize("entry fee cost price registration charge"), answer: `Entry fees — ${feeList}.` });
+          const eventNames = events.map(ev => ev.name).join(", ");
+          kb.push({ tokens: tokenize("event type cube category which events"), answer: `Events: ${eventNames}.` });
+          events.forEach(ev => {
+            if (ev.format) kb.push({ tokens: tokenize(ev.name + " format rounds structure how works"), answer: `${ev.name} format: ${ev.format}` });
+          });
+        }
         if (d.mode) kb.push({ tokens: tokenize("mode online offline venue where"), answer: `This competition is ${d.mode}.` });
-        if (d.format) kb.push({ tokens: tokenize("format rounds structure how works"), answer: `Format: ${d.format}` });
+        if (d.format) kb.push({ tokens: tokenize("format rounds structure how works"), answer: `Overall format: ${d.format}` });
         if (d.regLink) kb.push({ tokens: tokenize("register registration link sign up join how"), answer: `You can register here: ${d.regLink}` });
-        if (d.eventType) kb.push({ tokens: tokenize("event type cube category which events"), answer: `Event type: ${d.eventType}` });
         if (d.participantsLimit) kb.push({ tokens: tokenize("participants limit slots spots how many"), answer: `Participant limit: ${d.participantsLimit}` });
         kb.push({ tokens: tokenize("status open closed registration"), answer: d.status === "open" ? "Registrations are currently open! 🟢" : "Registrations are currently closed for this competition." });
       } else {
