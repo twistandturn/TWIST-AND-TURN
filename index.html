@@ -79,7 +79,7 @@
         <button id="menuBtn" class="md:hidden text-3xl leading-none text-[var(--ink)]">☰</button>
       </div>
       <div id="navLinks" class="hidden absolute top-full right-0 mt-2 w-full md:static md:mt-0 md:w-auto md:flex md:items-center md:space-x-1 text-right md:text-left font-mono text-sm uppercase tracking-wider" style="background:var(--bg-surface);">
-        <button onclick="scrollToSection('upcoming')" class="block w-full px-4 py-3 text-left hover:text-[var(--cube-yellow)] transition border-b-2 border-transparent hover:border-[var(--cube-yellow)] md:inline-block md:w-auto md:p-2">Upcoming</button>
+        <button onclick="goToPage('cuberush2026.html')" class="block w-full px-4 py-3 text-left hover:text-[var(--cube-yellow)] transition border-b-2 border-transparent hover:border-[var(--cube-yellow)] md:inline-block md:w-auto md:p-2">Upcoming</button>
         <button onclick="goToPage('timer.html')" class="block w-full px-4 py-3 text-left hover:text-[var(--cube-red)] transition border-b-2 border-transparent hover:border-[var(--cube-red)] md:inline-block md:w-auto md:p-2">⏱️ Timer</button>
         <button onclick="goToPage('previous-competitions.html')" class="block w-full px-4 py-3 text-left hover:text-[var(--cube-blue)] transition border-b-2 border-transparent hover:border-[var(--cube-blue)] md:inline-block md:w-auto md:p-2">Previous</button>
         <button onclick="scrollToSection('rules')" class="block w-full px-4 py-3 text-left hover:text-[var(--cube-red)] transition border-b-2 border-transparent hover:border-[var(--cube-red)] md:inline-block md:w-auto md:p-2">Rules</button>
@@ -107,120 +107,12 @@
       <div id="hero-dynamic">
         <h1 class="font-display text-4xl md:text-6xl font-bold tracking-tight mb-6">Welcome to Twist &amp; Turn</h1>
         <p class="text-lg md:text-xl max-w-2xl mx-auto" style="color:var(--ink-muted)">Your platform for high-stakes online Rubik's Cube competitions.</p>
-      </div>
-    </div>
-  </section>
-
-  <section id="upcoming" class="py-16" style="background:var(--bg-surface);">
-    <div class="max-w-5xl mx-auto px-4">
-      <p class="eyebrow mb-2">Next Event</p>
-      <h2 class="font-display text-3xl font-bold mb-8">Upcoming Competition</h2>
-
-      <div id="upcoming-content" class="interactive-card surface-card accent-border-blue rounded-2xl shadow-2xl overflow-hidden">
-        <div class="p-10 text-center"><p style="color:var(--ink-muted)">Loading...</p></div>
-      </div>
-
-      <div id="upcoming-extra" class="hidden">
-        <div class="mt-12">
-          <h3 class="font-display text-2xl font-bold mb-8 text-center">🏁 Competition Format</h3>
-          <div class="grid md:grid-cols-5 gap-4 items-center">
-            <div class="surface-card rounded-xl p-5 text-center">
-              <h4 class="font-bold text-lg">Qualifier Round</h4>
-              <p class="mt-2" style="color:var(--ink-muted);">All Participants</p>
-            </div>
-            <div class="text-center text-3xl font-bold" style="color:var(--cube-yellow);">➜</div>
-            <div class="surface-card rounded-xl p-5 text-center">
-              <h4 class="font-bold text-lg">Top 8</h4>
-              <p class="mt-2" style="color:var(--ink-muted);">Qualified</p>
-            </div>
-            <div class="text-center text-3xl font-bold" style="color:var(--cube-yellow);">➜</div>
-            <div class="surface-card rounded-xl p-5 text-center">
-              <h4 class="font-bold text-lg">Grand Finals</h4>
-              <p class="mt-2" style="color:var(--ink-muted);">Top 3 Winners</p>
-            </div>
-          </div>
-        </div>
-
-      </div>
-    </div>
-  </section>
-
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-    import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-    import { firebaseConfig } from "./firebase-config.js";
-
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
-    const box = document.getElementById("upcoming-content");
-    const extra = document.getElementById("upcoming-extra");
-    const hero = document.getElementById("hero-dynamic");
-
-    getDoc(doc(db, "site", "upcomingCompetition")).then(snap => {
-      if (!snap.exists() || !snap.data().status || snap.data().status === "none") {
-        box.innerHTML = `
-          <div class="p-10 text-center">
-            <h2 class="font-display text-2xl md:text-3xl font-bold mb-4">No Upcoming Competition</h2>
-            <p class="mb-6" style="color:var(--ink-muted)">There are currently no upcoming competitions.</p>
-            <p class="text-lg font-semibold" style="color:var(--cube-yellow)">Stay tuned for our next event! 🚀</p>
-          </div>`;
-        extra.classList.add("hidden");
-        hero.innerHTML = `
-          <h1 class="font-display text-4xl md:text-6xl font-bold tracking-tight mb-6">Welcome to Twist &amp; Turn</h1>
-          <p class="text-lg md:text-xl max-w-2xl mx-auto" style="color:var(--ink-muted)">Your platform for high-stakes online Rubik's Cube competitions.</p>`;
-        return;
-      }
-
-      extra.classList.remove("hidden");
-      const d = snap.data();
-
-      hero.innerHTML = `
-        <h1 class="font-display text-4xl md:text-6xl font-bold tracking-tight mb-6">${d.title || ""}</h1>
-        <p class="text-lg md:text-xl max-w-2xl mx-auto" style="color:var(--ink-muted)">
-          ${d.details ? d.details + "<br><br>" : ""}
-          📅 ${d.date || ""}<br>
-          🌐 ${d.mode || ""}<br>
-          ${d.format ? "🏆 " + d.format : ""}
-        </p>
         <div class="mt-10 flex flex-wrap justify-center gap-4">
-          ${d.regLink ? `<a href="${d.regLink}" target="_blank" class="btn-primary px-8 py-4 rounded-xl shadow-xl">Register Now 🚀</a>` : ""}
-          <a href="#rules" class="px-8 py-4 rounded-xl border border-white/20 hover:bg-white/10">Rules 📖</a>
-        </div>`;
-      const statusLabel = d.status === "open" ? "🟢 Registration Open" : "🔴 Registration Closed";
-      const statusColor = d.status === "open" ? "var(--cube-green)" : "var(--cube-red)";
-
-      const events = Array.isArray(d.events) ? d.events.filter(e => e && e.name) : [];
-
-      const eventsHtml = events.length > 0 ? `
-        <div class="max-w-3xl mx-auto mb-8">
-          <div class="grid gap-3">
-            ${events.map(ev => `
-              <div class="surface-card rounded-xl p-4 flex flex-wrap items-center justify-between gap-2 text-left">
-                <span class="font-display font-bold">🧩 ${ev.name}</span>
-                <span>💰 ${ev.fee || "-"}</span>
-                <span style="color:var(--ink-muted)">🏁 ${ev.format || d.format || "-"}</span>
-              </div>`).join("")}
-          </div>
-        </div>` : "";
-
-      box.innerHTML = `
-        ${d.posterUrl ? `<img src="${d.posterUrl}" class="w-full h-auto">` : ""}
-        <div class="p-8 text-center">
-          <h2 class="font-display text-3xl font-bold mb-3">🔥 ${d.title || ""}</h2>
-          <p class="text-lg mb-6" style="color:${statusColor};">${statusLabel}</p>
-          <div class="grid md:grid-cols-2 gap-4 text-left max-w-3xl mx-auto mb-8">
-            <div class="surface-card rounded-xl p-4"><b>📅 Date</b><br>${d.date || "-"}</div>
-            <div class="surface-card rounded-xl p-4"><b>🌐 Mode</b><br>${d.mode || "-"}</div>
-            <div class="surface-card rounded-xl p-4"><b>👥 Participants</b><br>${d.participantsLimit || "-"}</div>
-            <div class="surface-card rounded-xl p-4"><b>🏁 Overall Format</b><br>${d.format || "-"}</div>
-            ${d.baseFee ? `<div class="surface-card rounded-xl p-4"><b>💰 Base Entry Fee</b><br>${d.baseFee}</div>` : ""}
-          </div>
-          ${eventsHtml}
-          ${d.details ? `<p class="mb-6" style="color:var(--ink-muted)">${d.details}</p>` : ""}
-          ${d.regLink ? `<a href="${d.regLink}" target="_blank" class="btn-primary inline-block px-8 py-4 rounded-xl">Register Now 🚀</a>` : ""}
-        </div>`;
-    });
-  </script>
+          <button onclick="goToPage('cuberush2026.html')" class="btn-primary px-8 py-4 rounded-xl shadow-xl">See Upcoming Competition 🏆</button>
+        </div>
+      </div>
+    </div>
+  </section>
 
   <section id="rules" class="py-16">
     <div class="max-w-7xl mx-auto px-4">
