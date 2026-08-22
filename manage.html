@@ -214,12 +214,25 @@
         <p class="text-xs" style="color:var(--ink-muted);">Photo URL is optional — leave blank to show a trophy icon instead.</p>
       </div>
 
+      <p class="font-mono text-xs tracking-widest uppercase mt-16 mb-2" style="color:var(--ink-muted);">Referral Program</p>
+      <h1 class="font-display text-3xl font-bold mb-8">Manage Referrals</h1>
+      <div class="surface-card rounded-2xl p-8 shadow-xl space-y-4">
+        <div class="flex items-center justify-between">
+          <p class="text-sm" style="color:var(--ink-muted);">Total Referrers: <b id="referrals-total" style="color:var(--ink);">0</b></p>
+          <button id="refresh-referrals-btn" type="button" class="py-2 px-4 rounded-lg border border-white/15 font-mono text-sm" style="color:var(--ink-muted);">🔄 Refresh</button>
+        </div>
+        <p class="text-xs" style="color:var(--ink-muted);">
+          Jab Google Form ke "Referred By" answers check karo, har unique valid referrer ke liye niche uska "Verified Referral Count" update karo aur Save dabao. 5 pe "Free Registration" aur 10 pe "Free Registration + Cube" select kar do — reward status sirf tumhare record ke liye hai, participant ko khud dikh nahi raha.
+        </p>
+        <div id="referrals-rows" class="space-y-4"></div>
+      </div>
+
     </main>
   </div>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-    import { getFirestore, doc, getDoc, setDoc, collection, addDoc, getDocs, deleteDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    import { getFirestore, doc, getDoc, setDoc, collection, addDoc, getDocs, deleteDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
     import { firebaseConfig } from "./firebase-config.js";
 
     // ============================================
@@ -274,6 +287,7 @@
         loadReviews();
         loadFaq();
         loadHallOfFame();
+        loadReferrals();
       } else {
         document.getElementById("pin-error").classList.remove("hidden");
       }
@@ -776,6 +790,102 @@
         msg.classList.remove("hidden");
       }
     });
+
+    // ============================================
+    // Referral Program management
+    // ============================================
+    const referralsContainer = document.getElementById("referrals-rows");
+    const referralsTotalEl = document.getElementById("referrals-total");
+
+    function addReferralRow(id, data) {
+      const rowDiv = document.createElement("div");
+      rowDiv.className = "surface-card rounded-xl p-4 space-y-3";
+      rowDiv.dataset.id = id;
+      const rewardStatus = data.rewardStatus || "none";
+      rowDiv.innerHTML = `
+        <div class="grid md:grid-cols-3 gap-2 text-sm">
+          <div><span style="color:var(--ink-muted)">Name:</span> <b>${data.name || ""}</b></div>
+          <div><span style="color:var(--ink-muted)">Email:</span> ${data.email || ""}</div>
+          <div><span style="color:var(--ink-muted)">WhatsApp:</span> ${data.whatsapp || ""}</div>
+        </div>
+        <div class="grid md:grid-cols-3 gap-2 items-end">
+          <div>
+            <label class="block text-xs font-mono mb-1" style="color:var(--ink-muted);">Verified Referral Count</label>
+            <input type="number" min="0" class="field w-full rounded-lg px-3 py-2 text-sm ref-count" value="${data.referralCount || 0}">
+          </div>
+          <div>
+            <label class="block text-xs font-mono mb-1" style="color:var(--ink-muted);">Reward Status</label>
+            <select class="field w-full rounded-lg px-3 py-2 text-sm ref-reward">
+              <option value="none" ${rewardStatus === "none" ? "selected" : ""}>No Reward Yet</option>
+              <option value="free" ${rewardStatus === "free" ? "selected" : ""}>Free Registration</option>
+              <option value="free_cube" ${rewardStatus === "free_cube" ? "selected" : ""}>Free Registration + Cube</option>
+            </select>
+          </div>
+          <div class="flex gap-2">
+            <button type="button" class="save-ref-btn btn-primary flex-1 py-2 rounded-lg text-sm">Save</button>
+            <button type="button" class="delete-ref-btn flex-1 py-2 rounded-lg text-sm" style="color:var(--cube-red); border:1px solid rgba(255,255,255,0.1);">Delete</button>
+          </div>
+        </div>
+        <p class="ref-row-msg text-xs hidden"></p>
+      `;
+
+      const msg = rowDiv.querySelector(".ref-row-msg");
+
+      rowDiv.querySelector(".save-ref-btn").addEventListener("click", async () => {
+        const countVal = parseInt(rowDiv.querySelector(".ref-count").value, 10) || 0;
+        const rewardVal = rowDiv.querySelector(".ref-reward").value;
+        try {
+          await updateDoc(doc(db, "referrals", id), {
+            referralCount: countVal,
+            rewardStatus: rewardVal
+          });
+          msg.textContent = "Saved!";
+          msg.style.color = "var(--cube-green)";
+          msg.classList.remove("hidden");
+        } catch (err) {
+          msg.textContent = "Error: " + err.message;
+          msg.style.color = "var(--cube-red)";
+          msg.classList.remove("hidden");
+        }
+      });
+
+      rowDiv.querySelector(".delete-ref-btn").addEventListener("click", async () => {
+        if (!confirm(`Delete referrer "${data.name}"? This cannot be undone.`)) return;
+        try {
+          await deleteDoc(doc(db, "referrals", id));
+          rowDiv.remove();
+          referralsTotalEl.textContent = String(referralsContainer.children.length);
+        } catch (err) {
+          msg.textContent = "Error: " + err.message;
+          msg.style.color = "var(--cube-red)";
+          msg.classList.remove("hidden");
+        }
+      });
+
+      referralsContainer.appendChild(rowDiv);
+    }
+
+    async function loadReferrals() {
+      referralsContainer.innerHTML = `<p class="text-sm" style="color:var(--ink-muted)">Loading...</p>`;
+      try {
+        const snap = await getDocs(collection(db, "referrals"));
+        referralsContainer.innerHTML = "";
+        if (snap.empty) {
+          referralsContainer.innerHTML = `<p class="text-sm" style="color:var(--ink-muted)">No referrers yet.</p>`;
+          referralsTotalEl.textContent = "0";
+          return;
+        }
+        const docs = [];
+        snap.forEach(d => docs.push({ id: d.id, ...d.data() }));
+        docs.sort((a, b) => (b.referralCount || 0) - (a.referralCount || 0));
+        docs.forEach(d => addReferralRow(d.id, d));
+        referralsTotalEl.textContent = String(docs.length);
+      } catch (err) {
+        referralsContainer.innerHTML = `<p class="text-sm" style="color:var(--cube-red)">Error loading referrals: ${err.message}</p>`;
+      }
+    }
+
+    document.getElementById("refresh-referrals-btn").addEventListener("click", () => loadReferrals());
   </script>
 </body>
 </html>
