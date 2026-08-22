@@ -126,15 +126,65 @@
     </div>
   </section>
 
+  <section id="referral-section" class="hidden py-16">
+    <div class="max-w-3xl mx-auto px-4">
+      <p class="eyebrow mb-2">Bring Your Squad</p>
+      <h2 class="font-display text-3xl font-bold mb-6">🔗 Referral Program</h2>
+
+      <div class="interactive-card surface-card accent-border-yellow rounded-2xl p-6 md:p-8 mb-8">
+        <div class="grid sm:grid-cols-2 gap-4 mb-6">
+          <div class="surface-card rounded-xl p-5 text-center">
+            <p class="font-display text-2xl font-bold" style="color:var(--cube-yellow);">5 Referrals</p>
+            <p class="mt-2 text-sm" style="color:var(--ink-muted);">Your own registration becomes <b style="color:var(--ink);">FREE</b> 🎉</p>
+          </div>
+          <div class="surface-card rounded-xl p-5 text-center">
+            <p class="font-display text-2xl font-bold" style="color:var(--cube-green);">10 Referrals</p>
+            <p class="mt-2 text-sm" style="color:var(--ink-muted);"><b style="color:var(--ink);">FREE</b> registration + a Cube 🎁</p>
+          </div>
+        </div>
+        <h3 class="font-bold mb-3">📜 Terms &amp; Conditions</h3>
+        <ul class="list-disc pl-5 space-y-2 text-sm text-left" style="color:var(--ink-muted);">
+          <li>Sign up below as a referrer <b style="color:var(--ink);">before</b> sharing your name with anyone.</li>
+          <li>Every participant you refer must enter your <b style="color:var(--ink);">exact name</b> (exactly as you submit it below) in the <b style="color:var(--ink);">"Referred By"</b> field of the registration form.</li>
+          <li>Filling the "Referred By" field is <b style="color:var(--ink);">compulsory</b> for a referral to count — if it is left blank, that registration will <b style="color:var(--ink);">not</b> be counted toward anyone's referral total.</li>
+          <li>If the name entered in "Referred By" does not exactly match a name registered here, that registration will <b style="color:var(--ink);">not</b> be counted.</li>
+          <li>Referral counts are verified manually by the organizers after registrations close; rewards (free entry / cube) are confirmed at that point.</li>
+        </ul>
+      </div>
+
+      <div class="interactive-card surface-card accent-border-blue rounded-2xl p-6 md:p-8">
+        <h3 class="font-display text-xl font-bold mb-1">Become a Referrer</h3>
+        <p class="text-sm mb-6" style="color:var(--ink-muted);">Register once below, then share this exact name with everyone you invite.</p>
+        <form id="referral-form" class="space-y-4 text-left">
+          <div>
+            <label class="block text-sm font-medium mb-1" for="ref-name">Full Name</label>
+            <input id="ref-name" type="text" required placeholder="The exact name you'll share with your referrals" class="w-full rounded-lg px-4 py-3 bg-black/20 border border-white/10 focus:outline-none focus:border-[var(--cube-yellow)] text-[var(--ink)]">
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1" for="ref-email">Email</label>
+            <input id="ref-email" type="email" required placeholder="you@example.com" class="w-full rounded-lg px-4 py-3 bg-black/20 border border-white/10 focus:outline-none focus:border-[var(--cube-yellow)] text-[var(--ink)]">
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1" for="ref-whatsapp">WhatsApp Number</label>
+            <input id="ref-whatsapp" type="tel" required placeholder="10-digit mobile number" class="w-full rounded-lg px-4 py-3 bg-black/20 border border-white/10 focus:outline-none focus:border-[var(--cube-yellow)] text-[var(--ink)]">
+          </div>
+          <button type="submit" id="ref-submit-btn" class="btn-primary w-full px-8 py-4 rounded-xl">Sign Up as Referrer</button>
+          <p id="ref-msg" class="text-sm mt-2 hidden"></p>
+        </form>
+      </div>
+    </div>
+  </section>
+
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-    import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    import { getFirestore, doc, getDoc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
     import { firebaseConfig } from "../firebase-config.js";
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
     const box = document.getElementById("upcoming-content");
     const extra = document.getElementById("upcoming-extra");
+    const referralSection = document.getElementById("referral-section");
 
     getDoc(doc(db, "site", "upcomingCompetition")).then(snap => {
       if (!snap.exists() || !snap.data().status || snap.data().status === "none") {
@@ -145,10 +195,12 @@
             <p class="text-lg font-semibold" style="color:var(--cube-yellow)">Stay tuned for our next event! 🚀</p>
           </div>`;
         extra.classList.add("hidden");
+        referralSection.classList.add("hidden");
         return;
       }
 
       extra.classList.remove("hidden");
+      referralSection.classList.remove("hidden");
       const d = snap.data();
 
       document.title = (d.title || "Upcoming Competition") + " : Twist & Turn";
@@ -225,6 +277,91 @@
             : (d.regLink ? `<a id="reg-btn" href="${d.regLink}" target="_blank" class="btn-primary inline-block px-8 py-4 rounded-xl">Register Now 🚀</a>` : "")}
         </div>`;
     });
+
+    // ---- Referral signup form ----
+    const refForm = document.getElementById("referral-form");
+    const refMsg = document.getElementById("ref-msg");
+    const refBtn = document.getElementById("ref-submit-btn");
+
+    function showRefMsg(text, isError) {
+      refMsg.textContent = text;
+      refMsg.style.color = isError ? "var(--cube-red)" : "var(--cube-green)";
+      refMsg.classList.remove("hidden");
+    }
+
+    function slugifyName(name) {
+      return name
+        .trim()
+        .toLowerCase()
+        .replace(/[^a-z0-9\s]/g, "")
+        .replace(/\s+/g, "-");
+    }
+
+    if (refForm) {
+      refForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        refMsg.classList.add("hidden");
+
+        const nameInput = document.getElementById("ref-name");
+        const emailInput = document.getElementById("ref-email");
+        const whatsappInput = document.getElementById("ref-whatsapp");
+
+        const name = nameInput.value.trim();
+        const email = emailInput.value.trim();
+        const whatsappDigits = whatsappInput.value.replace(/\D/g, "");
+
+        if (!name) {
+          showRefMsg("Please enter your full name.", true);
+          return;
+        }
+        if (!/^\S+@\S+\.\S+$/.test(email)) {
+          showRefMsg("Please enter a valid email address.", true);
+          return;
+        }
+        if (whatsappDigits.length < 10) {
+          showRefMsg("Please enter a valid WhatsApp number.", true);
+          return;
+        }
+
+        const slug = slugifyName(name);
+        if (!slug) {
+          showRefMsg("Please enter a valid name.", true);
+          return;
+        }
+
+        refBtn.disabled = true;
+        refBtn.textContent = "Submitting...";
+
+        try {
+          const refDocRef = doc(db, "referrals", slug);
+          const existing = await getDoc(refDocRef);
+
+          if (existing.exists()) {
+            showRefMsg("This name is already registered as a referrer. If this is you, please contact the organizers instead of signing up again.", true);
+            refBtn.disabled = false;
+            refBtn.textContent = "Sign Up as Referrer";
+            return;
+          }
+
+          await setDoc(refDocRef, {
+            name: name,
+            email: email,
+            whatsapp: whatsappDigits,
+            referralCount: 0,
+            createdAt: serverTimestamp()
+          });
+
+          refForm.reset();
+          showRefMsg(`You're registered! Share the name "${name}" exactly with your referrals for the "Referred By" field.`, false);
+          refBtn.textContent = "Signed Up ✓";
+        } catch (err) {
+          console.error(err);
+          showRefMsg("Something went wrong. Please try again.", true);
+          refBtn.disabled = false;
+          refBtn.textContent = "Sign Up as Referrer";
+        }
+      });
+    }
   </script>
 
 </main>
