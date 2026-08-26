@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin — Twist & Turn Live</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/style.css">
+<style>
+  .sheet-tab{ background:var(--bg-surface); border:1px solid var(--border); border-radius:12px; padding:1.1rem 1.3rem; margin-bottom:1.1rem; }
+  .sheet-tab h3{ font-family:'Space Grotesk',sans-serif; margin:0 0 .4rem; }
+  .sheet-tab p{ color:var(--ink-muted); font-size:.85rem; margin:0 0 .7rem; }
+  table.cols{ width:100%; border-collapse:collapse; font-size:.82rem; }
+  table.cols th, table.cols td{ text-align:left; padding:.4rem .6rem; border-bottom:1px solid var(--border); }
+  table.cols th{ color:var(--ink-muted); font-weight:600; }
+  code{ background:var(--bg-raised); padding:.1rem .35rem; border-radius:4px; font-family:'JetBrains Mono',monospace; font-size:.82rem; }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <a class="back-btn" href="../index.html" title="Live results">←</a>
+  <h1>Admin — How to add data</h1>
+</div>
+
+<div class="content" style="max-width:760px; margin:0 auto;">
+
+  <div class="card" style="padding:1.3rem 1.5rem; margin:1.4rem 0;">
+    <p class="eyebrow" style="margin-bottom:.3rem;">No login needed</p>
+    <h2 class="font-display" style="font-size:1.25rem; font-weight:700; margin:0 0 .8rem;">Everything is edited in your Google Sheet</h2>
+    <p style="color:var(--ink-muted); font-size:.9rem; line-height:1.5; margin:0 0 1rem;">
+      There's no separate admin login — you (and anyone you trust) just type competitions, events, competitors and
+      times straight into the spreadsheet, like Excel. The public <code>/live</code> pages read from it automatically
+      and refresh every 10–20 seconds.
+    </p>
+    <a id="openSheetBtn" href="#" target="_blank" class="btn btn-red">Open the Google Sheet ↗</a>
+  </div>
+
+  <p style="color:var(--ink-muted); font-size:.85rem; line-height:1.5;">
+    Your sheet needs <strong>5 tabs</strong>, named exactly as below (bottom tab bar in Google Sheets — right-click → rename, or + to add a new tab). First row of each tab = the column headers shown here.
+  </p>
+
+  <div class="sheet-tab">
+    <h3>1. Competitions</h3>
+    <p>One row per competition.</p>
+    <table class="cols">
+      <tr><th>id</th><th>name</th><th>venue</th><th>startDate</th><th>endDate</th></tr>
+      <tr><td class="mono">isr2026</td><td>Israel Championship 2026</td><td>Tel Aviv, Israel</td><td>2026-08-25</td><td>2026-08-27</td></tr>
+    </table>
+    <p style="margin-top:.6rem;"><code>id</code> is anything unique you make up (no spaces) — it's what goes in the page link.<br><code>startDate</code>/<code>endDate</code> format: <code>YYYY-MM-DD</code>.</p>
+  </div>
+
+  <div class="sheet-tab">
+    <h3>2. Events</h3>
+    <p>One row per event, per competition.</p>
+    <table class="cols">
+      <tr><th>compId</th><th>eventId</th><th>name</th><th>order</th></tr>
+      <tr><td class="mono">isr2026</td><td class="mono">333</td><td>3x3x3 Cube</td><td>1</td></tr>
+      <tr><td class="mono">isr2026</td><td class="mono">222</td><td>2x2x2 Cube</td><td>2</td></tr>
+    </table>
+    <p style="margin-top:.6rem;"><code>compId</code> must match a row in the Competitions tab. <code>order</code> controls the sidebar order (1, 2, 3…).</p>
+    <p style="margin-top:.4rem;">Valid <code>eventId</code> codes: <code>333</code>, <code>222</code>, <code>444</code>, <code>555</code>, <code>666</code>, <code>777</code>, <code>333bf</code>, <code>333oh</code>, <code>clock</code>, <code>minx</code>, <code>pyram</code>, <code>skewb</code>, <code>sq1</code>, <code>333fm</code> (FMC), <code>444bf</code>, <code>555bf</code>.</p>
+  </div>
+
+  <div class="sheet-tab">
+    <h3>3. Rounds</h3>
+    <p>One row per round of an event — this drives the schedule.</p>
+    <table class="cols">
+      <tr><th>compId</th><th>eventId</th><th>roundId</th><th>name</th><th>format</th><th>scheduledDate</th><th>startTime</th><th>endTime</th><th>order</th></tr>
+      <tr><td class="mono">isr2026</td><td class="mono">333</td><td class="mono">r1</td><td>First Round</td><td class="mono">ao5</td><td>2026-08-25</td><td>10:00</td><td>11:00</td><td>1</td></tr>
+      <tr><td class="mono">isr2026</td><td class="mono">333</td><td class="mono">final</td><td>Final</td><td class="mono">ao5</td><td>2026-08-26</td><td>15:00</td><td>16:00</td><td>2</td></tr>
+    </table>
+    <p style="margin-top:.6rem;"><code>roundId</code>: anything unique within that event (e.g. <code>r1</code>, <code>final</code>). Valid <code>format</code> codes: <code>ao5</code> (avg of 5), <code>mo3</code> (mean of 3), <code>bo3</code> (best of 3), <code>bo1</code> (best of 1), <code>fmc-mo3</code> (FMC mean of 3).</p>
+  </div>
+
+  <div class="sheet-tab">
+    <h3>4. Competitors</h3>
+    <p>One row per person registered for a competition — this is what makes the participant count show up.</p>
+    <table class="cols">
+      <tr><th>compId</th><th>competitorId</th><th>name</th><th>country</th><th>wcaId</th></tr>
+      <tr><td class="mono">isr2026</td><td class="mono">c1</td><td>Dylan Miller</td><td>United States</td><td>2019MILL01</td></tr>
+    </table>
+    <p style="margin-top:.6rem;"><code>competitorId</code>: anything unique (e.g. <code>c1</code>, <code>c2</code>…). <code>wcaId</code> is optional, leave blank if unknown.</p>
+  </div>
+
+  <div class="sheet-tab">
+    <h3>5. Results</h3>
+    <p>This is where you type times as the competition runs. One row per competitor, per round.</p>
+    <table class="cols">
+      <tr><th>compId</th><th>eventId</th><th>roundId</th><th>competitorId</th><th>a1</th><th>a2</th><th>a3</th><th>a4</th><th>a5</th></tr>
+      <tr><td class="mono">isr2026</td><td class="mono">333</td><td class="mono">r1</td><td class="mono">c1</td><td>12.34</td><td>DNF</td><td>11.02</td><td>13.50</td><td>10.88</td></tr>
+    </table>
+    <p style="margin-top:.6rem;">
+      Times: seconds with 2 decimals, e.g. <code>12.34</code>. Use <code>DNF</code> or <code>DNS</code> where needed.<br>
+      FMC (<code>333fm</code>): just the move count, e.g. <code>24</code>.<br>
+      Leave unused attempt columns (<code>a4</code>, <code>a5</code>) blank for Bo1/Bo3/Mo3 rounds — best/average is calculated automatically on the site.
+    </p>
+  </div>
+
+  <div class="card" style="padding:1.2rem 1.4rem; margin-top:1.4rem;">
+    <h3 class="font-display" style="margin:0 0 .5rem;">One-time setup checklist</h3>
+    <ol style="color:var(--ink-muted); font-size:.88rem; line-height:1.7; padding-left:1.2rem;">
+      <li>Create the 5 tabs above in your Google Sheet with those exact names and headers.</li>
+      <li>Share the sheet: <strong>Share → General access → Anyone with the link → Viewer</strong>.</li>
+      <li>Copy the Sheet ID from its URL and paste it into <code>assets/config.js</code> in this <code>/live</code> folder.</li>
+      <li>Upload the <code>/live</code> folder to your hosting. Done — the site reads the sheet live.</li>
+    </ol>
+  </div>
+
+</div>
+
+<script type="module">
+  import { SHEET_ID } from "../assets/config.js";
+  document.getElementById("openSheetBtn").href = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/edit`;
+</script>
+</body>
+</html>
