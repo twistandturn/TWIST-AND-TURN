@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Competitors — Twist & Turn</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+
+<div class="topbar">
+  <a class="back-btn" id="backBtn" title="Back">←</a>
+  <h1 id="pageTitle">Competitors</h1>
+</div>
+
+<div class="content" style="max-width:700px; margin:0 auto;">
+  <div class="search-box">
+    <span>🔍</span>
+    <input type="text" id="search" placeholder="Search competitor">
+  </div>
+  <div class="card" style="overflow:hidden;">
+    <div id="list"><div class="empty-state"><span class="spinner"></span></div></div>
+  </div>
+  <p style="color:var(--ink-muted); font-size:.82rem; margin-top:1rem;" id="countLabel"></p>
+</div>
+
+<script type="module">
+  import { loadSheet, pollEvery } from "./assets/sheets.js";
+  import { qs, flagFor } from "./assets/common.js";
+
+  const compId = qs("id");
+  document.getElementById("backBtn").href = `competition.html?id=${compId}`;
+
+  let allPeople = [];
+  const listEl = document.getElementById("list");
+  const countLabel = document.getElementById("countLabel");
+  let titled = false;
+
+  pollEvery(20, async () => {
+    try {
+      const [competitions, competitors] = await Promise.all([loadSheet("Competitions"), loadSheet("Competitors")]);
+      if (!titled) {
+        const comp = competitions.find(c => c.id === compId);
+        if (comp) {
+          document.getElementById("pageTitle").textContent = comp.name;
+          document.title = `Competitors — ${comp.name}`;
+        }
+        titled = true;
+      }
+      allPeople = competitors.filter(p => p.compId === compId).sort((a, b) => (a.name || "").localeCompare(b.name || ""));
+      render(applyFilter(allPeople, document.getElementById("search").value));
+    } catch (err) {
+      listEl.innerHTML = `<div class="empty-state">${err.message}</div>`;
+    }
+  });
+
+  function applyFilter(people, term) {
+    term = (term || "").toLowerCase();
+    return term ? people.filter(p => (p.name || "").toLowerCase().includes(term)) : people;
+  }
+
+  function render(people) {
+    countLabel.textContent = `${people.length} competitor${people.length === 1 ? "" : "s"}`;
+    if (!people.length) {
+      listEl.innerHTML = `<div class="empty-state">No competitors added yet.</div>`;
+      return;
+    }
+    listEl.innerHTML = "";
+    people.forEach(p => {
+      const a = document.createElement("a");
+      a.className = "person-row";
+      a.href = `person.html?id=${compId}&person=${encodeURIComponent(p.competitorId)}`;
+      a.innerHTML = `<span style="font-size:1.2rem;">${flagFor(p.country)}</span><span>${p.name}</span>`;
+      listEl.appendChild(a);
+    });
+  }
+
+  document.getElementById("search").addEventListener("input", (e) => {
+    render(applyFilter(allPeople, e.target.value));
+  });
+</script>
+</body>
+</html>
