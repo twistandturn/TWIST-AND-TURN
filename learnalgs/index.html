@@ -1,1 +1,1321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Learn Algorithms : Twist & Turn</title>
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#E8412B">
+<link rel="icon" href="/icon-192.png">
+<link rel="apple-touch-icon" href="/icon-192.png">
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg-base:#101218;
+    --bg-surface:#181B24;
+    --ink:#F2F1ED;
+    --ink-muted:#9297A6;
+    --cube-red:#E8412B;
+    --cube-yellow:#F2B705;
+    --cube-blue:#2F6FE0;
+    --cube-green:#22A35C;
+  }
+  body{ font-family:'Inter', sans-serif; scroll-behavior:smooth; background:var(--bg-base); color:var(--ink); }
+  .font-display{ font-family:'Space Grotesk', sans-serif; }
+  .font-mono{ font-family:'JetBrains Mono', monospace; }
+  .eyebrow{ font-family:'JetBrains Mono', monospace; font-size:0.75rem; letter-spacing:0.2em; text-transform:uppercase; color:var(--ink-muted); }
+  .surface-card{ background:var(--bg-surface); border:1px solid rgba(255,255,255,0.06); }
+  .accent-border-red{ border-left:3px solid var(--cube-red); }
+  .accent-border-yellow{ border-left:3px solid var(--cube-yellow); }
+  .accent-border-blue{ border-left:3px solid var(--cube-blue); }
+  .accent-border-green{ border-left:3px solid var(--cube-green); }
+  .interactive-card{ position:relative; transition:transform .2s ease, box-shadow .2s ease; }
+  .interactive-card:hover{ transform:translateY(-3px); box-shadow:0 14px 28px rgba(0,0,0,0.3); }
+  @media (prefers-reduced-motion: reduce){ .interactive-card:hover{ transform:none; } }
+  .btn-primary{ background:var(--cube-red); color:#fff; font-family:'Space Grotesk',sans-serif; font-weight:600; }
+  .btn-primary:hover{ filter:brightness(1.08); }
+  ::selection{ background:var(--cube-yellow); color:#101218; }
+  section[id]{ scroll-margin-top: 80px; }
 
+  .tab-btn{ font-family:'JetBrains Mono', monospace; font-size:0.85rem; padding:0.6rem 1.1rem; border-radius:9999px; transition:all .2s ease; border:1px solid rgba(255,255,255,0.1); color:var(--ink-muted); background:var(--bg-surface); cursor:pointer; }
+  .tab-btn.active{ background:var(--cube-red); color:#fff; border-color:var(--cube-red); }
+  .subtab-btn{ font-family:'Inter',sans-serif; font-size:0.85rem; font-weight:600; padding:0.5rem 1rem; border-radius:0.5rem; border:1px solid rgba(255,255,255,0.08); color:var(--ink-muted); background:transparent; cursor:pointer; transition:all .2s ease; }
+  .subtab-btn.active{ background:rgba(232,65,43,0.12); color:var(--cube-yellow); border-color:var(--cube-yellow); }
+  .alg-card{ background:var(--bg-base); border:1px solid rgba(255,255,255,0.07); border-radius:0.9rem; padding:1rem 1.1rem; cursor:pointer; }
+  .alg-card:active{ transform:scale(0.98); }
+  .alg-copied{ color:var(--cube-green) !important; }
+  .soon-badge{ font-family:'JetBrains Mono', monospace; font-size:0.7rem; letter-spacing:0.1em; text-transform:uppercase; padding:0.2rem 0.6rem; border-radius:9999px; background:rgba(242,183,5,0.15); color:var(--cube-yellow); }
+</style>
+</head>
+<body class="antialiased min-h-screen flex flex-col">
+
+<nav class="sticky top-0 z-50 border-b border-white/5" style="background:rgba(16,18,24,0.85); backdrop-filter:blur(10px);">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="flex justify-between h-16 items-center relative">
+      <div class="flex items-center gap-3 cursor-pointer" onclick="window.location.href='/index.html'">
+        <img src="/logo.png.jpeg" alt="Logo" class="h-9 w-auto rounded-full p-0.5 bg-white/90" onerror="this.onerror=null;this.src='https://placehold.co/40x40/101218/F2B705?text=T%26T';">
+        <span class="font-display font-bold text-xl tracking-tight">Twist &amp; Turn</span>
+      </div>
+      <div class="flex items-center gap-2">
+        <button id="menuBtn" class="md:hidden text-3xl leading-none text-[var(--ink)]">☰</button>
+      </div>
+      <div id="navLinks" class="hidden absolute top-full right-0 mt-2 w-full md:static md:mt-0 md:w-auto md:flex md:items-center md:space-x-1 text-right md:text-left font-mono text-sm uppercase tracking-wider" style="background:var(--bg-surface);">
+        <button onclick="window.location.href='/index.html'" class="block w-full px-4 py-3 text-left hover:text-[var(--cube-yellow)] transition border-b-2 border-transparent hover:border-[var(--cube-yellow)] md:inline-block md:w-auto md:p-2">Home</button>
+        <button onclick="window.location.href='/cuberush2026/'" class="block w-full px-4 py-3 text-left hover:text-[var(--cube-yellow)] transition border-b-2 border-transparent hover:border-[var(--cube-yellow)] md:inline-block md:w-auto md:p-2">Upcoming</button>
+        <button onclick="window.location.href='/timer.html'" class="block w-full px-4 py-3 text-left hover:text-[var(--cube-red)] transition border-b-2 border-transparent hover:border-[var(--cube-red)] md:inline-block md:w-auto md:p-2">⏱️ Timer</button>
+        <button class="block w-full px-4 py-3 text-left border-b-2 md:inline-block md:w-auto md:p-2" style="color:var(--cube-green); border-color:var(--cube-green);">🔀 Learn Algs</button>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<main class="flex-grow">
+  <section class="py-16 md:py-20">
+    <div class="max-w-7xl mx-auto px-4">
+      <p class="eyebrow mb-2 text-center">Case-by-Case</p>
+      <h1 class="font-display text-4xl md:text-5xl font-bold tracking-tight mb-4 text-center">Learn Algorithms</h1>
+      <p class="text-lg max-w-2xl mx-auto text-center mb-10" style="color:var(--ink-muted)">Tap any algorithm card to copy it. Pick an event, then a set, below.</p>
+
+      <div id="event-tabs" class="flex flex-wrap justify-center gap-3 mb-6"></div>
+      <div id="subtab-wrap" class="flex flex-wrap justify-center gap-2 mb-8"></div>
+      <div id="algs-content" class="max-w-5xl mx-auto"></div>
+    </div>
+  </section>
+</main>
+
+<footer class="py-8 text-center font-mono text-xs" style="color:var(--ink-muted); border-top:1px solid rgba(255,255,255,0.06);">
+  © 2026 Twist &amp; Turn — Speedcubing Arena
+</footer>
+
+<script>
+  const menuBtn = document.getElementById("menuBtn");
+  const navLinks = document.getElementById("navLinks");
+  if (menuBtn) menuBtn.addEventListener("click", () => navLinks.classList.toggle("hidden"));
+
+  const ALGS = {
+  "2x2": {
+    "label": "2×2 Cube",
+    "groups": [
+      {
+        "name": "Ortega — OLL (orient the top face)",
+        "status": "ready",
+        "cases": [
+          {
+            "case": "OLL 1",
+            "alg": "R2 U2 R U2 R2"
+          },
+          {
+            "case": "OLL 2",
+            "alg": "F (R U R' U') (R U R' U') F'"
+          },
+          {
+            "case": "OLL 3",
+            "alg": "(R U R' U) (R U2 R')"
+          },
+          {
+            "case": "OLL 4",
+            "alg": "(R U2 R' U') (R U' R')"
+          },
+          {
+            "case": "OLL 5",
+            "alg": "F (R U R' U') F'"
+          },
+          {
+            "case": "OLL 6",
+            "alg": "(R U R' U') (R' F R F')"
+          },
+          {
+            "case": "OLL 7",
+            "alg": "F (R U') (R' U' R U) (R F')"
+          }
+        ]
+      },
+      {
+        "name": "Ortega — PBL (permute both layers)",
+        "status": "ready",
+        "cases": [
+          {
+            "case": "PBL 1",
+            "alg": "(F R U') (R' U' R U) (R' F') (R U R' U') (R' F R F')"
+          },
+          {
+            "case": "PBL 2",
+            "alg": "(R U R' U') (R' F) (R2 U') (R' U' R U) (R' F')"
+          },
+          {
+            "case": "PBL 3",
+            "alg": "R2 U' B2 U2 R2 U' R2"
+          },
+          {
+            "case": "PBL 4",
+            "alg": "R2 B2 R2"
+          },
+          {
+            "case": "PBL 5",
+            "alg": "(R U' R) F2 (R' U R')"
+          }
+        ]
+      },
+      {
+        "name": "CLL (Corners of Last Layer)",
+        "status": "ready",
+        "note": "40 documented cases (top community-voted alg per case) grouped by shape: Antisune, H, L, Pi, Sune, T, U.",
+        "cases": [
+          { "case": "CLL AS 1", "alg": "y R U2 R' U' R U' R'" },
+          { "case": "CLL AS 2", "alg": "R U2 R' F R' F' R U' R U' R'" },
+          { "case": "CLL AS 3", "alg": "y2 F' L F L' U2 L' U2 L" },
+          { "case": "CLL AS 4", "alg": "y2 R' F R F' R U R'" },
+          { "case": "CLL AS 5", "alg": "y2 R U2 R' U2 R' F R F'" },
+          { "case": "CLL AS 6", "alg": "y' R U2 R' U' R U' R' F R' F' R U R U' R' U'" },
+          { "case": "CLL H 1", "alg": "F R2 U' R2 U' R2 U R2 F'" },
+          { "case": "CLL H 2", "alg": "R U R' U R U R' F R' F' R" },
+          { "case": "CLL H 3", "alg": "y F R U R' U' R U R' U' R U R' U' F'" },
+          { "case": "CLL H 4", "alg": "y R2 U2 R' U2 R2" },
+          { "case": "CLL L 1", "alg": "y R U2 R' F' R U2 R' U R' F2 R" },
+          { "case": "CLL L 2", "alg": "y2 R U2 R2 F2 R U R' F2 R F'" },
+          { "case": "CLL L 3", "alg": "y2 R' U R' U2 R U' R' U R U' R2" },
+          { "case": "CLL L 4", "alg": "y R U2 R2 F R F' R U2 R'" },
+          { "case": "CLL L 5", "alg": "y F R' F' R U R U' R'" },
+          { "case": "CLL L 6", "alg": "y2 F' R U R' U' R' F R" },
+          { "case": "CLL Pi 1", "alg": "y F R' F' R U2 R U' R' U R U2 R'" },
+          { "case": "CLL Pi 2", "alg": "R U2 R' U' R U R' U2 R' F R F'" },
+          { "case": "CLL Pi 3", "alg": "y F R2 U' R2 U R2 U R2 F'" },
+          { "case": "CLL Pi 4", "alg": "y2 R' F R F' R U' R' U' R U' R'" },
+          { "case": "CLL Pi 5", "alg": "y' R' U' R' F R F' R U' R' U2 R" },
+          { "case": "CLL Pi 6", "alg": "F R U R' U' R U R' U' F'" },
+          { "case": "CLL Sune 1", "alg": "L' U2 L U2 L F' L' F" },
+          { "case": "CLL Sune 2", "alg": "R U R' U' R' F R F' R U R' U R U2 R'" },
+          { "case": "CLL Sune 3", "alg": "R U' R' F R' F' R" },
+          { "case": "CLL Sune 4", "alg": "F R' F' R U2 R U2 R'" },
+          { "case": "CLL Sune 5", "alg": "y2 R U R' U R' F R F' R U2 R'" },
+          { "case": "CLL Sune 6", "alg": "R U R' U R U2 R'" },
+          { "case": "CLL T 1", "alg": "y' R U R' U' R' F R F'" },
+          { "case": "CLL T 2", "alg": "y L' U' L U L F' L' F" },
+          { "case": "CLL T 3", "alg": "F U' R U2 R' U' F2 R U R'" },
+          { "case": "CLL T 4", "alg": "R' U R U2 R2 F' R U' R' F2 R2" },
+          { "case": "CLL T 5", "alg": "y2 F R U R' U' R U' R' U' R U R' F'" },
+          { "case": "CLL T 6", "alg": "R' U R U2 R2 F R F' R" },
+          { "case": "CLL U 1", "alg": "y' F R U R' U' F'" },
+          { "case": "CLL U 2", "alg": "R' U' R2 U R' U2 R U2 R' U R'" },
+          { "case": "CLL U 3", "alg": "y2 F R U R' U2 F' R U' R' F" },
+          { "case": "CLL U 4", "alg": "y' F R' F' R U' R U' R' U2 R U' R'" },
+          { "case": "CLL U 5", "alg": "R U' R2 F R F' R U R' U' R U R'" },
+          { "case": "CLL U 6", "alg": "R' U R' F R F' R U2 R' U R" }
+        ]
+      },
+      {
+        "name": "EG-1",
+        "status": "ready",
+        "note": "40 documented cases (top community-voted alg per case) for when the first layer is already solved. Same shape grouping as CLL: AS, H, L, Pi, S, T, U.",
+        "cases": [
+          { "case": "EG1 AS 1", "alg": "y U2 B U' R2 F2 U' F" },
+          { "case": "EG1 AS 2", "alg": "U R U' R' F' U' F2 R U' R'" },
+          { "case": "EG1 AS 3", "alg": "F' R U R' U' R U R2 F' R" },
+          { "case": "EG1 AS 4", "alg": "R U' R' F' U' R U R' U' F" },
+          { "case": "EG1 AS 5", "alg": "y' R U R' F' U' R U R' U' R U R'" },
+          { "case": "EG1 AS 6", "alg": "y2 R U' R2 F R U' R' F R F'" },
+          { "case": "EG1 H 1", "alg": "U' R' F R2 U' R' F R U R' F'" },
+          { "case": "EG1 H 2", "alg": "U' F' U R U' R2 F2 R U' F" },
+          { "case": "EG1 H 3", "alg": "U R' F R F' U2 F R U2 R' F" },
+          { "case": "EG1 H 4", "alg": "U' R U R' F' R U R' U' R U R' U'" },
+          { "case": "EG1 L 1", "alg": "y R U' R' U R U' R2 F' R F" },
+          { "case": "EG1 L 2", "alg": "y' U' R' F R U' R' F R2 U R' F' U2" },
+          { "case": "EG1 L 3", "alg": "y R' U R2 U' R2 U' F R2 U' R'" },
+          { "case": "EG1 L 4", "alg": "y R' F R2 U R' F' R U2 R'" },
+          { "case": "EG1 L 5", "alg": "y2 R U R' F' R U R' U' F R' F' R" },
+          { "case": "EG1 L 6", "alg": "y2 R' U2 F R U2 R U' R2 F" },
+          { "case": "EG1 Pi 1", "alg": "y2 U' F U' R' F R U' F2 R U R'" },
+          { "case": "EG1 Pi 2", "alg": "y' R U' R2 F R2 U' R'" },
+          { "case": "EG1 Pi 3", "alg": "y' F R' F U' F2 R U R" },
+          { "case": "EG1 Pi 4", "alg": "y' R U' R' U R U' R' F R U' R'" },
+          { "case": "EG1 Pi 5", "alg": "R U' R2 F R U R U' R' U' R' F R F'" },
+          { "case": "EG1 Pi 6", "alg": "U' R' F' R U' R' F R2 U R' F' R U R'" },
+          { "case": "EG1 S 1", "alg": "y2 U' L F' L2 U' L F U L' U L" },
+          { "case": "EG1 S 2", "alg": "R U R' F2 U F R U R'" },
+          { "case": "EG1 S 3", "alg": "y2 F R' F' R U R' F' R2 U R'" },
+          { "case": "EG1 S 4", "alg": "U F' R' F R2 U R' U' F R' F' R U" },
+          { "case": "EG1 S 5", "alg": "y R U' R' U R U' R' U F R U' R'" },
+          { "case": "EG1 S 6", "alg": "R' F R2 U' R' U R U' R' F" },
+          { "case": "EG1 T 1", "alg": "F R U' R2 F' R U R' F' R" },
+          { "case": "EG1 T 2", "alg": "F' R' F R2 U R' U' R U R'" },
+          { "case": "EG1 T 3", "alg": "y R U' R2 F R U R U2 R'" },
+          { "case": "EG1 T 4", "alg": "y' U2 R' F R F' U R U' R' U F R U' R'" },
+          { "case": "EG1 T 5", "alg": "y' R' F' R2 U R' F' R U R'" },
+          { "case": "EG1 T 6", "alg": "y' U' R U' R' U2 F R U2 R' F" },
+          { "case": "EG1 U 1", "alg": "y U2 R U R' U R U' R2 F' R2 U R' U" },
+          { "case": "EG1 U 2", "alg": "U2 y R' U R' U' R U' R' U' F2 R2" },
+          { "case": "EG1 U 3", "alg": "F' U2 R U2 R' U2 F" },
+          { "case": "EG1 U 4", "alg": "y R' F R F' R' F R2 U' R'" },
+          { "case": "EG1 U 5", "alg": "U2 R U' R' U R U' R' U' F R U' R'" },
+          { "case": "EG1 U 6", "alg": "y2 R' F R U' R' F R U' R U R' F' U2" }
+        ]
+      },
+      {
+        "name": "EG-2",
+        "status": "ready",
+        "note": "40 documented cases (top community-voted alg per case) for any first-layer state. Same shape grouping: AS, H, L, Pi, S, T, U.",
+        "cases": [
+          { "case": "EG2 AS 1", "alg": "F R2 U R' U2 R U R2 U F'" },
+          { "case": "EG2 AS 2", "alg": "R' U' R U' R' U2 R' F2 R2" },
+          { "case": "EG2 AS 3", "alg": "U2 R' F R F' R U R B2 R2" },
+          { "case": "EG2 AS 4", "alg": "U2 F' L F L' U2 L' U2 L' B2 L2" },
+          { "case": "EG2 AS 5", "alg": "R' U' R U' R' U' R' F2 R F' R" },
+          { "case": "EG2 AS 6", "alg": "y2 R2 F2 R F R F' R U R'" },
+          { "case": "EG2 H 1", "alg": "R2 F U2 F2 R2 F' R2" },
+          { "case": "EG2 H 2", "alg": "y R2 B2 U2 R' U2 R2" },
+          { "case": "EG2 H 3", "alg": "R' U' R U2 R2 F' R U' F R" },
+          { "case": "EG2 H 4", "alg": "y' R U2 B2 R' U R U' B R'" },
+          { "case": "EG2 L 1", "alg": "U L2 B2 L U' L' U L F' L F" },
+          { "case": "EG2 L 2", "alg": "y2 F2 R2 F R U R' U' R' F R" },
+          { "case": "EG2 L 3", "alg": "y2 R2 U' R U2 R' U2 R U' F2 R2" },
+          { "case": "EG2 L 4", "alg": "y' R' U L' U2 R' F R U' R' U' F' x2" },
+          { "case": "EG2 L 5", "alg": "y F R' F' R U R U' R B2 R2" },
+          { "case": "EG2 L 6", "alg": "y2 F' R U R' U' R' F R' F2 R2" },
+          { "case": "EG2 Pi 1", "alg": "F U' R U2 R U' R' U R' F'" },
+          { "case": "EG2 Pi 2", "alg": "R U2 R2 U R' F2 R2 F'" },
+          { "case": "EG2 Pi 3", "alg": "U F R2 U' R2 U R2 U R2 F R2 F2 U2" },
+          { "case": "EG2 Pi 4", "alg": "y2 R' F R F' R U' R' U' R U' R F2 R2" },
+          { "case": "EG2 Pi 5", "alg": "U' R' F' R' F2 R2 U R' U2 R U" },
+          { "case": "EG2 Pi 6", "alg": "U R' U2 R U' R2 F2 R F R U'" },
+          { "case": "EG2 S 1", "alg": "R2 F2 R U R U' R' F R' F' R2 U R' U' R" },
+          { "case": "EG2 S 2", "alg": "R U R' U R U2 R B2 R2" },
+          { "case": "EG2 S 3", "alg": "R U' R' F R' F' R' F2 R2" },
+          { "case": "EG2 S 4", "alg": "F R' F' R U2 R U2 R B2 R2" },
+          { "case": "EG2 S 5", "alg": "R' U R' F R2 U' F R' F'" },
+          { "case": "EG2 S 6", "alg": "R2 B2 R' U' R' F R' F' R" },
+          { "case": "EG2 T 1", "alg": "U R' F' R U R U' R' F' R2 B2 U" },
+          { "case": "EG2 T 2", "alg": "y' F U' R2 U' R' U R2 F'" },
+          { "case": "EG2 T 3", "alg": "R' U R U2 R2 F' R U' R" },
+          { "case": "EG2 T 4", "alg": "R2 F2 R U' F R' F' R U R" },
+          { "case": "EG2 T 5", "alg": "y' R' U2 R U' R' F R' F R F' R" },
+          { "case": "EG2 T 6", "alg": "y R' U2 R' F2 R F2 R" },
+          { "case": "EG2 U 1", "alg": "R2 U2 R U R' U F' R U' R" },
+          { "case": "EG2 U 2", "alg": "y' F R U R' U' F R2 B2" },
+          { "case": "EG2 U 3", "alg": "R' F' U' R U2 R' U F R" },
+          { "case": "EG2 U 4", "alg": "R' F' U' F U2 L' U2 R U' L" },
+          { "case": "EG2 U 5", "alg": "y2 R2 B2 R' U R' U' R' F R F'" },
+          { "case": "EG2 U 6", "alg": "y2 R2 F2 R F' R U L F' L' F" }
+        ]
+      }
+    ]
+  },
+  "3x3": {
+    "label": "3×3 Cube",
+    "groups": [
+      {
+        "name": "PLL — full 21 cases",
+        "status": "ready",
+        "cases": [
+          {
+            "case": "Aa",
+            "alg": "x (R' U R') D2 (R U' R') D2 R2 x'"
+          },
+          {
+            "case": "Ab",
+            "alg": "x R2 D2 (R U R') D2 (R U' R) x'"
+          },
+          {
+            "case": "E",
+            "alg": "x' (R U' R') D (R U R') D' (R U R') D (R U' R') D' x"
+          },
+          {
+            "case": "F",
+            "alg": "R' U2 R U2 R' F R U R' U' R' F' R2 U'"
+          },
+          {
+            "case": "Ja",
+            "alg": "R' U L' U2 R U' R' U2 R L U'"
+          },
+          {
+            "case": "Jb",
+            "alg": "L U' R U2 L' U L U2 L' R' U"
+          },
+          {
+            "case": "Na",
+            "alg": "R U R' U R U R' F' R U R' U' R' F R2 U' R'"
+          },
+          {
+            "case": "Nb",
+            "alg": "R' U' R U' R' U' R F R' U' R U R F' R2 U R"
+          },
+          {
+            "case": "Ra",
+            "alg": "R U R' F' R U R' U' R' F R2 U' R'"
+          },
+          {
+            "case": "Rb",
+            "alg": "R2 U R U R' U' R' U' R' U R'"
+          },
+          {
+            "case": "T",
+            "alg": "R U R' U' R' F R2 U' R' U' R U R' F'"
+          },
+          {
+            "case": "V",
+            "alg": "R' U R' d' R' F' R2 U' R' U R' F R F"
+          },
+          {
+            "case": "Y",
+            "alg": "F R U' R' U' R U R' F' R U R' U' R' F R F'"
+          },
+          {
+            "case": "H",
+            "alg": "M2 U M2 U2 M2 U M2"
+          },
+          {
+            "case": "Ua",
+            "alg": "R U' R U R U R U' R' U' R2"
+          },
+          {
+            "case": "Ub",
+            "alg": "R2 U R U R' U' R' U' R' U R'"
+          },
+          {
+            "case": "Z",
+            "alg": "M' U M2 U M2 U M' U2 M2"
+          },
+          {
+            "case": "Ga",
+            "alg": "R2 u R' U R' U' R u' R2 y' R' U R"
+          },
+          {
+            "case": "Gb",
+            "alg": "R' d' F R2 u R' U R U' R u' R2"
+          },
+          {
+            "case": "Gc",
+            "alg": "R2 u' R U' R U R' u R2 y R U' R'"
+          },
+          {
+            "case": "Gd",
+            "alg": "R u R' U R' d' R U' R U R' u' R2"
+          }
+        ]
+      },
+      {
+        "name": "2-Look OLL — starter set",
+        "status": "ready",
+        "note": "Learn these 5 first, then move on to full OLL below.",
+        "cases": [
+          {
+            "case": "Edges: Line",
+            "alg": "F R U R' U' F'"
+          },
+          {
+            "case": "Edges: L-shape",
+            "alg": "f R U R' U' f'"
+          },
+          {
+            "case": "Edges: Dot",
+            "alg": "F (R U R' U') F' f (R U R' U') f'"
+          },
+          {
+            "case": "Corners: Sune",
+            "alg": "R U R' U R U2 R'"
+          },
+          {
+            "case": "Corners: Anti-Sune",
+            "alg": "R U2 R' U' R U' R'"
+          }
+        ]
+      },
+      {
+        "name": "Full OLL — 57 cases",
+        "status": "ready",
+        "cases": [
+          { "case": "OLL 1 — Runway", "alg": "R U2 R2' F R F' U2 R' F R F'" },
+          { "case": "OLL 2 — Zamboni", "alg": "F R U R' U' S R U R' U' f'" },
+          { "case": "OLL 3 — Anti-Pinwheel", "alg": "f (R U R' U') f' U' F (R U R' U') F'" },
+          { "case": "OLL 4 — Pinwheel", "alg": "f R U R' U' f' U F R U R' U' F'" },
+          { "case": "OLL 5 — Lefty Square", "alg": "r' U2' R U R' U r" },
+          { "case": "OLL 6 — Righty Square", "alg": "r U2 R' U' R U' r'" },
+          { "case": "OLL 7 — Lightning", "alg": "r U R' U R U2 r'" },
+          { "case": "OLL 8 — Reverse Lightning", "alg": "l' U' L U' L' U2 l" },
+          { "case": "OLL 9 — Kite", "alg": "R U R' U' R' F R2 U R' U' F'" },
+          { "case": "OLL 10 — Anti-Kite", "alg": "R U R' U R' F R F' R U2' R'" },
+          { "case": "OLL 11 — Downstairs", "alg": "r' R2 U R' U R U2' R' U M'" },
+          { "case": "OLL 12 — Upstairs", "alg": "r R2' U' R U' R' U2 R U' r' R" },
+          { "case": "OLL 13 — Gun", "alg": "F U R U2' R' U' R U R' F'" },
+          { "case": "OLL 14 — Anti-Gun", "alg": "R' F R U R' F' R F U' F'" },
+          { "case": "OLL 15 — Squeegee", "alg": "l' U' l L' U' L U l' U l" },
+          { "case": "OLL 16 — Anti-Squeegee", "alg": "r U r' R U R' U' r U' r'" },
+          { "case": "OLL 17 — Slash", "alg": "R U R' U R' F R F' U2 R' F R F'" },
+          { "case": "OLL 18 — Crown", "alg": "R U2 R2 F R F' U2 M' U R U' r'" },
+          { "case": "OLL 19 — Bunny", "alg": "S' R U R' S U' R' F R F'" },
+          { "case": "OLL 20 — Checkers", "alg": "r' R U R U R' U' r R' M' U R U' r'" },
+          { "case": "OLL 21 — H (Double Sune)", "alg": "R U R' U R U' R' U R U2 R'" },
+          { "case": "OLL 22 — Pi", "alg": "R U2' R2' U' R2 U' R2' U2' R" },
+          { "case": "OLL 23 — Superman", "alg": "R2' D' R U2 R' D R U2 R" },
+          { "case": "OLL 24 — Chameleon", "alg": "r U R' U' r' F R F'" },
+          { "case": "OLL 25 — Bowtie", "alg": "F' r U R' U' r' F R" },
+          { "case": "OLL 26 — Antisune", "alg": "R U2 R' U' R U' R'" },
+          { "case": "OLL 27 — Sune", "alg": "R U R' U R U2' R'" },
+          { "case": "OLL 28 — Stealth", "alg": "r U R' U' r' R U R U' R'" },
+          { "case": "OLL 29 — Spotted Chameleon", "alg": "R U R' U' R U' R' F' U' F R U R'" },
+          { "case": "OLL 30 — Anti-Spotted Chameleon", "alg": "F U R U2' R' U' R U2 R' U' F'" },
+          { "case": "OLL 31 — Couch", "alg": "R' U' F U R U' R' F' R" },
+          { "case": "OLL 32 — Anti-Couch", "alg": "S R U R' U' R' F R f'" },
+          { "case": "OLL 33 — Tying Shoelaces", "alg": "R U R' U' R' F R F'" },
+          { "case": "OLL 34 — City", "alg": "R U R2' U' R' F R U R U' F'" },
+          { "case": "OLL 35 — Fish Salad", "alg": "R U2' R2' F R F' R U2' R'" },
+          { "case": "OLL 36 — Sea-Mew", "alg": "L' U' L U' L' U L U L F' L' F" },
+          { "case": "OLL 37 — Mounted Fish", "alg": "F R' F' R U R U' R'" },
+          { "case": "OLL 38 — Mario", "alg": "R U R' U R U' R' U' R' F R F'" },
+          { "case": "OLL 39 — Fung", "alg": "L F' L' U' L U F U' L'" },
+          { "case": "OLL 40 — Anti-Fung", "alg": "R' F R U R' U' F' U R" },
+          { "case": "OLL 41 — Awkward Fish", "alg": "R U R' U R U2 R' F R U R' U' F'" },
+          { "case": "OLL 42 — Lefty Awkward Fish", "alg": "R' U' R U' R' U2' R F R U R' U' F'" },
+          { "case": "OLL 43 — Anti-P", "alg": "R' U' F' U F R" },
+          { "case": "OLL 44 — P", "alg": "f (R U R' U') f'" },
+          { "case": "OLL 45 — T", "alg": "F R U R' U' F'" },
+          { "case": "OLL 46 — Seein' Headlights", "alg": "R' U' R' F R F' U R" },
+          { "case": "OLL 47 — Anti-Breakneck", "alg": "R' U' R' F R F' R' F R F' U R" },
+          { "case": "OLL 48 — Breakneck", "alg": "F R U R' U' R U R' U' F'" },
+          { "case": "OLL 49 — Right Back Squeezy", "alg": "r U' r2' U r2 U r2' U' r" },
+          { "case": "OLL 50 — Right Front Squeezy", "alg": "r' U r2 U' r2' U' r2 U r'" },
+          { "case": "OLL 51 — Bottlecap", "alg": "F U R U' R' U R U' R' F'" },
+          { "case": "OLL 52 — Rice Cooker", "alg": "R U R' U R U' B U' B' R'" },
+          { "case": "OLL 53 — Frying Pan", "alg": "r' U' R U' R' U R U' R' U2 r" },
+          { "case": "OLL 54 — Anti-Frying Pan", "alg": "r U R' U R U' R' U R U2' r'" },
+          { "case": "OLL 55 — Highway", "alg": "R' F R U R U' R2' F' R2 U' R' U R U R'" },
+          { "case": "OLL 56 — Streetlights", "alg": "r U r' U R U' R' U R U' R' r U' r'" },
+          { "case": "OLL 57 — Mummy", "alg": "R U R' U' M' U R U' r'" }
+        ]
+      }
+    ]
+  },
+  "4x4": {
+    "label": "4×4 Cube",
+    "groups": [
+      {
+        "name": "Parity Algorithms",
+        "status": "ready",
+        "note": "Only 4×4-specific cases — 2 impossible-on-3×3 situations that show up after reduction, community-verified.",
+        "cases": [
+          { "case": "OLL Parity", "alg": "r U2 x r U2 r U2 r' U2 l U2 r' U2 r U2 r' U2 r'" },
+          { "case": "PLL Parity — Opposite edges swap", "alg": "r2 U2 r2 u2 r2 u2" },
+          { "case": "PLL Parity — Adjacent edges swap", "alg": "(R' U R U') r2 U2 r2 u2 r2 u2 (U R' U' R)" }
+        ]
+      }
+    ]
+  },
+  "pyraminx": {
+    "label": "Pyraminx",
+    "groups": [
+      {
+        "name": "Last Layer (starter set)",
+        "status": "ready",
+        "note": "After the first layer + 2 centers are solved, one of these finishes the last 3 edges. Full L4E case list is bigger — link below for every case.",
+        "cases": [
+          { "case": "Sledgehammer cycle", "alg": "(R U R') U (R U R')" },
+          { "case": "Hedgeslammer cycle", "alg": "(R U' R') U' (R U' R')" },
+          { "case": "U-perm style cycle", "alg": "(L R' L' R) (U' R U R')" },
+          { "case": "Mirror U-perm cycle", "alg": "R' (U' L' U L) R" }
+        ]
+      },
+      {
+        "name": "Full L4E set (all 30 cases)",
+        "status": "ready",
+        "note": "The complete Last-4-Edges case list — all 30 cases. Hold the solved V on the bottom face with the unsolved edge facing you.",
+        "cases": [
+          { "case": "L4E 01", "alg": "(R' L R L') U (R' L R L') U (R' L R L')" },
+          { "case": "L4E 02", "alg": "(L R' L' R) U (L R' L' R)" },
+          { "case": "L4E 03", "alg": "(R' L R L') U' (R' L R L')" },
+          { "case": "L4E 04", "alg": "U' (R' L R L') (R U' R')" },
+          { "case": "L4E 05", "alg": "U' (R U' R') (L' U' L)" },
+          { "case": "L4E 06", "alg": "U (L' U L) (R U R')" },
+          { "case": "L4E 07", "alg": "U L' U' L" },
+          { "case": "L4E 08", "alg": "U' R U R'" },
+          { "case": "L4E 09", "alg": "L R' L' R" },
+          { "case": "L4E 10", "alg": "R' L R L'" },
+          { "case": "L4E 11", "alg": "R' L R L2' U L" },
+          { "case": "L4E 12", "alg": "L R' L' R2 U' R'" },
+          { "case": "L4E 13", "alg": "R U' R'" },
+          { "case": "L4E 14", "alg": "L' U L" },
+          { "case": "L4E 15", "alg": "(R U R') U (R' L R L')" },
+          { "case": "L4E 16", "alg": "(L' U' L) U' (L R' L' R)" },
+          { "case": "L4E 17", "alg": "U (L' U L) U' (R U R')" },
+          { "case": "L4E 18", "alg": "U' (R U' R') U (L' U' L)" },
+          { "case": "L4E 19", "alg": "(R U R') U (L' U L)" },
+          { "case": "L4E 20", "alg": "(L' U' L) U' (R U' R')" },
+          { "case": "L4E 21", "alg": "U (R' L R L') U (L' U L)" },
+          { "case": "L4E 22", "alg": "U' (L R' L' R) U' (R U' R')" },
+          { "case": "L4E 23", "alg": "U R U' R2' L R L'" },
+          { "case": "L4E 24", "alg": "U' L' U L2 R' L' R" },
+          { "case": "L4E 25", "alg": "U' (L' U' L) U (R U R')" },
+          { "case": "L4E 26", "alg": "U (R U R') U' (L' U' L)" },
+          { "case": "L4E 27", "alg": "U (R U' R') U' (R U R')" },
+          { "case": "L4E 28", "alg": "U' (L' U L) U (L' U' L)" },
+          { "case": "L4E 29", "alg": "U' (L' U L) (R U' R')" },
+          { "case": "L4E 30", "alg": "U (R U' R') (L' U L)" }
+        ]
+      }
+    ]
+  },
+  "skewb": {
+    "label": "Skewb",
+    "groups": [
+      {
+        "name": "Core algorithms",
+        "status": "ready",
+        "note": "These 2 four-movers are the backbone of every Skewb method (Sarah's Beginner/Intermediate/Advanced) — you'll chain them a lot.",
+        "cases": [
+          { "case": "Sledgehammer", "alg": "F' L F L'" },
+          { "case": "Hedgeslammer", "alg": "L F' L' F" },
+          { "case": "U-perm (fix 2 centers)", "alg": "R' L R L' R' L R L'" }
+        ]
+      },
+        {
+          "name": "Sarah's Advanced \u2014 full case set (115 of 134)",
+          "status": "ready",
+          "note": "Sarah Strong's Advanced Variation: solve one side intuitively, then finish everything else in one look. S = sledgehammer (F' L F L'), H = hedgeslammer (L F' L' F). A trailing y/y'/y2/z/z' means rotate the whole puzzle that way before continuing the sequence. The (g)/(o)/(b)/(r) tag marks which color sits at the front-left for recognition (g=no rotation, o=y, b=y2, r=y'). Cases are grouped by the shape/perm pattern they solve. Sarah's own guide lists 134 cases total; a handful of rare 5-sledgehammer cases and most Last-5-Centres cases are intentionally left as '-' (optimal algs recommended instead) and aren't included here.",
+          "cases": [
+            {
+              "case": "Short 'n Easy \u2014 S (r)",
+              "alg": "(F' L F L')"
+            },
+            {
+              "case": "Short 'n Easy \u2014 H (o)",
+              "alg": "(L F' L' F)"
+            },
+            {
+              "case": "Short 'n Easy \u2014 SS (o)",
+              "alg": "(F' L F L')(F' L F L')"
+            },
+            {
+              "case": "Short 'n Easy \u2014 Sy2H (o)",
+              "alg": "(F' L F L') y2 (L F' L' F)"
+            },
+            {
+              "case": "Short 'n Easy \u2014 Hy2S (r)",
+              "alg": "(L F' L' F) y2 (F' L F L')"
+            },
+            {
+              "case": "Short 'n Easy \u2014 SyS (o)",
+              "alg": "(F' L F L') y (F' L F L')"
+            },
+            {
+              "case": "Short 'n Easy \u2014 Sy'S (b)",
+              "alg": "(F' L F L') y' (F' L F L')"
+            },
+            {
+              "case": "Short 'n Easy \u2014 HyH (r)",
+              "alg": "(L F' L' F) y (L F' L' F)"
+            },
+            {
+              "case": "Short 'n Easy \u2014 Hy'H (g)",
+              "alg": "(L F' L' F) y' (L F' L' F)"
+            },
+            {
+              "case": "Short 'n Easy \u2014 Sy'H (o)",
+              "alg": "(F' L F L') y' (L F' L' F)"
+            },
+            {
+              "case": "Short 'n Easy \u2014 SyH (b)",
+              "alg": "(F' L F L') y (L F' L' F)"
+            },
+            {
+              "case": "Short 'n Easy \u2014 Hy'S (r)",
+              "alg": "(L F' L' F) y' (F' L F L')"
+            },
+            {
+              "case": "Short 'n Easy \u2014 HyS (g)",
+              "alg": "(L F' L' F) y (F' L F L')"
+            },
+            {
+              "case": "Reducing to Vertical U Perm \u2014 Sy Sy2S (r)",
+              "alg": "(F' L F L') y (F' L F L') y2 (F' L F L')"
+            },
+            {
+              "case": "Reducing to Vertical U Perm \u2014 Sy' Sy2S (r)",
+              "alg": "(F' L F L') y' (F' L F L') y2 (F' L F L')"
+            },
+            {
+              "case": "Reducing to Vertical U Perm \u2014 Hy' Sy2S (o)",
+              "alg": "(L F' L' F) y' (F' L F L') y2 (F' L F L')"
+            },
+            {
+              "case": "Reducing to Vertical U Perm \u2014 Hy Sy2S (o)",
+              "alg": "(L F' L' F) y (F' L F L') y2 (F' L F L')"
+            },
+            {
+              "case": "Reducing to Vertical U Perm \u2014 Sy2 Sy2S (r)",
+              "alg": "(F' L F L') y2 (F' L F L') y2 (F' L F L')"
+            },
+            {
+              "case": "Reducing to Horiz. CCW U Perm (from Pi) \u2014 Sz' Sy2S (r)",
+              "alg": "(F' L F L') z' (F' L F L') y2 (F' L F L')"
+            },
+            {
+              "case": "Reducing to Horiz. CCW U Perm (from Pi) \u2014 Syz' Sy2S (r)",
+              "alg": "(F' L F L') y z' (F' L F L') y2 (F' L F L')"
+            },
+            {
+              "case": "Reducing to Horiz. CCW U Perm (from Pi) \u2014 Sy'z' Sy2S (r)",
+              "alg": "(F' L F L') y' z' (F' L F L') y2 (F' L F L')"
+            },
+            {
+              "case": "Reducing to Horiz. CCW U Perm (from Pi) \u2014 Sy2z' Sy2S (r)",
+              "alg": "(F' L F L') y2 z' (F' L F L') y2 (F' L F L')"
+            },
+            {
+              "case": "Reducing to Horiz. CCW U Perm (from Pi) \u2014 Hz' Sy2S (o)",
+              "alg": "(L F' L' F) z' (F' L F L') y2 (F' L F L')"
+            },
+            {
+              "case": "Reducing to Horiz. CCW U Perm (from Pi) \u2014 Hyz' Sy2S (o)",
+              "alg": "(L F' L' F) y z' (F' L F L') y2 (F' L F L')"
+            },
+            {
+              "case": "Reducing to Horiz. CCW U Perm (from Pi) \u2014 Hy'z' Sy2S (o)",
+              "alg": "(L F' L' F) y' z' (F' L F L') y2 (F' L F L')"
+            },
+            {
+              "case": "Reducing to Horiz. CCW U Perm (from Pi) \u2014 Hy2z' Sy2S (o)",
+              "alg": "(L F' L' F) y2 z' (F' L F L') y2 (F' L F L')"
+            },
+            {
+              "case": "Reducing to Horiz. CW U Perm (from Pi) \u2014 Sz Sy2S (r)",
+              "alg": "(F' L F L') z (F' L F L') y2 (F' L F L')"
+            },
+            {
+              "case": "Reducing to Horiz. CW U Perm (from Pi) \u2014 Syz Sy2S (r)",
+              "alg": "(F' L F L') y z (F' L F L') y2 (F' L F L')"
+            },
+            {
+              "case": "Reducing to Horiz. CW U Perm (from Pi) \u2014 Sy'z Sy2S (r)",
+              "alg": "(F' L F L') y' z (F' L F L') y2 (F' L F L')"
+            },
+            {
+              "case": "Reducing to Horiz. CW U Perm (from Pi) \u2014 Sy2z Sy2S (r)",
+              "alg": "(F' L F L') y2 z (F' L F L') y2 (F' L F L')"
+            },
+            {
+              "case": "Reducing to Horiz. CW U Perm (from Pi) \u2014 Hz Sy2S (o)",
+              "alg": "(L F' L' F) z (F' L F L') y2 (F' L F L')"
+            },
+            {
+              "case": "Reducing to Horiz. CW U Perm (from Pi) \u2014 Hyz Sy2S (o)",
+              "alg": "(L F' L' F) y z (F' L F L') y2 (F' L F L')"
+            },
+            {
+              "case": "Reducing to Horiz. CW U Perm (from Pi) \u2014 Hy'z Sy2S (o)",
+              "alg": "(L F' L' F) y' z (F' L F L') y2 (F' L F L')"
+            },
+            {
+              "case": "Reducing to Horiz. CW U Perm (from Pi) \u2014 Hy2z Sy2S (o)",
+              "alg": "(L F' L' F) y2 z (F' L F L') y2 (F' L F L')"
+            },
+            {
+              "case": "Peanut + Triple Sledge \u2014 Sy SS (b)",
+              "alg": "(F' L F L') y (F' L F L')(F' L F L')"
+            },
+            {
+              "case": "Peanut + Triple Sledge \u2014 Sy' SS (o)",
+              "alg": "(F' L F L') y' (F' L F L')(F' L F L')"
+            },
+            {
+              "case": "Peanut + Triple Sledge \u2014 Hy' SS (g)",
+              "alg": "(L F' L' F) y' (F' L F L')(F' L F L')"
+            },
+            {
+              "case": "Peanut + Triple Sledge \u2014 Hy SS (r)",
+              "alg": "(L F' L' F) y (F' L F L')(F' L F L')"
+            },
+            {
+              "case": "Pi + Easy Horizontal U Perms \u2014 SySyS (b)",
+              "alg": "(F' L F L') y (F' L F L') y (F' L F L')"
+            },
+            {
+              "case": "Pi + Easy Horizontal U Perms \u2014 Sy'Sy'S (g)",
+              "alg": "(F' L F L') y' (F' L F L') y' (F' L F L')"
+            },
+            {
+              "case": "Pi + Easy Horizontal U Perms \u2014 Hy'Hy'H (b)",
+              "alg": "(L F' L' F) y' (L F' L' F) y' (L F' L' F)"
+            },
+            {
+              "case": "Pi + Easy Horizontal U Perms \u2014 HyHyH (g)",
+              "alg": "(L F' L' F) y (L F' L' F) y (L F' L' F)"
+            },
+            {
+              "case": "Peanut + Horizontal U Perms \u2014 SySyH (g)",
+              "alg": "(F' L F L') y (F' L F L') y (L F' L' F)"
+            },
+            {
+              "case": "Peanut + Horizontal U Perms \u2014 Sy'Sy'H (r)",
+              "alg": "(F' L F L') y' (F' L F L') y' (L F' L' F)"
+            },
+            {
+              "case": "Peanut + Horizontal U Perms \u2014 SyHyH (r)",
+              "alg": "(F' L F L') y (L F' L' F) y (L F' L' F)"
+            },
+            {
+              "case": "Peanut + Horizontal U Perms \u2014 Sy'Hy'H (g)",
+              "alg": "(F' L F L') y' (L F' L' F) y' (L F' L' F)"
+            },
+            {
+              "case": "Peanut + Horizontal U Perms \u2014 Hy'Hy'S (o)",
+              "alg": "(L F' L' F) y' (L F' L' F) y' (F' L F L')"
+            },
+            {
+              "case": "Peanut + Horizontal U Perms \u2014 HyHyS (b)",
+              "alg": "(L F' L' F) y (L F' L' F) y (F' L F L')"
+            },
+            {
+              "case": "Peanut + Horizontal U Perms \u2014 Hy'Sy'S (b)",
+              "alg": "(L F' L' F) y' (F' L F L') y' (F' L F L')"
+            },
+            {
+              "case": "Peanut + Horizontal U Perms \u2014 HySyS (o)",
+              "alg": "(L F' L' F) y (F' L F L') y (F' L F L')"
+            },
+            {
+              "case": "Pi + Z Perm Conjugates \u2014 Sy'SyH (g)",
+              "alg": "(F' L F L') y' (F' L F L') y (L F' L' F)"
+            },
+            {
+              "case": "Pi + Z Perm Conjugates \u2014 Sy'Sy'H (b)",
+              "alg": "(F' L F L') y' (F' L F L') y' (L F' L' F)"
+            },
+            {
+              "case": "Pi + Z Perm Conjugates \u2014 SyHy'H (g)",
+              "alg": "(F' L F L') y (L F' L' F) y' (L F' L' F)"
+            },
+            {
+              "case": "Pi + Z Perm Conjugates \u2014 Sy'HyH (b)",
+              "alg": "(F' L F L') y' (L F' L' F) y (L F' L' F)"
+            },
+            {
+              "case": "Peanut + Z Perm Conjugates \u2014 SySy'S (g)",
+              "alg": "(F' L F L') y (F' L F L') y' (F' L F L')"
+            },
+            {
+              "case": "Peanut + Z Perm Conjugates \u2014 Sy'SyS (r)",
+              "alg": "(F' L F L') y' (F' L F L') y (F' L F L')"
+            },
+            {
+              "case": "Peanut + Z Perm Conjugates \u2014 Hy'HyH (o)",
+              "alg": "(L F' L' F) y' (L F' L' F) y (L F' L' F)"
+            },
+            {
+              "case": "Peanut + Z Perm Conjugates \u2014 HyHy'H (b)",
+              "alg": "(L F' L' F) y (L F' L' F) y' (L F' L' F)"
+            },
+            {
+              "case": "Peanut + Z Perm Conjugates \u2014 SyHy'S (r)",
+              "alg": "(F' L F L') y (L F' L' F) y' (F' L F L')"
+            },
+            {
+              "case": "Peanut + Z Perm Conjugates \u2014 Sy'HyS (g)",
+              "alg": "(F' L F L') y' (L F' L' F) y (F' L F L')"
+            },
+            {
+              "case": "Peanut + Z Perm Conjugates \u2014 HySy'H (o)",
+              "alg": "(L F' L' F) y (F' L F L') y' (L F' L' F)"
+            },
+            {
+              "case": "Peanut + Z Perm Conjugates \u2014 Hy'SyH (b)",
+              "alg": "(L F' L' F) y' (F' L F L') y (L F' L' F)"
+            },
+            {
+              "case": "Peanut + U Perm Conjugates \u2014 SySy2H (o)",
+              "alg": "(F' L F L') y (F' L F L') y2 (L F' L' F)"
+            },
+            {
+              "case": "Peanut + U Perm Conjugates \u2014 Sy'Sy2H (b)",
+              "alg": "(F' L F L') y' (F' L F L') y2 (L F' L' F)"
+            },
+            {
+              "case": "Peanut + U Perm Conjugates \u2014 SyHy2S (o)",
+              "alg": "(F' L F L') y (L F' L' F) y2 (F' L F L')"
+            },
+            {
+              "case": "Peanut + U Perm Conjugates \u2014 Sy'Hy2S (b)",
+              "alg": "(F' L F L') y' (L F' L' F) y2 (F' L F L')"
+            },
+            {
+              "case": "Peanut + U Perm Conjugates \u2014 HyHy2S (g)",
+              "alg": "(L F' L' F) y (L F' L' F) y2 (F' L F L')"
+            },
+            {
+              "case": "Peanut + U Perm Conjugates \u2014 Hy'Hy2S (r)",
+              "alg": "(L F' L' F) y' (L F' L' F) y2 (F' L F L')"
+            },
+            {
+              "case": "Peanut + U Perm Conjugates \u2014 HySy2H (r)",
+              "alg": "(L F' L' F) y (F' L F L') y2 (L F' L' F)"
+            },
+            {
+              "case": "Peanut + U Perm Conjugates \u2014 Hy'Sy2H (g)",
+              "alg": "(L F' L' F) y' (F' L F L') y2 (L F' L' F)"
+            },
+            {
+              "case": "Actual Pure Pi and U Perm \u2014 SSy2z Sy2S (o)",
+              "alg": "(F' L F L')(F' L F L') y2 z (F' L F L') y2 (F' L F L')"
+            },
+            {
+              "case": "Actual Pure Pi and U Perm \u2014 SSz' Sy2S (o)",
+              "alg": "(F' L F L')(F' L F L') z' (F' L F L') y2 (F' L F L')"
+            },
+            {
+              "case": "Actual Pure Pi and U Perm \u2014 SSy2z Sy2S (o)",
+              "alg": "(F' L F L')(F' L F L') y2 z (F' L F L') y2 (F' L F L')"
+            },
+            {
+              "case": "Actual Pure Pi and U Perm \u2014 SSy2z' Sy2S (o)",
+              "alg": "(F' L F L')(F' L F L') y2 z' (F' L F L') y2 (F' L F L')"
+            },
+            {
+              "case": "Actual Pure Pi and U Perm \u2014 SSy Sy2S (o)",
+              "alg": "(F' L F L')(F' L F L') y (F' L F L') y2 (F' L F L')"
+            },
+            {
+              "case": "Actual Pure Pi and U Perm \u2014 SSy' Sy2S (o)",
+              "alg": "(F' L F L')(F' L F L') y' (F' L F L') y2 (F' L F L')"
+            },
+            {
+              "case": "Reduce to Pure Pi (from Peanut) \u2014 Sy2Hy SS (r)",
+              "alg": "(F' L F L') y2 (L F' L' F) y (F' L F L')(F' L F L')"
+            },
+            {
+              "case": "Reduce to Pure Pi (from Peanut) \u2014 Sy2Hy' SS (g)",
+              "alg": "(F' L F L') y2 (L F' L' F) y' (F' L F L')(F' L F L')"
+            },
+            {
+              "case": "Reduce to Pure Pi (from Peanut) \u2014 Hy2Sy' SS (b)",
+              "alg": "(L F' L' F) y2 (F' L F L') y' (F' L F L')(F' L F L')"
+            },
+            {
+              "case": "Reduce to Pure Pi (from Peanut) \u2014 Hy2Sy SS (o)",
+              "alg": "(L F' L' F) y2 (F' L F L') y (F' L F L')(F' L F L')"
+            },
+            {
+              "case": "Reduce to Triple Sledge (from Pi) \u2014 Sy SSS (r)",
+              "alg": "(F' L F L') y (F' L F L')(F' L F L')(F' L F L')"
+            },
+            {
+              "case": "Reduce to Triple Sledge (from Pi) \u2014 Sy' SSS (r)",
+              "alg": "(F' L F L') y' (F' L F L')(F' L F L')(F' L F L')"
+            },
+            {
+              "case": "Reduce to Triple Sledge (from Pi) \u2014 Hy' SSS (o)",
+              "alg": "(L F' L' F) y' (F' L F L')(F' L F L')(F' L F L')"
+            },
+            {
+              "case": "Reduce to Triple Sledge (from Pi) \u2014 Hy SSS (o)",
+              "alg": "(L F' L' F) y (F' L F L')(F' L F L')(F' L F L')"
+            },
+            {
+              "case": "Peanut + Wat Perm \u2014 Sy2SySyS (b)",
+              "alg": "(F' L F L') y2 (F' L F L') y (F' L F L') y (F' L F L')"
+            },
+            {
+              "case": "Peanut + Wat Perm \u2014 Sy2Sy'Sy'S (o)",
+              "alg": "(F' L F L') y2 (F' L F L') y' (F' L F L') y' (F' L F L')"
+            },
+            {
+              "case": "Peanut + Wat Perm \u2014 Sy2Sy'HyH (r)",
+              "alg": "(F' L F L') y2 (F' L F L') y' (L F' L' F) y (L F' L' F)"
+            },
+            {
+              "case": "Peanut + Wat Perm \u2014 Sy2SyHyH (g)",
+              "alg": "(F' L F L') y2 (F' L F L') y (L F' L' F) y (L F' L' F)"
+            },
+            {
+              "case": "Peanut + Wat Perm \u2014 Sy2SySyH (r)",
+              "alg": "(F' L F L') y2 (F' L F L') y (F' L F L') y (L F' L' F)"
+            },
+            {
+              "case": "Peanut + Wat Perm \u2014 Sy2Sy'Sy'H (g)",
+              "alg": "(F' L F L') y2 (F' L F L') y' (F' L F L') y' (L F' L' F)"
+            },
+            {
+              "case": "Peanut + Wat Perm \u2014 Sy2SyHyS (o)",
+              "alg": "(F' L F L') y2 (F' L F L') y (L F' L' F) y (F' L F L')"
+            },
+            {
+              "case": "Peanut + Wat Perm \u2014 Sy2Sy'Hy'S (b)",
+              "alg": "(F' L F L') y2 (F' L F L') y' (L F' L' F) y' (F' L F L')"
+            },
+            {
+              "case": "Peanut + Swirl Perm \u2014 SySy'SyS (r)",
+              "alg": "(F' L F L') y (F' L F L') y' (F' L F L') y (F' L F L')"
+            },
+            {
+              "case": "Peanut + Swirl Perm \u2014 Sy'SySy'S (g)",
+              "alg": "(F' L F L') y' (F' L F L') y (F' L F L') y' (F' L F L')"
+            },
+            {
+              "case": "Peanut + Swirl Perm \u2014 Hy'HyHy'H (b)",
+              "alg": "(L F' L' F) y' (L F' L' F) y (L F' L' F) y' (L F' L' F)"
+            },
+            {
+              "case": "Peanut + Swirl Perm \u2014 HyHy'HyH (o)",
+              "alg": "(L F' L' F) y (L F' L' F) y' (L F' L' F) y (L F' L' F)"
+            },
+            {
+              "case": "Peanut + Swirl Perm \u2014 SyHy'SyH (g)",
+              "alg": "(F' L F L') y (L F' L' F) y' (F' L F L') y (L F' L' F)"
+            },
+            {
+              "case": "Peanut + Swirl Perm \u2014 Sy'HySy'H (r)",
+              "alg": "(F' L F L') y' (L F' L' F) y (F' L F L') y' (L F' L' F)"
+            },
+            {
+              "case": "Peanut + Swirl Perm \u2014 Hy'SyHy'S (o)",
+              "alg": "(L F' L' F) y' (F' L F L') y (L F' L' F) y' (F' L F L')"
+            },
+            {
+              "case": "Peanut + Swirl Perm \u2014 HySy'HyS (b)",
+              "alg": "(L F' L' F) y (F' L F L') y' (L F' L' F) y (F' L F L')"
+            },
+            {
+              "case": "Pi + Swirl Perm \u2014 SySy'SyH (o)",
+              "alg": "(F' L F L') y (F' L F L') y' (F' L F L') y (L F' L' F)"
+            },
+            {
+              "case": "Pi + Swirl Perm \u2014 Sy'SySy'H (o)",
+              "alg": "(F' L F L') y' (F' L F L') y (F' L F L') y' (L F' L' F)"
+            },
+            {
+              "case": "Pi + Swirl Perm \u2014 Hy'HyHy'S (r)",
+              "alg": "(L F' L' F) y' (L F' L' F) y (L F' L' F) y' (F' L F L')"
+            },
+            {
+              "case": "Pi + Swirl Perm \u2014 HyHy'HyS (r)",
+              "alg": "(L F' L' F) y (L F' L' F) y' (L F' L' F) y (F' L F L')"
+            },
+            {
+              "case": "Pi + Swirl Perm \u2014 SySy'HyS (g)",
+              "alg": "(F' L F L') y (F' L F L') y' (L F' L' F) y (F' L F L')"
+            },
+            {
+              "case": "Pi + Swirl Perm \u2014 Sy'SyHy'S (b)",
+              "alg": "(F' L F L') y' (F' L F L') y (L F' L' F) y' (F' L F L')"
+            },
+            {
+              "case": "Pi + Swirl Perm \u2014 Hy'HySy'H (g)",
+              "alg": "(L F' L' F) y' (L F' L' F) y (F' L F L') y' (L F' L' F)"
+            },
+            {
+              "case": "Pi + Swirl Perm \u2014 HyHy'SyH (b)",
+              "alg": "(L F' L' F) y (L F' L' F) y' (F' L F L') y (L F' L' F)"
+            },
+            {
+              "case": "Pi + Wat Perm \u2014 Sy2HySyS (g)",
+              "alg": "(F' L F L') y2 (L F' L' F) y (F' L F L') y (F' L F L')"
+            },
+            {
+              "case": "Pi + Wat Perm \u2014 Sy2Hy'Sy'S (b)",
+              "alg": "(F' L F L') y2 (L F' L' F) y' (F' L F L') y' (F' L F L')"
+            },
+            {
+              "case": "Pi + Wat Perm \u2014 Hy2Sy'Hy'H (g)",
+              "alg": "(L F' L' F) y2 (F' L F L') y' (L F' L' F) y' (L F' L' F)"
+            },
+            {
+              "case": "Pi + Wat Perm \u2014 Hy2SyHyH (b)",
+              "alg": "(L F' L' F) y2 (F' L F L') y (L F' L' F) y (L F' L' F)"
+            },
+            {
+              "case": "Suck Cases \u2014 SS y' SS (g)",
+              "alg": "(F' L F L')(F' L F L') y' (F' L F L')(F' L F L')"
+            },
+            {
+              "case": "L5C (Last 5 Centres) \u2014 z S y2 S (g)",
+              "alg": "z (F' L F L') y2 (F' L F L')"
+            },
+            {
+              "case": "L5C (Last 5 Centres) \u2014 SSS (o)",
+              "alg": "(F' L F L')(F' L F L')(F' L F L')"
+            }
+          ]
+        }
+    ]
+  },
+  "megaminx": {
+    "label": "Megaminx",
+    "groups": [
+      {
+        "name": "Edge Orientation (EO)",
+        "status": "ready",
+        "note": "Step 1 of the 4-look last layer — orient the last-layer edges (algs by James Macdiarmid & Nicolas Naing).",
+        "cases": [
+          { "case": "EO1", "alg": "F R U R' U' F'" },
+          { "case": "EO2", "alg": "F U R U' R' F'" },
+          { "case": "EO3", "alg": "F R U2 R2' F R F' U2' F'" }
+        ]
+      },
+      {
+        "name": "Corner Orientation (CO)",
+        "status": "ready",
+        "note": "Step 2 — orient the last-layer corners.",
+        "cases": [
+          { "case": "CO 1", "alg": "R U R' U R U R' U2' R U' R'" },
+          { "case": "CO 2", "alg": "F R U2 R' U' R U' R' F'" },
+          { "case": "CO 3", "alg": "R U2 R' U R U2 R'" },
+          { "case": "CO 4", "alg": "R U R' U' R' F R U R U' R' F'" },
+          { "case": "CO 5", "alg": "R U R' U R U2' R'" },
+          { "case": "CO 6", "alg": "R' U' R U' R' U2 R" },
+          { "case": "CO 7", "alg": "R U2 R' U' R U' R'" },
+          { "case": "CO 8", "alg": "R U R' U2 R U2 R'" },
+          { "case": "CO 9", "alg": "R U2 R' U' R U R' U' R U' R'" },
+          { "case": "CO 10", "alg": "R U R' U R U' R' U R U2' R'" },
+          { "case": "CO 11", "alg": "R U R' U R U R' U' R U2' R'" },
+          { "case": "CO 12", "alg": "R U2 R' U' R U' R2' U' R U' R' U2 R" },
+          { "case": "CO 13", "alg": "R U2 R2' U' R2 U' R2' U2 R" },
+          { "case": "CO 14", "alg": "R' U2' R2 U R2' U R2 U2' R'" },
+          { "case": "CO 15", "alg": "R U R' U2 R U2' R' U R U2' R'" },
+          { "case": "CO 16", "alg": "R U2 R' U' R U2 R' U2' R U' R'" }
+        ]
+      },
+      {
+        "name": "Edge Permutation (EP)",
+        "status": "ready",
+        "note": "Step 3 — permute the last-layer edges.",
+        "cases": [
+          { "case": "EP 1", "alg": "R2 U2' R2' U' R2 U2' R2'" },
+          { "case": "EP 2", "alg": "R2 U2 R2' U R2 U2 R2'" },
+          { "case": "EP 3", "alg": "R U R' F' R U R' U' R' F R2 U' R'" },
+          { "case": "EP 4", "alg": "R U R' U R' U' R2 U' R' U R' U R U2'" },
+          { "case": "EP 5", "alg": "L R U2 L' U R' L U' R U2 L' U2 R'" }
+        ]
+      },
+      {
+        "name": "Corner Permutation (CP)",
+        "status": "ready",
+        "note": "Step 4 — permute the last-layer corners, finishing the solve. BR = back-right slice turn.",
+        "cases": [
+          { "case": "CP 1", "alg": "R' BR' R BR R' F' R BR' R' BR F R" },
+          { "case": "CP 2", "alg": "R' F' BR' R BR R' F R BR' R' BR R" },
+          { "case": "CP 3", "alg": "BR' R' U L U' R' U L' U' R2 BR" },
+          { "case": "CP 4", "alg": "BR' R2' U L U' R U L' U' R BR" },
+          { "case": "CP 5", "alg": "L' R U2 R' U' R U R' U' R U R' U' R U' R' L" },
+          { "case": "CP 6", "alg": "R U R' U R' U' R F' R U R' U' R' F R2 U' R2' U R U'" },
+          { "case": "CP 7", "alg": "R2 U R' U' y R U R' U' R U R' U' R U R' y' R U' R2'" },
+          { "case": "CP 8", "alg": "F R U2 R' U' R U' R' F' R' y' R' U' R U' R' U2 R BR U'" },
+          { "case": "CP 9", "alg": "R U R' U R' U' R2 U' R' U R' U R U R U R' U R' U' R2 U' R' U R' U R U" },
+          { "case": "CP 10", "alg": "R2 U2 R2' U' R2 U' R2' y' R2' U' R2 U' R2' U2 R2" },
+          { "case": "CP 11", "alg": "R2' U2' R2 U R2' U R2 y R2 U R2' U R2 U2' R2'" },
+          { "case": "CP 12", "alg": "R2 U2' R2' U' R2 U2' R' U R' U' R' F R2 U' R' U' R U R' F'" },
+          { "case": "CP 13", "alg": "R' U2 R U' R' U2 R U2' R' U' R U2' R' U R U2' R' U R" },
+          { "case": "CP 14", "alg": "R2 U2' R2' U' R2 U R2' U' R2 U R2' U' R2 U2' R2'" },
+          { "case": "CP 15", "alg": "R2 U2 R2' U R2 U' R2' U R2 U' R2' U R2 U2 R2'" }
+        ]
+      },
+      {
+        "name": "2-Look OLL — full set (19 cases)",
+        "status": "ready",
+        "note": "Orient the whole last layer in 2 looks: orient edges first, then corners. This is the practical 'full OLL' most solvers actually use — the true one-look database has 150+ shape-named cases, which is too large to publish reliably here.",
+        "cases": [
+          { "case": "2LOLL 01", "alg": "F (U R U' R') F'" },
+          { "case": "2LOLL 02", "alg": "F (R U R' U') F'" },
+          { "case": "2LOLL 03", "alg": "F R U2 R2' F R F' U2' F'" },
+          { "case": "2LOLL 04", "alg": "R U2 R' U R U2 R'" },
+          { "case": "2LOLL 05", "alg": "R U R U R' U R U2' R' U' R'" },
+          { "case": "2LOLL 06", "alg": "R U R' U R U R' U2' R U' R'" },
+          { "case": "2LOLL 07", "alg": "R' U' R' Dfr' R U R' Dfr R2" },
+          { "case": "2LOLL 08", "alg": "R U R' U R U2' R'" },
+          { "case": "2LOLL 09", "alg": "R' U' R U' R' U2 R" },
+          { "case": "2LOLL 10", "alg": "R' U2 R U R' U2 R" },
+          { "case": "2LOLL 11", "alg": "R U2 R' U' R U' R'" },
+          { "case": "2LOLL 12", "alg": "R U R' U R U R' U' R U2' R'" },
+          { "case": "2LOLL 13", "alg": "R U2 R' U' R U R' U' R U' R'" },
+          { "case": "2LOLL 14", "alg": "R U R' U R U' R' U R U2' R' R" },
+          { "case": "2LOLL 15", "alg": "R U2 R' U' R U' R2' U' R U' R' U2 R" },
+          { "case": "2LOLL 16", "alg": "R U2' R' U' R U R' U' R U2' R'" },
+          { "case": "2LOLL 17", "alg": "R' U2 R U R' U' R U R' U2 R" },
+          { "case": "2LOLL 18", "alg": "R U R' U2 R U2' R' U R U2' R'" },
+          { "case": "2LOLL 19", "alg": "R U2 R' U' R U2 R' U2' R U' R'" }
+        ]
+      },
+      {
+        "name": "2-Look PLL — full set (20 cases)",
+        "status": "ready",
+        "note": "Permute the whole last layer in 2 looks: permute edges first, then corners (edges are done first since corners are easier to move individually). 15 corner-permutation cases + 5 edge-permutation cases. BR = back-right slice turn.",
+        "cases": [
+          { "case": "2LPLL — Corners 01", "alg": "(R' BR' R BR) (R' F' R BR') (R' BR F R)" },
+          { "case": "2LPLL — Corners 02", "alg": "(R' F' BR' R) (BR R' F R) (BR' R' BR R)" },
+          { "case": "2LPLL — Corners 03", "alg": "BR' (R' U L U') (R' U L' U') R2 BR" },
+          { "case": "2LPLL — Corners 04", "alg": "BR' R2' (U L U' R) (U L' U' R) BR" },
+          { "case": "2LPLL — Corners 05", "alg": "L' (R U2 R' U') (R U R' U') (R U R' U') R U' R' L" },
+          { "case": "2LPLL — Corners 06", "alg": "(R U R' U) (R' U' R F') (R U R' U') (R' F R2 U') (R2' U R U')" },
+          { "case": "2LPLL — Corners 07", "alg": "R2 U R' U' (R U R' U') (R U R' U') (R U R') R U' R2'" },
+          { "case": "2LPLL — Corners 08", "alg": "F (R U2 R' U' R U' R') F' R' (R' U' R U' R' U2 R BR) U'" },
+          { "case": "2LPLL — Corners 09", "alg": "[(R U R' U) (R' U' R2 U') (R' U R' U R) U] x2" },
+          { "case": "2LPLL — Corners 10", "alg": "R2 U2 R2' U' R2 U' R2' R2' U' R2 U' R2' U2 R2 U'" },
+          { "case": "2LPLL — Corners 11", "alg": "R2' U2' R2 U R2' U R2 R2 U R2' U R2 U2' R2' U" },
+          { "case": "2LPLL — Corners 12", "alg": "R2 U2' R2' U' R2 U2' (R' U R' U') (R' F R2 U') (R' U' R U) R' F'" },
+          { "case": "2LPLL — Corners 13", "alg": "(R' U2 R U') (R' U2 R U2') (R' U' R U2') (R' U R U2') (R' U R)" },
+          { "case": "2LPLL — Corners 14", "alg": "(R2 U2' R2' U') (R2 U R2' U') (R2 U R2' U') (R2 U2' R2')" },
+          { "case": "2LPLL — Corners 15", "alg": "(R2 U2 R2' U) (R2 U' R2' U) (R2 U' R2' U) (R2 U2 R2')" },
+          { "case": "2LPLL — Edges 01", "alg": "R2 U2' R2' U' R2 U2' R2'" },
+          { "case": "2LPLL — Edges 02", "alg": "R2 U2 R2' U R2 U2 R2'" },
+          { "case": "2LPLL — Edges 03", "alg": "(R U R' F') (R U R' U') (R' F R2 U' R')" },
+          { "case": "2LPLL — Edges 04", "alg": "(R U R' U) (R' U' R2 U') (R' U R' U) R U2'" },
+          { "case": "2LPLL — Edges 05", "alg": "(L R U2) (L' U R') (L U' R U2) (L' U2 R')" }
+        ]
+      }
+    ]
+  },
+  "square1": {
+    "label": "Square-1",
+    "groups": [
+      {
+        "name": "Parity",
+        "status": "ready",
+        "note": "Square-1 uses its own turn notation: /(x,y)/ means top layer turns x twelfths, bottom layer turns y twelfths, then a slice (/) flip.",
+        "cases": [
+          { "case": "Adjacent Parity", "alg": "/ -3,0 / 0,3 / 0,-3 / 0,3 / 2,0 / 0,2 / -2,0 / 4,0 / 0,-2 / 0,2 / -1,4 / 0,-3 / 0,3" },
+          { "case": "Opposite Parity", "alg": "/ 3,3 / -1,0 / 2,-4 / 4,-2 / 0,-2 / -4,2 / 1,-5 / 3,0 / 3,3 / 3,0" },
+          { "case": "O+ Parity", "alg": "0,-1 / -2,-2 / 2,0 / -3,-3 / 0,1 / -2,-2 / 0,-2 / 2,2 / 0,-1 / 3,3 / 3,3" },
+          { "case": "O- Parity", "alg": "/ -3,-3 / 0,1 / -2,-2 / 0,2 / 2,2 / 0,-1 / 3,3 / -2,0 / 2,2 / -3,-2" },
+          { "case": "W Parity", "alg": "0,-1 / 1,-2 / -4,0 / 0,3 / 1,0 / 3,-2 / -4,0 / -4,0 / -2,2 / -1,0 / 0,-3 / -3,0" }
+        ]
+      },
+      {
+        "name": "Edge Orientation (EO) — full set",
+        "status": "ready",
+        "note": "Step 2 — orient all edges. 7 cases.",
+        "cases": [
+          { "case": "EO 01", "alg": "(1,0) / (3,0) / (3,0) / (-1,-1) / (-2,1) / (-3,0)" },
+          { "case": "EO 02", "alg": "(1,0) / (3,0) / (-1,-1) / (-3,0) / (0,1)" },
+          { "case": "EO 03", "alg": "(1,0) / (-1,-1) / (0,1)" },
+          { "case": "EO 04", "alg": "(1,0) / (-1,-1) / (3,3) / (1,1) / (-1,0)" },
+          { "case": "EO 05", "alg": "(0,-1) / (0,-3) / (0,-3) / (1,1) / (-1,2) / (1,4) / (-1,0)" },
+          { "case": "EO 06", "alg": "(1,0) / (3,0) / (3,0) / (-1,-1) / (-2,1) / (-4,-1) / (1,0)" },
+          { "case": "EO 07", "alg": "(0,-1) / (3,0) / (3,0) / (1,1) / (-3,0) / (-3,0)" }
+        ]
+      },
+      {
+        "name": "Corner Orientation (CO) — full set",
+        "status": "ready",
+        "note": "Step 3 — orient all corners. 7 cases with published algs (an 8th mirror case exists but has no published text alg).",
+        "cases": [
+          { "case": "CO 01", "alg": "(1,0) / (3,0) / (-1,0)" },
+          { "case": "CO 02", "alg": "(1,0) / (3,6) / (-1,0)" },
+          { "case": "CO 03", "alg": "(1,0) / (-1,0)" },
+          { "case": "CO 04", "alg": "(1,0) / (3,3) / (-1,0)" },
+          { "case": "CO 05", "alg": "(1,0) / (0,3) / (0,3) / (-1,0)" },
+          { "case": "CO 06", "alg": "(1,0) / (3,0) / (3,0) / (-1,0)" },
+          { "case": "CO 07", "alg": "/ (6,6) / (-1,1)" }
+        ]
+      },
+      {
+        "name": "Corner Permutation (CP) — full set",
+        "status": "ready",
+        "note": "Step 4 — permute the corners into place. 8 cases.",
+        "cases": [
+          { "case": "CP 01", "alg": "/ (3,0) / (-3,-3) / (0,3) /" },
+          { "case": "CP 02", "alg": "/ (3,-3) / (-3,3) /" },
+          { "case": "CP 03", "alg": "/ (3,-3) / (-3,0) / (0,3) / (0,-3) / (0,3) /" },
+          { "case": "CP 04", "alg": "/ (3,-3) / (0,3) / (-3,0) / (3,0) / (-3,0) /" },
+          { "case": "CP 05", "alg": "/ (0,3) / (0,-3) / (0,3) / (0,-3) /" },
+          { "case": "CP 06", "alg": "/ (3,0) / (-3,0) / (3,0) / (-3,0) /" },
+          { "case": "CP 07", "alg": "/ (-3,-3) / (3,0) / (-3,-3) / (3,0) / (-3,-3) /" },
+          { "case": "CP 08", "alg": "/ (-3,-3) / (0,-3) / (-3,-3) / (0,-3) / (-3,-3) /" }
+        ]
+      },
+      {
+        "name": "Edge Permutation (EP) — full set",
+        "status": "ready",
+        "note": "Step 5 (final) — permute the edges to finish the solve. 6 cases plus the parity alg already shown above.",
+        "cases": [
+          { "case": "EP 01", "alg": "(1,0) / (0,3) / (-1,-1) / (1,-2) / (-1,0)" },
+          { "case": "EP 04", "alg": "(1,0) / (-1,-1) / (-3,0) / (1,1) / (3,0) / (-1,-1) / (0,1)" },
+          { "case": "EP 05", "alg": "(1,0) / (-1,-1) / (-3,0) / (1,1) / (6,0) / (-1,-1) / (-3,0) / (1,1) / (-1,0)" },
+          { "case": "EP 06", "alg": "(0,-1) / (1,0) / (3,0) / (0,-5) / (0,5) / (-3,0) / (-1,0) / (0,-5)" },
+          { "case": "EP 07", "alg": "(1,0) / (0,-1) / (0,-3) / (5,0) / (-5,0) / (0,3) / (0,1) / (5,0)" }
+        ]
+      }
+    ]
+  }
+};
+
+  const ACCENTS = ["accent-border-red","accent-border-yellow","accent-border-blue","accent-border-green"];
+
+  const eventTabsEl = document.getElementById("event-tabs");
+  const subtabWrapEl = document.getElementById("subtab-wrap");
+  const contentEl = document.getElementById("algs-content");
+
+  let activeEvent = "2x2";
+  let activeGroupIdx = 0;
+
+  function renderEventTabs() {
+    eventTabsEl.innerHTML = Object.keys(ALGS).map(key => `
+      <button type="button" class="tab-btn ${key === activeEvent ? "active" : ""}" data-event="${key}">${ALGS[key].label}</button>
+    `).join("");
+    eventTabsEl.querySelectorAll("[data-event]").forEach(btn => {
+      btn.addEventListener("click", () => {
+        activeEvent = btn.dataset.event;
+        activeGroupIdx = 0;
+        renderEventTabs();
+        renderSubtabs();
+        renderGroup();
+      });
+    });
+  }
+
+  function renderSubtabs() {
+    const groups = ALGS[activeEvent].groups;
+    subtabWrapEl.innerHTML = groups.map((g, i) => `
+      <button type="button" class="subtab-btn ${i === activeGroupIdx ? "active" : ""}" data-idx="${i}">
+        ${g.name}${g.status === "soon" ? " • soon" : ""}
+      </button>
+    `).join("");
+    subtabWrapEl.querySelectorAll("[data-idx]").forEach(btn => {
+      btn.addEventListener("click", () => {
+        activeGroupIdx = parseInt(btn.dataset.idx, 10);
+        renderSubtabs();
+        renderGroup();
+      });
+    });
+  }
+
+  function copyAlg(text, cardEl) {
+    if (!navigator.clipboard || !navigator.clipboard.writeText) return;
+    navigator.clipboard.writeText(text).then(() => {
+      const label = cardEl.querySelector(".copy-label");
+      if (!label) return;
+      const original = label.textContent;
+      label.textContent = "Copied!";
+      label.classList.add("alg-copied");
+      setTimeout(() => { label.textContent = original; label.classList.remove("alg-copied"); }, 1200);
+    }).catch(() => {});
+  }
+
+  function renderGroup() {
+    const group = ALGS[activeEvent].groups[activeGroupIdx];
+
+    if (group.status === "soon") {
+      contentEl.innerHTML = `
+        <div class="interactive-card surface-card accent-border-yellow rounded-2xl p-8 text-center">
+          <span class="soon-badge">Coming Soon</span>
+          <h3 class="font-display text-2xl font-bold mt-4 mb-3">${group.name}</h3>
+          <p class="max-w-xl mx-auto mb-6" style="color:var(--ink-muted);">${group.note || "This set is on its way — we're double-checking every case before publishing it here."}</p>
+        </div>`;
+      return;
+    }
+
+    const noteHtml = group.note ? `<p class="text-center mb-6" style="color:var(--ink-muted);">${group.note}</p>` : "";
+    const cardsHtml = group.cases.map((c, i) => `
+      <div class="interactive-card alg-card ${ACCENTS[i % ACCENTS.length]}" onclick="copyAlg(${JSON.stringify(c.alg)}, this)">
+        <p class="font-display font-bold text-sm mb-2" style="color:var(--cube-yellow);">${c.case}</p>
+        <p class="font-mono text-base leading-relaxed break-words">${c.alg}</p>
+        <p class="copy-label text-xs mt-2" style="color:var(--ink-muted);">Tap to copy</p>
+      </div>`).join("");
+
+    contentEl.innerHTML = `
+      ${noteHtml}
+      <div class="grid sm:grid-cols-2 gap-4">${cardsHtml}</div>`;
+  }
+
+  renderEventTabs();
+  renderSubtabs();
+  renderGroup();
+</script>
+
+</body>
+</html>
