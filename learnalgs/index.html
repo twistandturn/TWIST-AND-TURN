@@ -306,119 +306,29 @@
       {
         "name": "PLL — full 21 cases",
         "status": "ready",
-        "cases": [
-          {
-            "case": "Aa",
-            "alg": "x (R' U R') D2 (R U' R') D2 R2 x'"
-          },
-          {
-            "case": "Ab",
-            "alg": "x R2 D2 (R U R') D2 (R U' R) x'"
-          },
-          {
-            "case": "E",
-            "alg": "x' (R U' R') D (R U R') D' (R U R') D (R U' R') D' x"
-          },
-          {
-            "case": "F",
-            "alg": "R' U2 R U2 R' F R U R' U' R' F' R2 U'"
-          },
-          {
-            "case": "Ja",
-            "alg": "R' U L' U2 R U' R' U2 R L U'"
-          },
-          {
-            "case": "Jb",
-            "alg": "L U' R U2 L' U L U2 L' R' U"
-          },
-          {
-            "case": "Na",
-            "alg": "R U R' U R U R' F' R U R' U' R' F R2 U' R'"
-          },
-          {
-            "case": "Nb",
-            "alg": "R' U' R U' R' U' R F R' U' R U R F' R2 U R"
-          },
-          {
-            "case": "Ra",
-            "alg": "R U R' F' R U R' U' R' F R2 U' R'"
-          },
-          {
-            "case": "Rb",
-            "alg": "R2 U R U R' U' R' U' R' U R'"
-          },
-          {
-            "case": "T",
-            "alg": "R U R' U' R' F R2 U' R' U' R U R' F'"
-          },
-          {
-            "case": "V",
-            "alg": "R' U R' d' R' F' R2 U' R' U R' F R F"
-          },
-          {
-            "case": "Y",
-            "alg": "F R U' R' U' R U R' F' R U R' U' R' F R F'"
-          },
-          {
-            "case": "H",
-            "alg": "M2 U M2 U2 M2 U M2"
-          },
-          {
-            "case": "Ua",
-            "alg": "R U' R U R U R U' R' U' R2"
-          },
-          {
-            "case": "Ub",
-            "alg": "R2 U R U R' U' R' U' R' U R'"
-          },
-          {
-            "case": "Z",
-            "alg": "M' U M2 U M2 U M' U2 M2"
-          },
-          {
-            "case": "Ga",
-            "alg": "R2 u R' U R' U' R u' R2 y' R' U R"
-          },
-          {
-            "case": "Gb",
-            "alg": "R' d' F R2 u R' U R U' R u' R2"
-          },
-          {
-            "case": "Gc",
-            "alg": "R2 u' R U' R U R' u R2 y R U' R'"
-          },
-          {
-            "case": "Gd",
-            "alg": "R u R' U R' d' R U' R U R' u' R2"
-          }
-        ]
-      },
-      {
-        "name": "2-Look OLL — starter set",
-        "status": "ready",
-        "note": "Learn these 5 first, then move on to full OLL below.",
-        "cases": [
-          {
-            "case": "Edges: Line",
-            "alg": "F R U R' U' F'"
-          },
-          {
-            "case": "Edges: L-shape",
-            "alg": "f R U R' U' f'"
-          },
-          {
-            "case": "Edges: Dot",
-            "alg": "F (R U R' U') F' f (R U R' U') f'"
-          },
-          {
-            "case": "Corners: Sune",
-            "alg": "R U R' U R U2 R'"
-          },
-          {
-            "case": "Corners: Anti-Sune",
-            "alg": "R U2 R' U' R U' R'"
-          }
-        ]
+  "cases": [
+  { "case": "Aa", "alg": "x (R' U R') D2 (R U' R') D2 R2 x'" },
+  { "case": "Ab", "alg": "x R2 D2 (R U R') D2 (R U' R) x'" },
+  { "case": "E", "alg": "y x' (R U' R' D) (R U R' D') (R U R' D) (R U' R' D') x" },
+  { "case": "F", "alg": "y (R' U' F') (R U R' U') R' F R2 (U' R' U') (R U R' U) R" },
+  { "case": "Ja", "alg": "y (R' U L') U2 (R U' R') U2 R L" },
+  { "case": "Jb", "alg": "(R U R' F') (R U R' U') R' F R2 U' R'" },
+  { "case": "Na", "alg": "(R U R' U) (R U R' F') (R U R' U') R' F R2 U' R' U2 (R U' R')" },
+  { "case": "Nb", "alg": "(R' U R U' R') (F' U' F) (R U R') (F R' F') (R U' R)" },
+  { "case": "Ra", "alg": "y (R U' R' U') (R U R D) (R' U' R D') (R' U2 R')" },
+  { "case": "Rb", "alg": "(R' U2) (R U2) (R' F R) (U R' U' R') F' R2" },
+  { "case": "T", "alg": "(R U R' U') (R' F R2) (U' R' U') (R U R' F')" },
+  { "case": "V", "alg": "(R' U R' U') (R D' R' D) (R' U D') (R2 U' R2) D R2" },
+  { "case": "Y", "alg": "F R (U' R' U') (R U R' F') (R U R' U') (R' F R F')" },
+  { "case": "H", "alg": "M2 U M2 U2 M2 U M2" },
+  { "case": "Ua", "alg": "y2 (M2 U M) U2 (M' U M2)" },
+  { "case": "Ub", "alg": "y2 (M2 U' M) U2 (M' U' M2)" },
+  { "case": "Z", "alg": "(M2 U) (M2 U) (M' U2) M2 (U2 M')" },
+  { "case": "Ga", "alg": "R2 (U R' U R' U' R U') R2 D (U' R' U R) D'" },
+  { "case": "Gb", "alg": "(R' U' R U) D' R2 (U R' U R U' R U') R2 D" },
+  { "case": "Gc", "alg": "R2 (U' R U' R U R' U) R2 D' (U R U' R') D" },
+  { "case": "Gd", "alg": "(R U R' U') D R2 (U' R U' R' U R' U) R2 D'" }
+]
       },
       {
         "name": "Full OLL — 57 cases",
