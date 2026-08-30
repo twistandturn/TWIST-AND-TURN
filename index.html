@@ -79,8 +79,10 @@
         <button id="menuBtn" class="md:hidden text-3xl leading-none text-[var(--ink)]">☰</button>
       </div>
       <div id="navLinks" class="hidden absolute top-full right-0 mt-2 w-full md:static md:mt-0 md:w-auto md:flex md:items-center md:space-x-1 text-right md:text-left font-mono text-sm uppercase tracking-wider" style="background:var(--bg-surface);">
-        <button onclick="window.location.href='cuberush2026/index.html'" class="block w-full px-4 py-3 text-left hover:text-[var(--cube-yellow)] transition border-b-2 border-transparent hover:border-[var(--cube-yellow)] md:inline-block md:w-auto md:p-2">Upcoming</button>
+        <button onclick="window.location.href='cuberush2026/'" class="block w-full px-4 py-3 text-left hover:text-[var(--cube-yellow)] transition border-b-2 border-transparent hover:border-[var(--cube-yellow)] md:inline-block md:w-auto md:p-2">Upcoming</button>
         <button onclick="window.location.href='timer.html'" class="block w-full px-4 py-3 text-left hover:text-[var(--cube-red)] transition border-b-2 border-transparent hover:border-[var(--cube-red)] md:inline-block md:w-auto md:p-2">⏱️ Timer</button>
+        <button onclick="scrollToSection('practice')" class="block w-full px-4 py-3 text-left hover:text-[var(--cube-green)] transition border-b-2 border-transparent hover:border-[var(--cube-green)] md:inline-block md:w-auto md:p-2">🔀 Practice</button>
+        <button onclick="window.location.href='learnalgs.html'" class="block w-full px-4 py-3 text-left hover:text-[var(--cube-green)] transition border-b-2 border-transparent hover:border-[var(--cube-green)] md:inline-block md:w-auto md:p-2">📖 Learn Algs</button>
         <button onclick="window.location.href='previous-competitions.html'" class="block w-full px-4 py-3 text-left hover:text-[var(--cube-blue)] transition border-b-2 border-transparent hover:border-[var(--cube-blue)] md:inline-block md:w-auto md:p-2">Previous</button>
         <button onclick="scrollToSection('rules')" class="block w-full px-4 py-3 text-left hover:text-[var(--cube-red)] transition border-b-2 border-transparent hover:border-[var(--cube-red)] md:inline-block md:w-auto md:p-2">Rules</button>
         <button onclick="scrollToSection('results')" class="block w-full px-4 py-3 text-left hover:text-[var(--cube-green)] transition border-b-2 border-transparent hover:border-[var(--cube-green)] md:inline-block md:w-auto md:p-2">Results</button>
@@ -108,9 +110,25 @@
         <h1 class="font-display text-4xl md:text-6xl font-bold tracking-tight mb-6">Welcome to Twist &amp; Turn</h1>
         <p class="text-lg md:text-xl max-w-2xl mx-auto" style="color:var(--ink-muted)">Your platform for high-stakes online Rubik's Cube competitions.</p>
         <div class="mt-10 flex flex-wrap justify-center gap-4">
-          <button onclick="window.location.href='cuberush2026/index.html'" class="btn-primary px-8 py-4 rounded-xl shadow-xl">See Upcoming Competition 🏆</button>
+          <button onclick="window.location.href='cuberush2026/'" class="btn-primary px-8 py-4 rounded-xl shadow-xl">See Upcoming Competition 🏆</button>
         </div>
       </div>
+    </div>
+  </section>
+
+  <section id="practice" class="py-16" style="background:var(--bg-surface);">
+    <div class="max-w-3xl mx-auto px-4 text-center">
+      <p class="eyebrow mb-2">Warm Up</p>
+      <h2 class="font-display text-3xl font-bold mb-6">Practice Scramble</h2>
+      <div class="interactive-card surface-card accent-border-yellow rounded-2xl p-8 shadow-md" style="background:var(--bg-base);">
+        <p id="scramble-display" class="font-mono text-lg md:text-2xl tracking-wider break-words leading-relaxed">Loading…</p>
+        <div class="mt-6 flex flex-wrap justify-center gap-4">
+          <button id="new-scramble-btn" type="button" class="btn-primary py-3 px-6 rounded-lg shadow-md transition transform hover:-translate-y-1">🔄 New Scramble</button>
+          <button id="copy-scramble-btn" type="button" class="inline-block font-display font-semibold py-3 px-6 rounded-lg shadow-md transition transform hover:-translate-y-1" style="background:var(--cube-blue); color:#fff;">📋 Copy</button>
+        </div>
+        <p id="copy-feedback" class="mt-3 text-sm hidden font-mono" style="color:var(--cube-green);">Copied to clipboard!</p>
+      </div>
+      <p class="mt-4 text-sm" style="color:var(--ink-muted);">A quick 3x3 scramble to warm up before your solves — not for official records.</p>
     </div>
   </section>
 
@@ -552,6 +570,10 @@
     });
   </script>
 
+  <button id="scroll-top-btn" type="button" aria-label="Scroll to top" class="hidden fixed bottom-24 right-6 z-40 p-3 rounded-full shadow-2xl transition" style="background:var(--bg-surface); border:1px solid rgba(255,255,255,0.12); color:var(--ink);">
+    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path></svg>
+  </button>
+
   <a id="whatsapp-btn" href="#" target="_blank" class="hidden fixed bottom-6 left-6 z-50 p-4 rounded-full shadow-2xl" style="background:#25D366;">
     <svg viewBox="0 0 24 24" width="28" height="28" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12.004 2C6.477 2 2 6.478 2 12.004c0 2.115.573 4.145 1.658 5.923L2 22l4.204-1.632A9.96 9.96 0 0012.004 22C17.531 22 22 17.522 22 11.996 22 6.47 17.531 2 12.004 2zm0 18.09a8.06 8.06 0 01-4.116-1.128l-.295-.176-2.497.969.822-2.585-.192-.312A8.06 8.06 0 013.91 12.004c0-4.464 3.63-8.094 8.094-8.094 4.464 0 8.09 3.63 8.09 8.094 0 4.464-3.626 8.086-8.09 8.086z"/></svg>
   </a>
@@ -636,6 +658,66 @@
 <footer class="py-8 text-center font-mono text-xs" style="color:var(--ink-muted); border-top:1px solid rgba(255,255,255,0.06);">
   © 2026 Twist &amp; Turn — Speedcubing Arena
 </footer>
+
+  <script>
+    // ---- Practice Scramble Generator (pure client-side, no dependencies) ----
+    (function () {
+      const FACES = [
+        { face: "U", axis: "y" }, { face: "D", axis: "y" },
+        { face: "L", axis: "x" }, { face: "R", axis: "x" },
+        { face: "F", axis: "z" }, { face: "B", axis: "z" }
+      ];
+      const MODS = ["", "'", "2"];
+
+      function generateScramble(len) {
+        len = len || 20;
+        const seq = [];
+        let lastAxis = null;
+        for (let i = 0; i < len; i++) {
+          const pool = FACES.filter(m => m.axis !== lastAxis);
+          const m = pool[Math.floor(Math.random() * pool.length)];
+          const mod = MODS[Math.floor(Math.random() * MODS.length)];
+          seq.push(m.face + mod);
+          lastAxis = m.axis;
+        }
+        return seq.join("  ");
+      }
+
+      const display = document.getElementById("scramble-display");
+      const newBtn = document.getElementById("new-scramble-btn");
+      const copyBtn = document.getElementById("copy-scramble-btn");
+      const feedback = document.getElementById("copy-feedback");
+      if (!display || !newBtn || !copyBtn) return;
+
+      function render() { display.textContent = generateScramble(20); }
+
+      newBtn.addEventListener("click", render);
+      copyBtn.addEventListener("click", () => {
+        const text = display.textContent;
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(text).then(showCopied).catch(() => {});
+        }
+        function showCopied() {
+          if (!feedback) return;
+          feedback.classList.remove("hidden");
+          setTimeout(() => feedback.classList.add("hidden"), 1500);
+        }
+      });
+
+      render();
+    })();
+
+    // ---- Scroll-to-top button ----
+    (function () {
+      const btn = document.getElementById("scroll-top-btn");
+      if (!btn) return;
+      window.addEventListener("scroll", () => {
+        if (window.scrollY > 400) btn.classList.remove("hidden");
+        else btn.classList.add("hidden");
+      }, { passive: true });
+      btn.addEventListener("click", () => window.scrollTo({ top: 0, behavior: "smooth" }));
+    })();
+  </script>
 
   <script src="script.js"></script>
 </body>
