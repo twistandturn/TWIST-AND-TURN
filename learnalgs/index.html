@@ -97,6 +97,7 @@
   © 2026 Twist &amp; Turn — Speedcubing Arena
 </footer>
 
+<script src="/puzzlegen.min.js"></script>
 <script>
   const menuBtn = document.getElementById("menuBtn");
   const navLinks = document.getElementById("navLinks");
@@ -1251,11 +1252,30 @@
 
   const ACCENTS = ["accent-border-red","accent-border-yellow","accent-border-blue","accent-border-green"];
 
-  // ---- Case-image generation (VisualCube — renders a real cube diagram from the algorithm itself) ----
-  // Only 2x2 and 3x3 are supported by the public renderer (it can't yet draw 4x4+, Pyraminx, Skewb,
-  // Megaminx or Square-1). Those events fall back to a small puzzle badge instead of a fake picture.
+  // ---- Case-image generation ----
+  // 2x2 and 3x3 use VisualCube (hosted renderer, called via <img src="...">).
+  // Pyraminx, Skewb, Megaminx and Square-1 have no hosted renderer anywhere, so those 4
+  // are drawn client-side with the puzzle-gen library (github.com/tdecker91/puzzle-gen,
+  // vendored at /puzzlegen.min.js, global `window.puzzleGen`). Each case card gets its own
+  // <div> placeholder; after the cards are in the DOM we call puzzleGen.SVG() on each one,
+  // passing the algorithm as `case` (puzzle-gen applies it in reverse, so the picture shows
+  // the scrambled state that algorithm solves — same idea as VisualCube's `case=` param).
+  // NOTE on skewb: it's deliberately left OUT of PUZZLEGEN_CFG. This site's skewb algs are
+  // written in Sarah Strong's own notation (only the letters L/F/R, her own corner-labeling —
+  // see sarah.cubing.net/skewb/my-method), which is explicitly "NOT related to FCN" (the
+  // official WCA R/L/U/B notation puzzle-gen's parser expects). Feeding these algs to
+  // puzzle-gen would silently drop every F move (117 of 118 cases use F) and draw a wrong
+  // picture with no error — worse than no picture. So skewb keeps the puzzle badge for now;
+  // rendering it correctly needs a small custom move-table translating her L/F/R into FCN
+  // first, which isn't derivable from the algorithm text alone.
   const VISUAL_CFG = { "2x2": { pzl: 2 }, "3x3": { pzl: 3 } };
-  const EVENT_BADGE = { "4x4": "4×4", "pyraminx": "🔺", "skewb": "⬛", "megaminx": "⬡", "square1": "◆" };
+  const PUZZLEGEN_CFG = {
+    "pyraminx": "pyraminx",
+    "megaminx": "megaminx",
+    "square1": "square1"
+  };
+  const EVENT_BADGE = { "4x4": "4×4", "skewb": "⬛" };
+  const pg = window.puzzleGen; // undefined if /puzzlegen.min.js didn't load — code below guards for that
 
   function sanitizeAlgForImage(alg) {
     return alg.replace(/[()]/g, "").replace(/2'/g, "2").replace(/\s+/g, " ").trim();
@@ -1269,6 +1289,42 @@
     if (group.imgStage) url += `&stage=${group.imgStage}`;
     url += `&case=${encodeURIComponent(clean)}`;
     return url;
+  }
+
+  // Renders a puzzle-gen picture into `el` for the given event + algorithm.
+  // Returns true on success so the caller can fall back to a badge on failure
+  // (e.g. an alg puzzle-gen's parser can't read, or the library not being loaded).
+  function renderPuzzleGenCase(el, eventKey, alg, size) {
+    const type = PUZZLEGEN_CFG[eventKey];
+    if (!pg || !type || !el) return false;
+    try {
+      el.innerHTML = "";
+      pg.SVG(el, pg.Type[type.toUpperCase()], {
+        width: size, height: size,
+        puzzle: { case: alg }
+      });
+      return true;
+    } catch (e) {
+      console.warn("puzzle-gen render failed for", eventKey, alg, e);
+      el.innerHTML = "";
+      return false;
+    }
+  }
+
+  // After innerHTML with puzzle-gen placeholders lands in the DOM, fill them in.
+  // Any placeholder that fails gets the little puzzle badge instead.
+  function hydratePuzzleGenCases(root) {
+    root.querySelectorAll("[data-pg-event]").forEach(el => {
+      const eventKey = el.dataset.pgEvent;
+      const alg = el.dataset.pgAlg;
+      const ok = renderPuzzleGenCase(el, eventKey, alg, parseInt(el.dataset.pgSize || "96", 10));
+      if (!ok) {
+        el.innerHTML = `<span class="soon-badge">🧩</span>`;
+        el.style.display = "flex";
+        el.style.alignItems = "center";
+        el.style.justifyContent = "center";
+      }
+    });
   }
 
   const eventTabsEl = document.getElementById("event-tabs");
@@ -1334,19 +1390,29 @@
       return;
     }
 
-    const hasImages = !!VISUAL_CFG[activeEvent];
+    const hasVisualCube = !!VISUAL_CFG[activeEvent];
+    const hasPuzzleGen = !!PUZZLEGEN_CFG[activeEvent];
+    const hasImages = hasVisualCube || hasPuzzleGen;
     const noteHtml = group.note ? `<p class="text-center mb-6" style="color:var(--ink-muted);">${group.note}</p>` : "";
     const imgNoteHtml = !hasImages ? `<p class="text-center text-xs mb-6" style="color:var(--ink-muted);">Live case pictures aren't available for this puzzle yet — go by the algorithm text below for now.</p>` : "";
 
     const cardsHtml = group.cases.map((c, i) => {
-      const imgUrl = buildCaseImageUrl(activeEvent, group, c.alg);
-      const visualHtml = imgUrl
-        ? `<div class="alg-case-img-wrap flex justify-center mb-2">
+      let visualHtml;
+      if (hasVisualCube) {
+        const imgUrl = buildCaseImageUrl(activeEvent, group, c.alg);
+        visualHtml = `<div class="alg-case-img-wrap flex justify-center mb-2">
              <img src="${imgUrl}" alt="${c.case} case diagram" loading="lazy" width="96" height="96"
                   style="width:96px;height:96px;background:rgba(255,255,255,0.03);border-radius:0.5rem;"
                   onerror="this.style.display='none'">
-           </div>`
-        : `<div class="flex justify-center mb-2"><span class="soon-badge">${EVENT_BADGE[activeEvent] || "🧩"}</span></div>`;
+           </div>`;
+      } else if (hasPuzzleGen) {
+        visualHtml = `<div class="alg-case-img-wrap flex justify-center mb-2">
+             <div class="pg-case-img" data-pg-event="${activeEvent}" data-pg-alg="${escapeHtml(c.alg)}" data-pg-size="96"
+                  style="width:96px;height:96px;background:rgba(255,255,255,0.03);border-radius:0.5rem;overflow:hidden;"></div>
+           </div>`;
+      } else {
+        visualHtml = `<div class="flex justify-center mb-2"><span class="soon-badge">${EVENT_BADGE[activeEvent] || "🧩"}</span></div>`;
+      }
       return `
       <div class="interactive-card alg-card ${ACCENTS[i % ACCENTS.length]}" onclick="copyAlg(${JSON.stringify(c.alg)}, this)">
         ${visualHtml}
@@ -1367,6 +1433,8 @@
       ${imgNoteHtml}
       <div class="grid sm:grid-cols-2 gap-4">${cardsHtml}</div>
       ${pdfButtonsHtml}`;
+
+    if (hasPuzzleGen) hydratePuzzleGenCases(contentEl);
   }
 
   // ---- Download / Print as PDF ----
@@ -1382,9 +1450,13 @@
     const sections = readyGroups.map(g => {
       const cards = g.cases.map(c => {
         const imgUrl = buildCaseImageUrl(eventKey, g, c.alg);
+        const pgType = PUZZLEGEN_CFG[eventKey];
+        const visualHtml = imgUrl
+          ? `<img src="${imgUrl}" style="width:90px;height:90px;margin:0 auto 6px;display:block;" onerror="this.style.display='none'">`
+          : (pgType ? `<div class="pg-case-img" data-pg-event="${eventKey}" data-pg-alg="${escapeHtml(c.alg)}" data-pg-size="90" style="width:90px;height:90px;margin:0 auto 6px;"></div>` : "");
         return `
           <div style="border:1px solid #ccc;border-radius:10px;padding:10px;break-inside:avoid;text-align:center;">
-            ${imgUrl ? `<img src="${imgUrl}" style="width:90px;height:90px;margin:0 auto 6px;display:block;" onerror="this.style.display='none'">` : ""}
+            ${visualHtml}
             <div style="font-weight:700;font-size:12.5px;margin-bottom:4px;">${escapeHtml(c.case)}</div>
             <div style="font-family:'JetBrains Mono',monospace;font-size:11.5px;word-break:break-word;">${escapeHtml(c.alg)}</div>
           </div>`;
@@ -1414,6 +1486,7 @@
       ? ALGS[activeEvent].groups
       : [ALGS[activeEvent].groups[activeGroupIdx]];
     printArea.innerHTML = buildPrintHTML(activeEvent, groups);
+    if (PUZZLEGEN_CFG[activeEvent]) hydratePuzzleGenCases(printArea);
     window.print();
   }
 
