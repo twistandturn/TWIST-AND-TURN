@@ -46,6 +46,15 @@
   .alg-card:active{ transform:scale(0.98); }
   .alg-copied{ color:var(--cube-green) !important; }
   .soon-badge{ font-family:'JetBrains Mono', monospace; font-size:0.7rem; letter-spacing:0.1em; text-transform:uppercase; padding:0.2rem 0.6rem; border-radius:9999px; background:rgba(242,183,5,0.15); color:var(--cube-yellow); }
+
+  #print-area{ display:none; }
+  @media print{
+    body{ background:#fff !important; }
+    body *{ visibility:hidden; }
+    #print-area, #print-area *{ visibility:visible; }
+    #print-area{ display:block; position:absolute; left:0; top:0; width:100%; background:#fff; }
+    .no-print{ display:none !important; }
+  }
 </style>
 </head>
 <body class="antialiased min-h-screen flex flex-col">
@@ -84,6 +93,8 @@
   </section>
 </main>
 
+<div id="print-area"></div>
+
 <footer class="py-8 text-center font-mono text-xs" style="color:var(--ink-muted); border-top:1px solid rgba(255,255,255,0.06);">
   © 2026 Twist &amp; Turn — Speedcubing Arena
 </footer>
@@ -100,6 +111,7 @@
       {
         "name": "Ortega — OLL (orient the top face)",
         "status": "ready",
+        "imgStage": "oll",
         "cases": [
           {
             "case": "OLL 1",
@@ -160,6 +172,7 @@
       {
         "name": "CLL (Corners of Last Layer)",
         "status": "ready",
+        "imgStage": "cll",
         "note": "40 documented cases (top community-voted alg per case) grouped by shape: Antisune, H, L, Pi, Sune, T, U.",
         "cases": [
           { "case": "CLL AS 1", "alg": "y R U2 R' U' R U' R'" },
@@ -207,6 +220,7 @@
       {
         "name": "EG-1",
         "status": "ready",
+        "imgStage": "cll",
         "note": "40 documented cases (top community-voted alg per case) for when the first layer is already solved. Same shape grouping as CLL: AS, H, L, Pi, S, T, U.",
         "cases": [
           { "case": "EG1 AS 1", "alg": "y U2 B U' R2 F2 U' F" },
@@ -254,6 +268,7 @@
       {
         "name": "EG-2",
         "status": "ready",
+        "imgStage": "cll",
         "note": "40 documented cases (top community-voted alg per case) for any first-layer state. Same shape grouping: AS, H, L, Pi, S, T, U.",
         "cases": [
           { "case": "EG2 AS 1", "alg": "F R2 U R' U2 R U R2 U F'" },
@@ -306,100 +321,184 @@
       {
         "name": "PLL — full 21 cases",
         "status": "ready",
-  "cases": [
-  { "case": "Aa", "alg": "x (R' U R') D2 (R U' R') D2 R2 x'" },
-  { "case": "Ab", "alg": "x R2 D2 (R U R') D2 (R U' R) x'" },
-  { "case": "E", "alg": "y x' (R U' R' D) (R U R' D') (R U R' D) (R U' R' D') x" },
-  { "case": "F", "alg": "y (R' U' F') (R U R' U') R' F R2 (U' R' U') (R U R' U) R" },
-  { "case": "Ja", "alg": "y (R' U L') U2 (R U' R') U2 R L" },
-  { "case": "Jb", "alg": "(R U R' F') (R U R' U') R' F R2 U' R'" },
-  { "case": "Na", "alg": "(R U R' U) (R U R' F') (R U R' U') R' F R2 U' R' U2 (R U' R')" },
-  { "case": "Nb", "alg": "(R' U R U' R') (F' U' F) (R U R') (F R' F') (R U' R)" },
-  { "case": "Ra", "alg": "y (R U' R' U') (R U R D) (R' U' R D') (R' U2 R')" },
-  { "case": "Rb", "alg": "(R' U2) (R U2) (R' F R) (U R' U' R') F' R2" },
-  { "case": "T", "alg": "(R U R' U') (R' F R2) (U' R' U') (R U R' F')" },
-  { "case": "V", "alg": "(R' U R' U') (R D' R' D) (R' U D') (R2 U' R2) D R2" },
-  { "case": "Y", "alg": "F R (U' R' U') (R U R' F') (R U R' U') (R' F R F')" },
-  { "case": "H", "alg": "M2 U M2 U2 M2 U M2" },
-  { "case": "Ua", "alg": "y2 (M2 U M) U2 (M' U M2)" },
-  { "case": "Ub", "alg": "y2 (M2 U' M) U2 (M' U' M2)" },
-  { "case": "Z", "alg": "(M2 U) (M2 U) (M' U2) M2 (U2 M')" },
-  { "case": "Ga", "alg": "R2 (U R' U R' U' R U') R2 D (U' R' U R) D'" },
-  { "case": "Gb", "alg": "(R' U' R U) D' R2 (U R' U R U' R U') R2 D" },
-  { "case": "Gc", "alg": "R2 (U' R U' R U R' U) R2 D' (U R U' R') D" },
-  { "case": "Gd", "alg": "(R U R' U') D R2 (U' R U' R' U R' U) R2 D'" }
-]
+        "cases": [
+          {
+            "case": "Aa",
+            "alg": "x (R' U R') D2 (R U' R') D2 R2 x'"
+          },
+          {
+            "case": "Ab",
+            "alg": "x R2 D2 (R U R') D2 (R U' R) x'"
+          },
+          {
+            "case": "E",
+            "alg": "x' (R U' R') D (R U R') D' (R U R') D (R U' R') D' x"
+          },
+          {
+            "case": "F",
+            "alg": "R' U2 R U2 R' F R U R' U' R' F' R2 U'"
+          },
+          {
+            "case": "Ja",
+            "alg": "R' U L' U2 R U' R' U2 R L U'"
+          },
+          {
+            "case": "Jb",
+            "alg": "L U' R U2 L' U L U2 L' R' U"
+          },
+          {
+            "case": "Na",
+            "alg": "R U R' U R U R' F' R U R' U' R' F R2 U' R'"
+          },
+          {
+            "case": "Nb",
+            "alg": "R' U' R U' R' U' R F R' U' R U R F' R2 U R"
+          },
+          {
+            "case": "Ra",
+            "alg": "R U R' F' R U R' U' R' F R2 U' R'"
+          },
+          {
+            "case": "Rb",
+            "alg": "R2 U R U R' U' R' U' R' U R'"
+          },
+          {
+            "case": "T",
+            "alg": "R U R' U' R' F R2 U' R' U' R U R' F'"
+          },
+          {
+            "case": "V",
+            "alg": "R' U R' d' R' F' R2 U' R' U R' F R F"
+          },
+          {
+            "case": "Y",
+            "alg": "F R U' R' U' R U R' F' R U R' U' R' F R F'"
+          },
+          {
+            "case": "H",
+            "alg": "M2 U M2 U2 M2 U M2"
+          },
+          {
+            "case": "Ua",
+            "alg": "R U' R U R U R U' R' U' R2"
+          },
+          {
+            "case": "Ub",
+            "alg": "R2 U R U R' U' R' U' R' U R'"
+          },
+          {
+            "case": "Z",
+            "alg": "M' U M2 U M2 U M' U2 M2"
+          },
+          {
+            "case": "Ga",
+            "alg": "R2 u R' U R' U' R u' R2 y' R' U R"
+          },
+          {
+            "case": "Gb",
+            "alg": "R' d' F R2 u R' U R U' R u' R2"
+          },
+          {
+            "case": "Gc",
+            "alg": "R2 u' R U' R U R' u R2 y R U' R'"
+          },
+          {
+            "case": "Gd",
+            "alg": "R u R' U R' d' R U' R U R' u' R2"
+          }
+        ]
+      },
+      {
+        "name": "2-Look OLL — starter set",
+        "status": "ready",
+        "imgStage": "oll",
+        "note": "Learn these 5 first, then move on to full OLL below.",
+        "cases": [
+          {
+            "case": "Edges: Line",
+            "alg": "F R U R' U' F'"
+          },
+          {
+            "case": "Edges: L-shape",
+            "alg": "f R U R' U' f'"
+          },
+          {
+            "case": "Edges: Dot",
+            "alg": "F (R U R' U') F' f (R U R' U') f'"
+          },
+          {
+            "case": "Corners: Sune",
+            "alg": "R U R' U R U2 R'"
+          },
+          {
+            "case": "Corners: Anti-Sune",
+            "alg": "R U2 R' U' R U' R'"
+          }
+        ]
       },
       {
         "name": "Full OLL — 57 cases",
         "status": "ready",
-   "cases": [
-  { "case": "OLL 1", "alg": "R U2 R2 F R F' U2 R' F R F'" },
-  { "case": "OLL 2", "alg": "F R U R' U' F' f R U R' U' f'" },
-  { "case": "OLL 3", "alg": "f R U R' U' f' U' F R U R' U' F'" },
-  { "case": "OLL 4", "alg": "f R U R' U' f' U F R U R' U' F'" },
-  { "case": "OLL 5", "alg": "r U R' U' M U R U' R'" },
-  { "case": "OLL 6", "alg": "r U2 R' U' R U' r'" },
-  { "case": "OLL 7", "alg": "r U R' U R U2 r'" },
-
-  { "case": "OLL 8", "alg": "y2 r' U' R U' R' U2 r" },
-  { "case": "OLL 9", "alg": "R U R' U' R' F R2 U R' U' F'" },
-  { "case": "OLL 10", "alg": "R U R' U R' F R F' R U2 R'" },
-  { "case": "OLL 11", "alg": "M R U R' U R U2 R' U M'" },
-  { "case": "OLL 12", "alg": "M' R' U' R U' R' U2 R U' M" },
-  { "case": "OLL 13", "alg": "F U R U' R2 F' R U R U' R'" },
-  { "case": "OLL 14", "alg": "R' F R U R' F' R F U' F'" },
-
-  { "case": "OLL 15", "alg": "r' U' r R' U' R U r' U r" },
-  { "case": "OLL 16", "alg": "r U r' R U R' U' r U' r'" },
-  { "case": "OLL 17", "alg": "R U R' U R' F R F' U2 R' F R F'" },
-  { "case": "OLL 18", "alg": "R U2 R2 F R F' U2 M' U R U' r'" },
-  { "case": "OLL 19", "alg": "r' U2 R U R' U r" },
-  { "case": "OLL 20", "alg": "r U2 R' U' R U' r'" },
-
-  { "case": "OLL 21", "alg": "R U R' U R U' R' U R U2 R'" },
-  { "case": "OLL 22", "alg": "R U2 R2 U' R2 U' R2 U2 R" },
-  { "case": "OLL 23", "alg": "R2 D R' U2 R D' R' U2 R'" },
-  { "case": "OLL 24", "alg": "r U R' U' r' F R F'" },
-  { "case": "OLL 25", "alg": "F' R' F L F' L' F R" },
-  { "case": "OLL 26", "alg": "R U2 R' U' R U' R'" },
-  { "case": "OLL 27", "alg": "R U R' U R U2 R'" },
-
-  { "case": "OLL 28", "alg": "r U R' U' M U R U' R'" },
-  { "case": "OLL 29", "alg": "R U R' U' R U' R' F' U' F" },
-  { "case": "OLL 30", "alg": "F R' F R2 U' R' U' R U R' F2" },
-  { "case": "OLL 31", "alg": "R' U' F U R U' R' F' R" },
-  { "case": "OLL 32", "alg": "S R U R' U' R' F R f'" },
-  { "case": "OLL 33", "alg": "R U R' U' R' F R F'" },
-  { "case": "OLL 34", "alg": "R U R2 U' R' F R U R U' F'" },
-
-  { "case": "OLL 35", "alg": "R U2 R2 F R F' R U2 R'" },
-  { "case": "OLL 36", "alg": "L' U' L U' L' U L U L F' L' F" },
-  { "case": "OLL 37", "alg": "F R U' R' U' R U R' F'" },
-  { "case": "OLL 38", "alg": "R U R' U R U' R' U' R' F R F'" },
-  { "case": "OLL 39", "alg": "L F' L' U' L U F U' L'" },
-  { "case": "OLL 40", "alg": "R' F R U R' U' F' U R" },
-  { "case": "OLL 41", "alg": "R U R' U R U2 R' F R F'" },
-
-  { "case": "OLL 42", "alg": "R' U' R U' R' U2 R F R U R' U' F'" },
-  { "case": "OLL 43", "alg": "f' L' U' L U f" },
-  { "case": "OLL 44", "alg": "f R U R' U' f'" },
-  { "case": "OLL 45", "alg": "F R U R' U' F'" },
-  { "case": "OLL 46", "alg": "R' U' R' F R F' U R" },
-  { "case": "OLL 47", "alg": "F' L' U' L U L' U' L U F" },
-
-  { "case": "OLL 48", "alg": "F R U R' U' R U R' U' F'" },
-  { "case": "OLL 49", "alg": "r U' r2 U r2 U r' U' r U r'" },
-  { "case": "OLL 50", "alg": "r' U r2 U' r2 U' r U r' U' r" },
-  { "case": "OLL 51", "alg": "F U R U' R' U R U' R' F'" },
-  { "case": "OLL 52", "alg": "R U R' U R U' B U' B' R'" },
-  { "case": "OLL 53", "alg": "r' U' R U' R' U R U' R' U2 r" },
-
-  { "case": "OLL 54", "alg": "r U R' U R U' R' U R U2 r'" },
-  { "case": "OLL 55", "alg": "R U2 R2 U' R U' R' U2 F R F'" },
-  { "case": "OLL 56", "alg": "r U r' U R U' R' U R U' R' r U' r'" },
-  { "case": "OLL 57", "alg": "R U R' U' M' U R U' r'" }
-]
+        "imgStage": "oll",
+        "cases": [
+          { "case": "OLL 1 — Runway", "alg": "R U2 R2' F R F' U2 R' F R F'" },
+          { "case": "OLL 2 — Zamboni", "alg": "F R U R' U' S R U R' U' f'" },
+          { "case": "OLL 3 — Anti-Pinwheel", "alg": "f (R U R' U') f' U' F (R U R' U') F'" },
+          { "case": "OLL 4 — Pinwheel", "alg": "f R U R' U' f' U F R U R' U' F'" },
+          { "case": "OLL 5 — Lefty Square", "alg": "r' U2' R U R' U r" },
+          { "case": "OLL 6 — Righty Square", "alg": "r U2 R' U' R U' r'" },
+          { "case": "OLL 7 — Lightning", "alg": "r U R' U R U2 r'" },
+          { "case": "OLL 8 — Reverse Lightning", "alg": "l' U' L U' L' U2 l" },
+          { "case": "OLL 9 — Kite", "alg": "R U R' U' R' F R2 U R' U' F'" },
+          { "case": "OLL 10 — Anti-Kite", "alg": "R U R' U R' F R F' R U2' R'" },
+          { "case": "OLL 11 — Downstairs", "alg": "r' R2 U R' U R U2' R' U M'" },
+          { "case": "OLL 12 — Upstairs", "alg": "r R2' U' R U' R' U2 R U' r' R" },
+          { "case": "OLL 13 — Gun", "alg": "F U R U2' R' U' R U R' F'" },
+          { "case": "OLL 14 — Anti-Gun", "alg": "R' F R U R' F' R F U' F'" },
+          { "case": "OLL 15 — Squeegee", "alg": "l' U' l L' U' L U l' U l" },
+          { "case": "OLL 16 — Anti-Squeegee", "alg": "r U r' R U R' U' r U' r'" },
+          { "case": "OLL 17 — Slash", "alg": "R U R' U R' F R F' U2 R' F R F'" },
+          { "case": "OLL 18 — Crown", "alg": "R U2 R2 F R F' U2 M' U R U' r'" },
+          { "case": "OLL 19 — Bunny", "alg": "S' R U R' S U' R' F R F'" },
+          { "case": "OLL 20 — Checkers", "alg": "r' R U R U R' U' r R' M' U R U' r'" },
+          { "case": "OLL 21 — H (Double Sune)", "alg": "R U R' U R U' R' U R U2 R'" },
+          { "case": "OLL 22 — Pi", "alg": "R U2' R2' U' R2 U' R2' U2' R" },
+          { "case": "OLL 23 — Superman", "alg": "R2' D' R U2 R' D R U2 R" },
+          { "case": "OLL 24 — Chameleon", "alg": "r U R' U' r' F R F'" },
+          { "case": "OLL 25 — Bowtie", "alg": "F' r U R' U' r' F R" },
+          { "case": "OLL 26 — Antisune", "alg": "R U2 R' U' R U' R'" },
+          { "case": "OLL 27 — Sune", "alg": "R U R' U R U2' R'" },
+          { "case": "OLL 28 — Stealth", "alg": "r U R' U' r' R U R U' R'" },
+          { "case": "OLL 29 — Spotted Chameleon", "alg": "R U R' U' R U' R' F' U' F R U R'" },
+          { "case": "OLL 30 — Anti-Spotted Chameleon", "alg": "F U R U2' R' U' R U2 R' U' F'" },
+          { "case": "OLL 31 — Couch", "alg": "R' U' F U R U' R' F' R" },
+          { "case": "OLL 32 — Anti-Couch", "alg": "S R U R' U' R' F R f'" },
+          { "case": "OLL 33 — Tying Shoelaces", "alg": "R U R' U' R' F R F'" },
+          { "case": "OLL 34 — City", "alg": "R U R2' U' R' F R U R U' F'" },
+          { "case": "OLL 35 — Fish Salad", "alg": "R U2' R2' F R F' R U2' R'" },
+          { "case": "OLL 36 — Sea-Mew", "alg": "L' U' L U' L' U L U L F' L' F" },
+          { "case": "OLL 37 — Mounted Fish", "alg": "F R' F' R U R U' R'" },
+          { "case": "OLL 38 — Mario", "alg": "R U R' U R U' R' U' R' F R F'" },
+          { "case": "OLL 39 — Fung", "alg": "L F' L' U' L U F U' L'" },
+          { "case": "OLL 40 — Anti-Fung", "alg": "R' F R U R' U' F' U R" },
+          { "case": "OLL 41 — Awkward Fish", "alg": "R U R' U R U2 R' F R U R' U' F'" },
+          { "case": "OLL 42 — Lefty Awkward Fish", "alg": "R' U' R U' R' U2' R F R U R' U' F'" },
+          { "case": "OLL 43 — Anti-P", "alg": "R' U' F' U F R" },
+          { "case": "OLL 44 — P", "alg": "f (R U R' U') f'" },
+          { "case": "OLL 45 — T", "alg": "F R U R' U' F'" },
+          { "case": "OLL 46 — Seein' Headlights", "alg": "R' U' R' F R F' U R" },
+          { "case": "OLL 47 — Anti-Breakneck", "alg": "R' U' R' F R F' R' F R F' U R" },
+          { "case": "OLL 48 — Breakneck", "alg": "F R U R' U' R U R' U' F'" },
+          { "case": "OLL 49 — Right Back Squeezy", "alg": "r U' r2' U r2 U r2' U' r" },
+          { "case": "OLL 50 — Right Front Squeezy", "alg": "r' U r2 U' r2' U' r2 U r'" },
+          { "case": "OLL 51 — Bottlecap", "alg": "F U R U' R' U R U' R' F'" },
+          { "case": "OLL 52 — Rice Cooker", "alg": "R U R' U R U' B U' B' R'" },
+          { "case": "OLL 53 — Frying Pan", "alg": "r' U' R U' R' U R U' R' U2 r" },
+          { "case": "OLL 54 — Anti-Frying Pan", "alg": "r U R' U R U' R' U R U2' r'" },
+          { "case": "OLL 55 — Highway", "alg": "R' F R U R U' R2' F' R2 U' R' U R U R'" },
+          { "case": "OLL 56 — Streetlights", "alg": "r U r' U R U' R' U R U' R' r U' r'" },
+          { "case": "OLL 57 — Mummy", "alg": "R U R' U' M' U R U' r'" }
+        ]
       }
     ]
   },
@@ -1154,6 +1253,26 @@
 
   const ACCENTS = ["accent-border-red","accent-border-yellow","accent-border-blue","accent-border-green"];
 
+  // ---- Case-image generation (VisualCube — renders a real cube diagram from the algorithm itself) ----
+  // Only 2x2 and 3x3 are supported by the public renderer (it can't yet draw 4x4+, Pyraminx, Skewb,
+  // Megaminx or Square-1). Those events fall back to a small puzzle badge instead of a fake picture.
+  const VISUAL_CFG = { "2x2": { pzl: 2 }, "3x3": { pzl: 3 } };
+  const EVENT_BADGE = { "4x4": "4×4", "pyraminx": "🔺", "skewb": "⬛", "megaminx": "⬡", "square1": "◆" };
+
+  function sanitizeAlgForImage(alg) {
+    return alg.replace(/[()]/g, "").replace(/2'/g, "2").replace(/\s+/g, " ").trim();
+  }
+
+  function buildCaseImageUrl(eventKey, group, alg) {
+    const cfg = VISUAL_CFG[eventKey];
+    if (!cfg) return null;
+    const clean = sanitizeAlgForImage(alg);
+    let url = `https://visualcube.api.cubing.net/visualcube.php?fmt=svg&size=160&bg=t&pzl=${cfg.pzl}&view=plan`;
+    if (group.imgStage) url += `&stage=${group.imgStage}`;
+    url += `&case=${encodeURIComponent(clean)}`;
+    return url;
+  }
+
   const eventTabsEl = document.getElementById("event-tabs");
   const subtabWrapEl = document.getElementById("subtab-wrap");
   const contentEl = document.getElementById("algs-content");
@@ -1217,17 +1336,82 @@
       return;
     }
 
+    const hasImages = !!VISUAL_CFG[activeEvent];
     const noteHtml = group.note ? `<p class="text-center mb-6" style="color:var(--ink-muted);">${group.note}</p>` : "";
-    const cardsHtml = group.cases.map((c, i) => `
+    const imgNoteHtml = !hasImages ? `<p class="text-center text-xs mb-6" style="color:var(--ink-muted);">Live case pictures aren't available for this puzzle yet — go by the algorithm text below for now.</p>` : "";
+
+    const cardsHtml = group.cases.map((c, i) => {
+      const imgUrl = buildCaseImageUrl(activeEvent, group, c.alg);
+      const visualHtml = imgUrl
+        ? `<div class="alg-case-img-wrap flex justify-center mb-2">
+             <img src="${imgUrl}" alt="${c.case} case diagram" loading="lazy" width="96" height="96"
+                  style="width:96px;height:96px;background:rgba(255,255,255,0.03);border-radius:0.5rem;"
+                  onerror="this.style.display='none'">
+           </div>`
+        : `<div class="flex justify-center mb-2"><span class="soon-badge">${EVENT_BADGE[activeEvent] || "🧩"}</span></div>`;
+      return `
       <div class="interactive-card alg-card ${ACCENTS[i % ACCENTS.length]}" onclick="copyAlg(${JSON.stringify(c.alg)}, this)">
-        <p class="font-display font-bold text-sm mb-2" style="color:var(--cube-yellow);">${c.case}</p>
-        <p class="font-mono text-base leading-relaxed break-words">${c.alg}</p>
-        <p class="copy-label text-xs mt-2" style="color:var(--ink-muted);">Tap to copy</p>
-      </div>`).join("");
+        ${visualHtml}
+        <p class="font-display font-bold text-sm mb-2 text-center" style="color:var(--cube-yellow);">${c.case}</p>
+        <p class="font-mono text-base leading-relaxed break-words text-center">${c.alg}</p>
+        <p class="copy-label text-xs mt-2 text-center" style="color:var(--ink-muted);">Tap to copy</p>
+      </div>`;
+    }).join("");
+
+    const pdfButtonsHtml = `
+      <div class="no-print flex flex-wrap justify-center gap-3 mt-10">
+        <button type="button" onclick="downloadAlgsPDF('group')" class="btn-primary px-5 py-2.5 rounded-full text-sm">📄 Download this set (PDF)</button>
+        <button type="button" onclick="downloadAlgsPDF('event')" class="px-5 py-2.5 rounded-full text-sm" style="border:1px solid rgba(255,255,255,0.15); color:var(--ink-muted); background:transparent;">📄 Download all ${ALGS[activeEvent].label} algs (PDF)</button>
+      </div>`;
 
     contentEl.innerHTML = `
       ${noteHtml}
-      <div class="grid sm:grid-cols-2 gap-4">${cardsHtml}</div>`;
+      ${imgNoteHtml}
+      <div class="grid sm:grid-cols-2 gap-4">${cardsHtml}</div>
+      ${pdfButtonsHtml}`;
+  }
+
+  // ---- Download / Print as PDF ----
+  // Builds a clean print-only sheet (case picture + name + algorithm) and opens the browser's
+  // print dialog, where "Save as PDF" gives a real downloadable PDF — and it works for physical
+  // printing too, no extra libraries or server needed.
+  function escapeHtml(str) {
+    return String(str).replace(/[&<>"']/g, m => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" }[m]));
+  }
+
+  function buildPrintHTML(eventKey, groups) {
+    const readyGroups = groups.filter(g => g.status !== "soon");
+    const sections = readyGroups.map(g => {
+      const cards = g.cases.map(c => {
+        const imgUrl = buildCaseImageUrl(eventKey, g, c.alg);
+        return `
+          <div style="border:1px solid #ccc;border-radius:10px;padding:10px;break-inside:avoid;text-align:center;">
+            ${imgUrl ? `<img src="${imgUrl}" style="width:90px;height:90px;margin:0 auto 6px;display:block;" onerror="this.style.display='none'">` : ""}
+            <div style="font-weight:700;font-size:12.5px;margin-bottom:4px;">${escapeHtml(c.case)}</div>
+            <div style="font-family:'JetBrains Mono',monospace;font-size:11.5px;word-break:break-word;">${escapeHtml(c.alg)}</div>
+          </div>`;
+      }).join("");
+      return `
+        <h2 style="font-size:17px;margin:22px 0 4px;border-bottom:2px solid #111;padding-bottom:4px;">${escapeHtml(g.name)}</h2>
+        ${g.note ? `<p style="font-size:11.5px;color:#555;margin:0 0 10px;">${escapeHtml(g.note)}</p>` : ""}
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;">${cards}</div>`;
+    }).join("");
+
+    return `
+      <div style="font-family:Inter,Arial,sans-serif;color:#111;padding:24px;">
+        <h1 style="font-size:24px;margin-bottom:2px;">Twist &amp; Turn — ${escapeHtml(ALGS[eventKey].label)} Algorithms</h1>
+        <p style="font-size:11px;color:#777;margin-top:0;">Generated ${new Date().toLocaleDateString()} — tap-to-copy version at your original link.</p>
+        ${sections}
+      </div>`;
+  }
+
+  function downloadAlgsPDF(scope) {
+    const printArea = document.getElementById("print-area");
+    const groups = scope === "event"
+      ? ALGS[activeEvent].groups
+      : [ALGS[activeEvent].groups[activeGroupIdx]];
+    printArea.innerHTML = buildPrintHTML(activeEvent, groups);
+    window.print();
   }
 
   renderEventTabs();
