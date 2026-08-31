@@ -1,267 +1,891 @@
 <!DOCTYPE html>
-			<html lang="en">
-				<head>
-					<meta charset="UTF-8">
-						<meta name="viewport" content="width=device-width, initial-scale=1.0">
-							<title>Manage Competition - Twist & Turn</title>
-							<script src="https://cdn.tailwindcss.com"></script>
-							<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
-								<style> 
-  :root{ 
-    --bg-base:#101218; --bg-surface:#181B24; --ink:#F2F1ED; --ink-muted:#9297A6; 
-    --cube-red:#E8412B; --cube-yellow:#F2B705; --cube-blue:#2F6FE0; --cube-green:#22A35C; 
-  } 
-  body{ font-family:'Inter', sans-serif; background:var(--bg-base); color:var(--ink); } 
-  .font-display{ font-family:'Space Grotesk', sans-serif; } 
-  .font-mono{ font-family:'JetBrains Mono', monospace; } 
-  .surface-card{ background:var(--bg-surface); border:1px solid rgba(255,255,255,0.06); } 
-  .btn-primary{ background:var(--cube-red); color:#fff; font-family:'Space Grotesk',sans-serif; font-weight:600; } 
-  .btn-primary:hover{ filter:brightness(1.08); } 
-  .field{ background:var(--bg-base); border:1px solid rgba(255,255,255,0.12); color:var(--ink); } 
-  .field:focus{ outline:none; border-color:var(--cube-blue); } 
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Manage Competition - Twist & Turn</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg-base:#101218; --bg-surface:#181B24; --ink:#F2F1ED; --ink-muted:#9297A6;
+    --cube-red:#E8412B; --cube-yellow:#F2B705; --cube-blue:#2F6FE0; --cube-green:#22A35C;
+  }
+  body{ font-family:'Inter', sans-serif; background:var(--bg-base); color:var(--ink); }
+  .font-display{ font-family:'Space Grotesk', sans-serif; }
+  .font-mono{ font-family:'JetBrains Mono', monospace; }
+  .surface-card{ background:var(--bg-surface); border:1px solid rgba(255,255,255,0.06); }
+  .btn-primary{ background:var(--cube-red); color:#fff; font-family:'Space Grotesk',sans-serif; font-weight:600; }
+  .btn-primary:hover{ filter:brightness(1.08); }
+  .field{ background:var(--bg-base); border:1px solid rgba(255,255,255,0.12); color:var(--ink); }
+  .field:focus{ outline:none; border-color:var(--cube-blue); }
 </style>
-							</head>
-							<body class="min-h-screen">
-								<!-- Password gate -->
-								<div id="gate" class="min-h-screen flex items-center justify-center px-4">
-									<div class="w-full max-w-sm surface-card rounded-2xl p-8 shadow-2xl text-center">
-										<h1 class="font-display text-xl font-bold mb-4">Organizer Access</h1>
-										<input type="password" id="pin-input" class="field w-full rounded-lg px-4 py-3 mb-3 text-center font-mono" placeholder="Enter PIN">
-											<button id="pin-submit" class="btn-primary w-full py-3 rounded-lg">Enter</button>
-											<p id="pin-error" class="text-sm mt-3 hidden" style="color:var(--cube-red);">Wrong PIN, try again.</p>
-										</div>
-									</div>
-									<!-- Actual panel (hidden until PIN correct) -->
-									<div id="panel" class="hidden">
-										<nav class="sticky top-0 z-50 border-b border-white/5" style="background:rgba(16,18,24,0.9);">
-											<div class="max-w-3xl mx-auto px-4 h-16 flex items-center justify-between">
-												<span class="font-display font-bold text-xl cursor-pointer" onclick="window.location.href='index.html'">Twist &amp; Turn — Manage</span>
-											</div>
-										</nav>
-										<main class="max-w-3xl mx-auto px-4 py-16">
-											<p class="font-mono text-xs tracking-widest uppercase mb-2" style="color:var(--ink-muted);">Upcoming Competition</p>
-											<h1 class="font-display text-3xl font-bold mb-8">Update Competition Details</h1>
-											<div class="surface-card rounded-2xl p-8 shadow-xl space-y-4">
-												<div>
-													<label class="block text-sm font-mono mb-1" style="color:var(--ink-muted);">Status</label>
-													<select id="status" class="field w-full rounded-lg px-4 py-3">
-														<option value="none">No Upcoming Competition</option>
-														<option value="open">Registrations Open</option>
-														<option value="closed">Registrations Closed</option>
-													</select>
-												</div>
-												<div>
-													<label class="block text-sm font-mono mb-1" style="color:var(--ink-muted);">Competition Title</label>
-													<input type="text" id="title" class="field w-full rounded-lg px-4 py-3" placeholder="Twist & Turn : Cubing Battle 2026">
-													</div>
-													<div class="grid grid-cols-2 gap-4">
-														<div>
-															<label class="block text-sm font-mono mb-1" style="color:var(--ink-muted);">Date</label>
-															<input type="text" id="date" class="field w-full rounded-lg px-4 py-3" placeholder="e.g. 29–30 August 2026">
-															</div>
-															<div>
-																<label class="block text-sm font-mono mb-1" style="color:var(--ink-muted);">Mode</label>
-																<input type="text" id="mode" class="field w-full rounded-lg px-4 py-3" placeholder="Online Competition">
-																</div>
-															</div>
-															<div class="grid grid-cols-2 gap-4">
-																<div>
-																	<label class="block text-sm font-mono mb-1" style="color:var(--ink-muted);">Participants Limit</label>
-																	<input type="text" id="participantsLimit" class="field w-full rounded-lg px-4 py-3" placeholder="Only 60">
-																	</div>
-																	<div>
-																		<label class="block text-sm font-mono mb-1" style="color:var(--ink-muted);">Overall Format</label>
-																		<input type="text" id="format" class="field w-full rounded-lg px-4 py-3" placeholder="Qualifier → Top 8 → Finals">
-																		</div>
-																	</div>
-																	<div>
-																		<label class="block text-sm font-mono mb-1" style="color:var(--ink-muted);">Base Entry Fee</label>
-																		<input type="text" id="baseFee" class="field w-full rounded-lg px-4 py-3" placeholder="₹99 (compulsory base fee, alag se)">
-																			<p class="text-xs mt-1" style="color:var(--ink-muted);">Ye sabke liye ek baar wali fee hai (jaise registration/base fee). Har event ki apni alag fee neeche add karo.</p>
-																		</div>
-																		<div>
-																			<label class="block text-sm font-mono mb-1" style="color:var(--ink-muted);">Events (per-event fee &amp; format)</label>
-																			<div class="grid grid-cols-4 gap-2 mb-1">
-																				<span class="text-xs font-mono" style="color:var(--ink-muted);">Event Name</span>
-																				<span class="text-xs font-mono" style="color:var(--ink-muted);">Entry Fee</span>
-																				<span class="text-xs font-mono" style="color:var(--ink-muted);">Format (optional)</span>
-																				<span></span>
-																			</div>
-																			<div id="events-rows" class="space-y-2"></div>
-																			<button id="add-event-btn" type="button" class="w-full py-2 rounded-lg border border-white/15 font-mono text-sm mt-2" style="color:var(--ink-muted);">+ Add Event</button>
-																			<p class="text-xs mt-2" style="color:var(--ink-muted);">Har event ka apna naam aur fee daalo (jaise 3x3 – ₹399, 2x2 – ₹199). Format khaali chhodo agar wo "Overall Format" hi follow karega — sirf alag format wale event mein format bharo.</p>
-																		</div>
-																		<div>
-																			<label class="block text-sm font-mono mb-1" style="color:var(--ink-muted);">Registration Link</label>
-																			<input type="text" id="reglink" class="field w-full rounded-lg px-4 py-3" placeholder="https://forms.gle/...">
-																			</div>
-																			<div>
-																				<label class="block text-sm font-mono mb-1" style="color:var(--ink-muted);">Extra Details / Description</label>
-																				<textarea id="details" rows="3" class="field w-full rounded-lg px-4 py-3" placeholder="Any extra info to show"></textarea>
-																			</div>
-																			<div>
-																				<label class="block text-sm font-mono mb-1" style="color:var(--ink-muted);">Poster Image</label>
-																				<input type="file" id="poster-file" accept="image/*" class="field w-full rounded-lg px-4 py-3">
-																					<div id="poster-preview" class="mt-3"></div>
-																				</div>
-																			<div class="pt-2 border-t border-white/5">
-																				<label class="block text-sm font-mono mb-1" style="color:var(--ink-muted);">Sponsor Name (optional)</label>
-																				<input type="text" id="sponsor-name" class="field w-full rounded-lg px-4 py-3" placeholder="e.g. CubeCraft India">
-																				<p class="text-xs mt-1" style="color:var(--ink-muted);">Khaali chhodo agar is competition ka koi sponsor nahi hai — sponsor section homepage pe show hi nahi hoga.</p>
-																			</div>
-																			<div>
-																				<label class="block text-sm font-mono mb-1" style="color:var(--ink-muted);">Sponsor Logo</label>
-																				<input type="file" id="sponsor-logo-file" accept="image/*" class="field w-full rounded-lg px-4 py-3">
-																				<div id="sponsor-logo-preview" class="mt-3"></div>
-																				<button id="remove-sponsor-btn" type="button" class="text-sm mt-2 py-1 px-3 rounded-lg" style="color:var(--cube-red); border:1px solid rgba(255,255,255,0.1);">Remove Sponsor</button>
-																			</div>
-																				<button id="save-btn" class="btn-primary w-full py-3 rounded-lg mt-2">Save Changes</button>
-																				<p id="save-msg" class="text-sm hidden"></p>
-																			</div>
-																			<p class="text-xs mt-6" style="color:var(--ink-muted);"> 
-        Changes appear on the homepage automatically — no code editing needed. 
+</head>
+<body class="min-h-screen">
+
+  <!-- Password gate -->
+  <div id="gate" class="min-h-screen flex items-center justify-center px-4">
+    <div class="w-full max-w-sm surface-card rounded-2xl p-8 shadow-2xl text-center">
+      <h1 class="font-display text-xl font-bold mb-4">Organizer Access</h1>
+      <input type="password" id="pin-input" class="field w-full rounded-lg px-4 py-3 mb-3 text-center font-mono" placeholder="Enter PIN">
+      <button id="pin-submit" class="btn-primary w-full py-3 rounded-lg">Enter</button>
+      <p id="pin-error" class="text-sm mt-3 hidden" style="color:var(--cube-red);">Wrong PIN, try again.</p>
+    </div>
+  </div>
+
+  <!-- Actual panel (hidden until PIN correct) -->
+  <div id="panel" class="hidden">
+    <nav class="sticky top-0 z-50 border-b border-white/5" style="background:rgba(16,18,24,0.9);">
+      <div class="max-w-3xl mx-auto px-4 h-16 flex items-center justify-between">
+        <span class="font-display font-bold text-xl cursor-pointer" onclick="window.location.href='index.html'">Twist &amp; Turn — Manage</span>
+      </div>
+    </nav>
+
+    <main class="max-w-3xl mx-auto px-4 py-16">
+      <p class="font-mono text-xs tracking-widest uppercase mb-2" style="color:var(--ink-muted);">Upcoming Competition</p>
+      <h1 class="font-display text-3xl font-bold mb-8">Update Competition Details</h1>
+
+      <div class="surface-card rounded-2xl p-8 shadow-xl space-y-4">
+
+        <div>
+          <label class="block text-sm font-mono mb-1" style="color:var(--ink-muted);">Status</label>
+          <select id="status" class="field w-full rounded-lg px-4 py-3">
+            <option value="none">No Upcoming Competition</option>
+            <option value="open">Registrations Open</option>
+            <option value="closed">Registrations Closed</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-sm font-mono mb-1" style="color:var(--ink-muted);">Competition Title</label>
+          <input type="text" id="title" class="field w-full rounded-lg px-4 py-3" placeholder="Twist & Turn : Cubing Battle 2026">
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-mono mb-1" style="color:var(--ink-muted);">Date</label>
+            <input type="text" id="date" class="field w-full rounded-lg px-4 py-3" placeholder="e.g. 29–30 August 2026">
+          </div>
+          <div>
+            <label class="block text-sm font-mono mb-1" style="color:var(--ink-muted);">Mode</label>
+            <input type="text" id="mode" class="field w-full rounded-lg px-4 py-3" placeholder="Online Competition">
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-mono mb-1" style="color:var(--ink-muted);">Participants Limit</label>
+            <input type="text" id="participantsLimit" class="field w-full rounded-lg px-4 py-3" placeholder="Only 60">
+          </div>
+          <div>
+            <label class="block text-sm font-mono mb-1" style="color:var(--ink-muted);">Overall Format</label>
+            <input type="text" id="format" class="field w-full rounded-lg px-4 py-3" placeholder="Qualifier → Top 8 → Finals">
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-sm font-mono mb-1" style="color:var(--ink-muted);">Base Entry Fee</label>
+          <input type="text" id="baseFee" class="field w-full rounded-lg px-4 py-3" placeholder="₹99 (compulsory base fee, alag se)">
+          <p class="text-xs mt-1" style="color:var(--ink-muted);">Ye sabke liye ek baar wali fee hai (jaise registration/base fee). Har event ki apni alag fee neeche add karo.</p>
+        </div>
+
+        <div>
+          <label class="block text-sm font-mono mb-1" style="color:var(--ink-muted);">Events (per-event fee &amp; format)</label>
+          <div class="grid grid-cols-4 gap-2 mb-1">
+            <span class="text-xs font-mono" style="color:var(--ink-muted);">Event Name</span>
+            <span class="text-xs font-mono" style="color:var(--ink-muted);">Entry Fee</span>
+            <span class="text-xs font-mono" style="color:var(--ink-muted);">Format (optional)</span>
+            <span></span>
+          </div>
+          <div id="events-rows" class="space-y-2"></div>
+          <button id="add-event-btn" type="button" class="w-full py-2 rounded-lg border border-white/15 font-mono text-sm mt-2" style="color:var(--ink-muted);">+ Add Event</button>
+          <p class="text-xs mt-2" style="color:var(--ink-muted);">Har event ka apna naam aur fee daalo (jaise 3x3 – ₹399, 2x2 – ₹199). Format khaali chhodo agar wo "Overall Format" hi follow karega — sirf alag format wale event mein format bharo.</p>
+        </div>
+
+        <div>
+          <label class="block text-sm font-mono mb-1" style="color:var(--ink-muted);">Registration Link</label>
+          <input type="text" id="reglink" class="field w-full rounded-lg px-4 py-3" placeholder="https://forms.gle/...">
+        </div>
+
+        <div>
+          <label class="block text-sm font-mono mb-1" style="color:var(--ink-muted);">Extra Details / Description</label>
+          <textarea id="details" rows="3" class="field w-full rounded-lg px-4 py-3" placeholder="Any extra info to show"></textarea>
+        </div>
+
+        <div>
+          <label class="block text-sm font-mono mb-1" style="color:var(--ink-muted);">Poster Image</label>
+          <input type="file" id="poster-file" accept="image/*" class="field w-full rounded-lg px-4 py-3">
+          <div id="poster-preview" class="mt-3"></div>
+        </div>
+
+        <button id="save-btn" class="btn-primary w-full py-3 rounded-lg mt-2">Save Changes</button>
+        <p id="save-msg" class="text-sm hidden"></p>
+      </div>
+
+      <p class="text-xs mt-6" style="color:var(--ink-muted);">
+        Changes appear on the homepage automatically — no code editing needed.
       </p>
-																			<p class="font-mono text-xs tracking-widest uppercase mt-16 mb-2" style="color:var(--ink-muted);">Leaderboard</p>
-																			<h1 class="font-display text-3xl font-bold mb-8">Manage Results</h1>
-																			<div class="surface-card rounded-2xl p-8 shadow-xl space-y-4">
-																				<div>
-																					<label class="block text-sm font-mono mb-1" style="color:var(--ink-muted);">Competition Name (shown as heading)</label>
-																					<input type="text" id="results-title" class="field w-full rounded-lg px-4 py-3" placeholder="Twist & Turn S1 Results">
-																					</div>
-																					<label class="flex items-center gap-2 text-sm font-mono" style="color:var(--ink-muted);">
-																						<input type="checkbox" id="results-live"> Mark as LIVE (shows a red LIVE badge, updates instantly on homepage) 
-        
-																						</label>
-																						<div id="results-rows" class="space-y-3"></div>
-																						<button id="add-row-btn" type="button" class="w-full py-2 rounded-lg border border-white/15 font-mono text-sm" style="color:var(--ink-muted);">+ Add Event Row</button>
-																						<button id="save-results-btn" class="btn-primary w-full py-3 rounded-lg mt-2">Save Results</button>
-																						<p id="results-save-msg" class="text-sm hidden"></p>
-																					</div>
-																					<p class="font-mono text-xs tracking-widest uppercase mt-16 mb-2" style="color:var(--ink-muted);">Right Now</p>
-																					<h1 class="font-display text-3xl font-bold mb-8">Manage Live Results</h1>
-																					<div class="surface-card rounded-2xl p-8 shadow-xl space-y-4">
-																						<label class="flex items-center gap-2 text-sm font-mono" style="color:var(--ink-muted);">
-																							<input type="checkbox" id="live-results-live"> Mark as LIVE (shows a red LIVE badge, updates instantly on homepage) 
-        
-																							</label>
-																							<div id="live-events" class="space-y-6"></div>
-																							<button id="add-live-event-btn" type="button" class="w-full py-2 rounded-lg border border-white/15 font-mono text-sm" style="color:var(--ink-muted);">+ Add Event (e.g. 3x3, 2x2, Clock)</button>
-																							<button id="save-live-results-btn" class="btn-primary w-full py-3 rounded-lg mt-2">Save Live Results</button>
-																							<p id="live-results-save-msg" class="text-sm hidden"></p>
-																							<p class="text-xs" style="color:var(--ink-muted);">Har event ke liye alag block hai. Registration close hote hi naam add kar do (time khaali chhod ke). Jaise-jaise session khatam ho, us row mein time daal ke phir se "Save" dabao — us event ke tab par best time apne aap sabse upar chala jayega. Time format: 
-																								<span class="font-mono">12.34</span> ya 
-																								<span class="font-mono">1:02.45</span>
-																							</p>
-																						</div>
-																						<p class="font-mono text-xs tracking-widest uppercase mt-16 mb-2" style="color:var(--ink-muted);">Community</p>
-																						<h1 class="font-display text-3xl font-bold mb-8">General Settings</h1>
-																						<div class="surface-card rounded-2xl p-8 shadow-xl space-y-4">
-																							<div>
-																								<label class="block text-sm font-mono mb-1" style="color:var(--ink-muted);">WhatsApp Community Link</label>
-																								<input type="text" id="whatsapp-link" class="field w-full rounded-lg px-4 py-3" placeholder="https://chat.whatsapp.com/...">
-																								</div>
-																								<button id="save-general-btn" class="btn-primary w-full py-3 rounded-lg mt-2">Save General Settings</button>
-																								<p id="general-save-msg" class="text-sm hidden"></p>
-																							</div>
-																							<p class="font-mono text-xs tracking-widest uppercase mt-16 mb-2" style="color:var(--ink-muted);">Highlights</p>
-																							<h1 class="font-display text-3xl font-bold mb-8">Manage Gallery</h1>
-																							<div class="surface-card rounded-2xl p-8 shadow-xl space-y-4">
-																								<div id="gallery-current" class="grid grid-cols-3 gap-3"></div>
-																								<div>
-																									<label class="block text-sm font-mono mb-1" style="color:var(--ink-muted);">Add Photos</label>
-																									<input type="file" id="gallery-files" accept="image/*" multiple class="field w-full rounded-lg px-4 py-3">
-																									</div>
-																									<button id="save-gallery-btn" class="btn-primary w-full py-3 rounded-lg mt-2">Upload &amp; Save</button>
-																									<p id="gallery-save-msg" class="text-sm hidden"></p>
-																								</div>
-																								<p class="font-mono text-xs tracking-widest uppercase mt-16 mb-2" style="color:var(--ink-muted);">Community Says</p>
-																								<h1 class="font-display text-3xl font-bold mb-8">Manage Reviews</h1>
-																								<div class="surface-card rounded-2xl p-8 shadow-xl space-y-4">
-																									<div id="reviews-rows" class="space-y-3"></div>
-																									<button id="add-review-btn" type="button" class="w-full py-2 rounded-lg border border-white/15 font-mono text-sm" style="color:var(--ink-muted);">+ Add Review</button>
-																									<button id="save-reviews-btn" class="btn-primary w-full py-3 rounded-lg mt-2">Save Reviews</button>
-																									<p id="reviews-save-msg" class="text-sm hidden"></p>
-																								</div>
-																								<p class="font-mono text-xs tracking-widest uppercase mt-16 mb-2" style="color:var(--ink-muted);">Support</p>
-																								<h1 class="font-display text-3xl font-bold mb-8">Manage FAQ</h1>
-																								<div class="surface-card rounded-2xl p-8 shadow-xl space-y-4">
-																									<div id="faq-rows" class="space-y-3"></div>
-																									<button id="add-faq-btn" type="button" class="w-full py-2 rounded-lg border border-white/15 font-mono text-sm" style="color:var(--ink-muted);">+ Add Question</button>
-																									<button id="save-faq-btn" class="btn-primary w-full py-3 rounded-lg mt-2">Save FAQ</button>
-																									<p id="faq-save-msg" class="text-sm hidden"></p>
-																								</div>
-																								<p class="font-mono text-xs tracking-widest uppercase mt-16 mb-2" style="color:var(--ink-muted);">All-Time Greats</p>
-																								<h1 class="font-display text-3xl font-bold mb-8">Manage Hall of Fame</h1>
-																								<div class="surface-card rounded-2xl p-8 shadow-xl space-y-4">
-																									<div id="hof-rows" class="space-y-3"></div>
-																									<button id="add-hof-btn" type="button" class="w-full py-2 rounded-lg border border-white/15 font-mono text-sm" style="color:var(--ink-muted);">+ Add Entry</button>
-																									<button id="save-hof-btn" class="btn-primary w-full py-3 rounded-lg mt-2">Save Hall of Fame</button>
-																									<p id="hof-save-msg" class="text-sm hidden"></p>
-																									<p class="text-xs" style="color:var(--ink-muted);">Photo URL is optional — leave blank to show a trophy icon instead.</p>
-																								</div>
-																								<p class="font-mono text-xs tracking-widest uppercase mt-16 mb-2" style="color:var(--ink-muted);">Referral Program</p>
-																								<h1 class="font-display text-3xl font-bold mb-8">Manage Referrals</h1>
-																								<div class="surface-card rounded-2xl p-8 shadow-xl space-y-4">
-																									<div class="flex items-center justify-between">
-																										<p class="text-sm" style="color:var(--ink-muted);">Total Referrers: 
-																											<b id="referrals-total" style="color:var(--ink);">0</b>
-																										</p>
-																										<button id="refresh-referrals-btn" type="button" class="py-2 px-4 rounded-lg border border-white/15 font-mono text-sm" style="color:var(--ink-muted);">🔄 Refresh</button>
-																									</div>
-																									<p class="text-xs" style="color:var(--ink-muted);"> 
-          Jab Google Form ke "Referred By" answers check karo, har unique valid referrer ke liye niche uska "Verified Referral Count" update karo aur Save dabao. 5 pe "Free Registration" aur 10 pe "Free Registration + Cube" select kar do — reward status sirf tumhare record ke liye hai, participant ko khud dikh nahi raha. 
+
+      <p class="font-mono text-xs tracking-widest uppercase mt-16 mb-2" style="color:var(--ink-muted);">Leaderboard</p>
+      <h1 class="font-display text-3xl font-bold mb-8">Manage Results</h1>
+
+      <div class="surface-card rounded-2xl p-8 shadow-xl space-y-4">
+        <div>
+          <label class="block text-sm font-mono mb-1" style="color:var(--ink-muted);">Competition Name (shown as heading)</label>
+          <input type="text" id="results-title" class="field w-full rounded-lg px-4 py-3" placeholder="Twist & Turn S1 Results">
+        </div>
+
+        <label class="flex items-center gap-2 text-sm font-mono" style="color:var(--ink-muted);">
+          <input type="checkbox" id="results-live"> Mark as LIVE (shows a red LIVE badge, updates instantly on homepage)
+        </label>
+
+        <div id="results-rows" class="space-y-3"></div>
+
+        <button id="add-row-btn" type="button" class="w-full py-2 rounded-lg border border-white/15 font-mono text-sm" style="color:var(--ink-muted);">+ Add Event Row</button>
+        <button id="save-results-btn" class="btn-primary w-full py-3 rounded-lg mt-2">Save Results</button>
+        <p id="results-save-msg" class="text-sm hidden"></p>
+      </div>
+
+      <p class="font-mono text-xs tracking-widest uppercase mt-16 mb-2" style="color:var(--ink-muted);">Right Now</p>
+      <h1 class="font-display text-3xl font-bold mb-8">Manage Live Results</h1>
+
+      <div class="surface-card rounded-2xl p-8 shadow-xl space-y-4">
+        <label class="flex items-center gap-2 text-sm font-mono" style="color:var(--ink-muted);">
+          <input type="checkbox" id="live-results-live"> Mark as LIVE (shows a red LIVE badge, updates instantly on homepage)
+        </label>
+
+        <div id="live-events" class="space-y-6"></div>
+
+        <button id="add-live-event-btn" type="button" class="w-full py-2 rounded-lg border border-white/15 font-mono text-sm" style="color:var(--ink-muted);">+ Add Event (e.g. 3x3, 2x2, Clock)</button>
+        <button id="save-live-results-btn" class="btn-primary w-full py-3 rounded-lg mt-2">Save Live Results</button>
+        <p id="live-results-save-msg" class="text-sm hidden"></p>
+        <p class="text-xs" style="color:var(--ink-muted);">Har event ke liye alag block hai. Registration close hote hi naam add kar do (time khaali chhod ke). Jaise-jaise session khatam ho, us row mein time daal ke phir se "Save" dabao — us event ke tab par best time apne aap sabse upar chala jayega. Time format: <span class="font-mono">12.34</span> ya <span class="font-mono">1:02.45</span></p>
+
+      </div>
+
+      <p class="font-mono text-xs tracking-widest uppercase mt-16 mb-2" style="color:var(--ink-muted);">Community</p>
+      <h1 class="font-display text-3xl font-bold mb-8">General Settings</h1>
+      <div class="surface-card rounded-2xl p-8 shadow-xl space-y-4">
+        <div>
+          <label class="block text-sm font-mono mb-1" style="color:var(--ink-muted);">WhatsApp Community Link</label>
+          <input type="text" id="whatsapp-link" class="field w-full rounded-lg px-4 py-3" placeholder="https://chat.whatsapp.com/...">
+        </div>
+        <button id="save-general-btn" class="btn-primary w-full py-3 rounded-lg mt-2">Save General Settings</button>
+        <p id="general-save-msg" class="text-sm hidden"></p>
+      </div>
+
+      <p class="font-mono text-xs tracking-widest uppercase mt-16 mb-2" style="color:var(--ink-muted);">Highlights</p>
+      <h1 class="font-display text-3xl font-bold mb-8">Manage Gallery</h1>
+      <div class="surface-card rounded-2xl p-8 shadow-xl space-y-4">
+        <div id="gallery-current" class="grid grid-cols-3 gap-3"></div>
+        <div>
+          <label class="block text-sm font-mono mb-1" style="color:var(--ink-muted);">Add Photos</label>
+          <input type="file" id="gallery-files" accept="image/*" multiple class="field w-full rounded-lg px-4 py-3">
+        </div>
+        <button id="save-gallery-btn" class="btn-primary w-full py-3 rounded-lg mt-2">Upload &amp; Save</button>
+        <p id="gallery-save-msg" class="text-sm hidden"></p>
+      </div>
+
+      <p class="font-mono text-xs tracking-widest uppercase mt-16 mb-2" style="color:var(--ink-muted);">Community Says</p>
+      <h1 class="font-display text-3xl font-bold mb-8">Manage Reviews</h1>
+      <div class="surface-card rounded-2xl p-8 shadow-xl space-y-4">
+        <div id="reviews-rows" class="space-y-3"></div>
+        <button id="add-review-btn" type="button" class="w-full py-2 rounded-lg border border-white/15 font-mono text-sm" style="color:var(--ink-muted);">+ Add Review</button>
+        <button id="save-reviews-btn" class="btn-primary w-full py-3 rounded-lg mt-2">Save Reviews</button>
+        <p id="reviews-save-msg" class="text-sm hidden"></p>
+      </div>
+
+      <p class="font-mono text-xs tracking-widest uppercase mt-16 mb-2" style="color:var(--ink-muted);">Support</p>
+      <h1 class="font-display text-3xl font-bold mb-8">Manage FAQ</h1>
+      <div class="surface-card rounded-2xl p-8 shadow-xl space-y-4">
+        <div id="faq-rows" class="space-y-3"></div>
+        <button id="add-faq-btn" type="button" class="w-full py-2 rounded-lg border border-white/15 font-mono text-sm" style="color:var(--ink-muted);">+ Add Question</button>
+        <button id="save-faq-btn" class="btn-primary w-full py-3 rounded-lg mt-2">Save FAQ</button>
+        <p id="faq-save-msg" class="text-sm hidden"></p>
+      </div>
+
+      <p class="font-mono text-xs tracking-widest uppercase mt-16 mb-2" style="color:var(--ink-muted);">All-Time Greats</p>
+      <h1 class="font-display text-3xl font-bold mb-8">Manage Hall of Fame</h1>
+      <div class="surface-card rounded-2xl p-8 shadow-xl space-y-4">
+        <div id="hof-rows" class="space-y-3"></div>
+        <button id="add-hof-btn" type="button" class="w-full py-2 rounded-lg border border-white/15 font-mono text-sm" style="color:var(--ink-muted);">+ Add Entry</button>
+        <button id="save-hof-btn" class="btn-primary w-full py-3 rounded-lg mt-2">Save Hall of Fame</button>
+        <p id="hof-save-msg" class="text-sm hidden"></p>
+        <p class="text-xs" style="color:var(--ink-muted);">Photo URL is optional — leave blank to show a trophy icon instead.</p>
+      </div>
+
+      <p class="font-mono text-xs tracking-widest uppercase mt-16 mb-2" style="color:var(--ink-muted);">Referral Program</p>
+      <h1 class="font-display text-3xl font-bold mb-8">Manage Referrals</h1>
+      <div class="surface-card rounded-2xl p-8 shadow-xl space-y-4">
+        <div class="flex items-center justify-between">
+          <p class="text-sm" style="color:var(--ink-muted);">Total Referrers: <b id="referrals-total" style="color:var(--ink);">0</b></p>
+          <button id="refresh-referrals-btn" type="button" class="py-2 px-4 rounded-lg border border-white/15 font-mono text-sm" style="color:var(--ink-muted);">🔄 Refresh</button>
+        </div>
+        <p class="text-xs" style="color:var(--ink-muted);">
+          Jab Google Form ke "Referred By" answers check karo, har unique valid referrer ke liye niche uska "Verified Referral Count" update karo aur Save dabao. 5 pe "Free Registration" aur 10 pe "Free Registration + Cube" select kar do — reward status sirf tumhare record ke liye hai, participant ko khud dikh nahi raha.
         </p>
-																									<div id="referrals-rows" class="space-y-4"></div>
-																								</div>
-																							</main>
-																						</div>
-																						<script type="module"> 
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js"; 
-    import { getFirestore, doc, getDoc, setDoc, collection, addDoc, getDocs, deleteDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js"; 
-    import { firebaseConfig } from "./firebase-config.js"; 
- 
-    // ============================================ 
-    // CHANGE THIS PIN to whatever you want 
-    // ============================================ 
-    const ADMIN_PIN = "TNT2026"; 
- 
-    const app = initializeApp(firebaseConfig); 
-    const db = getFirestore(app); 
- 
-    // Compress + convert an image file into a small base64 string 
-    // (so it fits comfortably inside a Firestore document, no paid Storage needed) 
-    function fileToCompressedBase64(file, maxDim = 900, quality = 0.7) { 
-      return new Promise((resolve, reject) => { 
-        const img = new Image(); 
-        const reader = new FileReader(); 
-        reader.onload = (e) => { img.src = e.target.result; }; 
-        reader.onerror = reject; 
-        img.onload = () => { 
-          let { width, height } = img; 
-          if (width > height && width > maxDim) { 
-            height = Math.round(height * (maxDim / width)); 
-            width = maxDim; 
-          } else if (height > maxDim) { 
-            width = Math.round(width * (maxDim / height)); 
-            height = maxDim; 
-          } 
-          const canvas = document.createElement("canvas"); 
-          canvas.width = width; 
-          canvas.height = height; 
-          canvas.getContext("2d").drawImage(img, 0, 0, width, height); 
-          resolve(canvas.toDataURL("image/jpeg", quality)); 
-        }; 
-        img.onerror = reject; 
-        reader.readAsDataURL(file); 
-      }); 
-    } 
- 
-    const gate = document.getElementById("gate"); 
-    const panel = document.getElementById("panel"); 
- 
-    document.getElementById("pin-submit").addEventListener("click", () => { 
-      const val = document.getElementById("pin-input").value; 
-      if (val === ADMIN_PIN) { 
-        gate.classList.add("hidden"); 
-        panel.classList.remove("hidden"); 
-        loadCurr
+        <div id="referrals-rows" class="space-y-4"></div>
+      </div>
+
+    </main>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getFirestore, doc, getDoc, setDoc, collection, addDoc, getDocs, deleteDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    import { firebaseConfig } from "./firebase-config.js";
+
+    // ============================================
+    // CHANGE THIS PIN to whatever you want
+    // ============================================
+    const ADMIN_PIN = "TNT2026";
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    // Compress + convert an image file into a small base64 string
+    // (so it fits comfortably inside a Firestore document, no paid Storage needed)
+    function fileToCompressedBase64(file, maxDim = 900, quality = 0.7) {
+      return new Promise((resolve, reject) => {
+        const img = new Image();
+        const reader = new FileReader();
+        reader.onload = (e) => { img.src = e.target.result; };
+        reader.onerror = reject;
+        img.onload = () => {
+          let { width, height } = img;
+          if (width > height && width > maxDim) {
+            height = Math.round(height * (maxDim / width));
+            width = maxDim;
+          } else if (height > maxDim) {
+            width = Math.round(width * (maxDim / height));
+            height = maxDim;
+          }
+          const canvas = document.createElement("canvas");
+          canvas.width = width;
+          canvas.height = height;
+          canvas.getContext("2d").drawImage(img, 0, 0, width, height);
+          resolve(canvas.toDataURL("image/jpeg", quality));
+        };
+        img.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+    }
+
+    const gate = document.getElementById("gate");
+    const panel = document.getElementById("panel");
+
+    document.getElementById("pin-submit").addEventListener("click", () => {
+      const val = document.getElementById("pin-input").value;
+      if (val === ADMIN_PIN) {
+        gate.classList.add("hidden");
+        panel.classList.remove("hidden");
+        loadCurrentData();
+        loadResults();
+        loadLiveResults();
+        loadGeneral();
+        loadGallery();
+        loadReviews();
+        loadFaq();
+        loadHallOfFame();
+        loadReferrals();
+      } else {
+        document.getElementById("pin-error").classList.remove("hidden");
+      }
+    });
+
+    let currentPosterUrl = "";
+
+    // ============================================
+    // Per-event fee/format rows (competition events)
+    // ============================================
+    const eventsContainer = document.getElementById("events-rows");
+
+    function addEventRow(name = "", fee = "", format = "") {
+      const rowDiv = document.createElement("div");
+      rowDiv.className = "grid grid-cols-4 gap-2 items-center";
+      rowDiv.innerHTML = `
+        <input type="text" class="field rounded-lg px-3 py-2 text-sm event-name" placeholder="e.g. 3x3" value="${name}">
+        <input type="text" class="field rounded-lg px-3 py-2 text-sm event-fee" placeholder="e.g. ₹399" value="${fee}">
+        <input type="text" class="field rounded-lg px-3 py-2 text-sm event-format" placeholder="Same as overall" value="${format}">
+        <button type="button" class="remove-event-btn text-sm py-2 rounded-lg" style="color:var(--cube-red); border:1px solid rgba(255,255,255,0.1);">Remove</button>
+      `;
+      rowDiv.querySelector(".remove-event-btn").addEventListener("click", () => rowDiv.remove());
+      eventsContainer.appendChild(rowDiv);
+    }
+
+    document.getElementById("add-event-btn").addEventListener("click", () => addEventRow());
+
+    async function loadCurrentData() {
+      const snap = await getDoc(doc(db, "site", "upcomingCompetition"));
+      eventsContainer.innerHTML = "";
+      if (snap.exists()) {
+        const d = snap.data();
+        document.getElementById("status").value = d.status || "none";
+        document.getElementById("title").value = d.title || "";
+        document.getElementById("date").value = d.date || "";
+        document.getElementById("mode").value = d.mode || "";
+        document.getElementById("participantsLimit").value = d.participantsLimit || "";
+        document.getElementById("format").value = d.format || "";
+        document.getElementById("baseFee").value = d.baseFee || "";
+        document.getElementById("reglink").value = d.regLink || "";
+        document.getElementById("details").value = d.details || "";
+        currentPosterUrl = d.posterUrl || "";
+        if (currentPosterUrl) {
+          document.getElementById("poster-preview").innerHTML =
+            `<img src="${currentPosterUrl}" class="rounded-lg mt-2 max-h-48">`;
+        }
+
+        if (d.events && d.events.length > 0) {
+          d.events.forEach(ev => addEventRow(ev.name, ev.fee, ev.format));
+        } else if (d.eventType || d.entryFee) {
+          // migrate old single event/fee data into the new events list
+          addEventRow(d.eventType || "", d.entryFee || "", "");
+        } else {
+          addEventRow();
+        }
+      } else {
+        addEventRow();
+      }
+    }
+
+    document.getElementById("save-btn").addEventListener("click", async () => {
+      const saveMsg = document.getElementById("save-msg");
+      saveMsg.classList.add("hidden");
+
+      const file = document.getElementById("poster-file").files[0];
+      let posterUrl = currentPosterUrl;
+
+      const events = Array.from(eventsContainer.children).map(rowDiv => ({
+        name: rowDiv.querySelector(".event-name").value,
+        fee: rowDiv.querySelector(".event-fee").value,
+        format: rowDiv.querySelector(".event-format").value
+      })).filter(e => e.name.trim() !== "");
+
+      try {
+        if (file) {
+          posterUrl = await fileToCompressedBase64(file, 900, 0.7);
+        }
+
+        await setDoc(doc(db, "site", "upcomingCompetition"), {
+          status: document.getElementById("status").value,
+          title: document.getElementById("title").value,
+          date: document.getElementById("date").value,
+          mode: document.getElementById("mode").value,
+          events: events,
+          participantsLimit: document.getElementById("participantsLimit").value,
+          format: document.getElementById("format").value,
+          baseFee: document.getElementById("baseFee").value,
+          regLink: document.getElementById("reglink").value,
+          details: document.getElementById("details").value,
+          posterUrl: posterUrl,
+          updatedAt: new Date().toISOString()
+        });
+
+        currentPosterUrl = posterUrl;
+        saveMsg.textContent = "Saved! Check your homepage.";
+        saveMsg.style.color = "var(--cube-green)";
+        saveMsg.classList.remove("hidden");
+      } catch (err) {
+        saveMsg.textContent = "Error: " + err.message;
+        saveMsg.style.color = "var(--cube-red)";
+        saveMsg.classList.remove("hidden");
+      }
+    });
+
+    // ============================================
+    // Results management
+    // ============================================
+    const rowsContainer = document.getElementById("results-rows");
+
+    function addRow(event = "", first = "", second = "", third = "") {
+      const rowDiv = document.createElement("div");
+      rowDiv.className = "grid grid-cols-5 gap-2 items-center";
+      rowDiv.innerHTML = `
+        <input type="text" class="field rounded-lg px-3 py-2 text-sm row-event" placeholder="Event" value="${event}">
+        <input type="text" class="field rounded-lg px-3 py-2 text-sm row-first" placeholder="1st" value="${first}">
+        <input type="text" class="field rounded-lg px-3 py-2 text-sm row-second" placeholder="2nd" value="${second}">
+        <input type="text" class="field rounded-lg px-3 py-2 text-sm row-third" placeholder="3rd" value="${third}">
+        <button type="button" class="remove-row-btn text-sm py-2 rounded-lg" style="color:var(--cube-red); border:1px solid rgba(255,255,255,0.1);">Remove</button>
+      `;
+      rowDiv.querySelector(".remove-row-btn").addEventListener("click", () => rowDiv.remove());
+      rowsContainer.appendChild(rowDiv);
+    }
+
+    document.getElementById("add-row-btn").addEventListener("click", () => addRow());
+
+    async function loadResults() {
+      const snap = await getDoc(doc(db, "site", "results"));
+      rowsContainer.innerHTML = "";
+      if (snap.exists() && snap.data().rows && snap.data().rows.length > 0) {
+        document.getElementById("results-title").value = snap.data().competitionName || "";
+        document.getElementById("results-live").checked = !!snap.data().isLive;
+        snap.data().rows.forEach(r => addRow(r.event, r.first, r.second, r.third));
+      } else {
+        addRow(); // start with one empty row
+      }
+    }
+
+    document.getElementById("save-results-btn").addEventListener("click", async () => {
+      const resultsMsg = document.getElementById("results-save-msg");
+      resultsMsg.classList.add("hidden");
+
+      const rows = Array.from(rowsContainer.children).map(rowDiv => ({
+        event: rowDiv.querySelector(".row-event").value,
+        first: rowDiv.querySelector(".row-first").value,
+        second: rowDiv.querySelector(".row-second").value,
+        third: rowDiv.querySelector(".row-third").value
+      })).filter(r => r.event.trim() !== "");
+
+      try {
+        await setDoc(doc(db, "site", "results"), {
+          competitionName: document.getElementById("results-title").value,
+          isLive: document.getElementById("results-live").checked,
+          rows: rows,
+          updatedAt: new Date().toISOString()
+        });
+        resultsMsg.textContent = "Results saved! Check your homepage.";
+        resultsMsg.style.color = "var(--cube-green)";
+        resultsMsg.classList.remove("hidden");
+      } catch (err) {
+        resultsMsg.textContent = "Error: " + err.message;
+        resultsMsg.style.color = "var(--cube-red)";
+        resultsMsg.classList.remove("hidden");
+      }
+    });
+
+    // ============================================
+    // Live Results management (auto-sorted, real-time)
+    // ============================================
+    const liveEventsContainer = document.getElementById("live-events");
+
+    // Accepts "12.34" or "1:02.45" style times, returns milliseconds (for sorting)
+    function parseTimeToMs(str) {
+      str = (str || "").trim();
+      if (/^\d+:\d{1,2}(\.\d+)?$/.test(str)) {
+        const [m, s] = str.split(":");
+        return Math.round((parseInt(m, 10) * 60 + parseFloat(s)) * 1000);
+      }
+      if (/^\d+(\.\d+)?$/.test(str)) {
+        return Math.round(parseFloat(str) * 1000);
+      }
+      return null;
+    }
+
+    function formatMs(ms) {
+      const totalSec = ms / 1000;
+      if (totalSec >= 60) {
+        const m = Math.floor(totalSec / 60);
+        const s = (totalSec % 60).toFixed(2).padStart(5, "0");
+        return `${m}:${s}`;
+      }
+      return totalSec.toFixed(2);
+    }
+
+    function addLiveRow(rowsContainer, name = "", timeStr = "") {
+      const rowDiv = document.createElement("div");
+      rowDiv.className = "grid grid-cols-4 gap-2 items-center";
+      rowDiv.innerHTML = `
+        <input type="text" class="field rounded-lg px-3 py-2 text-sm live-row-name col-span-2" placeholder="Participant name" value="${name}">
+        <input type="text" class="field rounded-lg px-3 py-2 text-sm live-row-time" placeholder="12.34 or 1:02.45 (leave blank until done)" value="${timeStr}">
+        <button type="button" class="remove-live-row-btn text-sm py-2 rounded-lg" style="color:var(--cube-red); border:1px solid rgba(255,255,255,0.1);">Remove</button>
+      `;
+      rowDiv.querySelector(".remove-live-row-btn").addEventListener("click", () => rowDiv.remove());
+      rowsContainer.appendChild(rowDiv);
+    }
+
+    function addLiveEvent(eventName = "", rows = []) {
+      const eventDiv = document.createElement("div");
+      eventDiv.className = "border border-white/10 rounded-xl p-4 space-y-3 live-event-block";
+      eventDiv.innerHTML = `
+        <div class="flex items-center gap-2">
+          <input type="text" class="field flex-grow rounded-lg px-3 py-2 text-sm live-event-name" placeholder="Event name e.g. 3x3, 2x2, Clock" value="${eventName}">
+          <button type="button" class="remove-live-event-btn text-sm py-2 px-3 rounded-lg" style="color:var(--cube-red); border:1px solid rgba(255,255,255,0.1);">Remove Event</button>
+        </div>
+        <div class="live-event-rows space-y-2"></div>
+        <button type="button" class="add-live-row-btn w-full py-2 rounded-lg border border-white/10 font-mono text-xs" style="color:var(--ink-muted);">+ Add Participant</button>
+      `;
+
+      const rowsContainer = eventDiv.querySelector(".live-event-rows");
+      if (rows.length > 0) {
+        rows.forEach(r => addLiveRow(rowsContainer, r.name, r.timeDisplay === "—" ? "" : (r.timeDisplay || "")));
+      } else {
+        addLiveRow(rowsContainer);
+      }
+
+      eventDiv.querySelector(".remove-live-event-btn").addEventListener("click", () => eventDiv.remove());
+      eventDiv.querySelector(".add-live-row-btn").addEventListener("click", () => addLiveRow(rowsContainer));
+
+      liveEventsContainer.appendChild(eventDiv);
+    }
+
+    document.getElementById("add-live-event-btn").addEventListener("click", () => addLiveEvent());
+
+    async function loadLiveResults() {
+      const snap = await getDoc(doc(db, "site", "liveResults"));
+      liveEventsContainer.innerHTML = "";
+      if (snap.exists() && snap.data().events && snap.data().events.length > 0) {
+        document.getElementById("live-results-live").checked = !!snap.data().isLive;
+        snap.data().events.forEach(ev => {
+          const sorted = [...(ev.rows || [])].sort((a, b) => (a.timeMs ?? Infinity) - (b.timeMs ?? Infinity));
+          addLiveEvent(ev.name, sorted);
+        });
+      } else {
+        addLiveEvent();
+      }
+    }
+
+    document.getElementById("save-live-results-btn").addEventListener("click", async () => {
+      const msg = document.getElementById("live-results-save-msg");
+      msg.classList.add("hidden");
+
+      const events = Array.from(liveEventsContainer.children).map(eventDiv => {
+        const name = eventDiv.querySelector(".live-event-name").value.trim();
+        const rows = Array.from(eventDiv.querySelectorAll(".live-event-rows > div")).map(rowDiv => {
+          const rname = rowDiv.querySelector(".live-row-name").value.trim();
+          const timeStr = rowDiv.querySelector(".live-row-time").value.trim();
+          if (!timeStr) return { name: rname, timeMs: null, timeDisplay: "—" }; // name added, time not in yet
+          const timeMs = parseTimeToMs(timeStr);
+          return { name: rname, timeMs, timeDisplay: timeMs !== null ? formatMs(timeMs) : timeStr };
+        }).filter(r => r.name !== "");
+        return { name, rows };
+      }).filter(ev => ev.name !== "");
+
+      try {
+        await setDoc(doc(db, "site", "liveResults"), {
+          isLive: document.getElementById("live-results-live").checked,
+          events: events,
+          updatedAt: new Date().toISOString()
+        });
+        msg.textContent = "Saved! Homepage updates instantly.";
+        msg.style.color = "var(--cube-green)";
+        msg.classList.remove("hidden");
+      } catch (err) {
+        msg.textContent = "Error: " + err.message;
+        msg.style.color = "var(--cube-red)";
+        msg.classList.remove("hidden");
+      }
+    });
+
+    // ============================================
+    // General Settings (WhatsApp link)
+    // ============================================
+    async function loadGeneral() {
+      const snap = await getDoc(doc(db, "site", "general"));
+      if (snap.exists()) {
+        document.getElementById("whatsapp-link").value = snap.data().whatsappLink || "";
+      }
+    }
+
+    document.getElementById("save-general-btn").addEventListener("click", async () => {
+      const msg = document.getElementById("general-save-msg");
+      try {
+        await setDoc(doc(db, "site", "general"), {
+          whatsappLink: document.getElementById("whatsapp-link").value
+        }, { merge: true });
+        msg.textContent = "Saved!";
+        msg.style.color = "var(--cube-green)";
+        msg.classList.remove("hidden");
+      } catch (err) {
+        msg.textContent = "Error: " + err.message;
+        msg.style.color = "var(--cube-red)";
+        msg.classList.remove("hidden");
+      }
+    });
+
+    // ============================================
+    // Gallery management — each photo is its own small document
+    // ============================================
+    function renderGalleryPreview(images) {
+      const box = document.getElementById("gallery-current");
+      box.innerHTML = images.map(img => `
+        <div class="relative">
+          <img src="${img.data}" class="w-full h-20 object-cover rounded-lg">
+          <button type="button" class="remove-gallery-btn absolute top-1 right-1 text-xs px-2 py-1 rounded" style="background:var(--cube-red); color:#fff;" data-id="${img.id}">✕</button>
+        </div>`).join("");
+      box.querySelectorAll(".remove-gallery-btn").forEach(btn => {
+        btn.addEventListener("click", async () => {
+          await deleteDoc(doc(db, "galleryImages", btn.dataset.id));
+          loadGallery();
+        });
+      });
+    }
+
+    async function loadGallery() {
+      const snap = await getDocs(collection(db, "galleryImages"));
+      const images = snap.docs.map(d => ({ id: d.id, data: d.data().image }));
+      renderGalleryPreview(images);
+    }
+
+    document.getElementById("save-gallery-btn").addEventListener("click", async () => {
+      const msg = document.getElementById("gallery-save-msg");
+      const files = document.getElementById("gallery-files").files;
+      try {
+        for (const file of files) {
+          const base64 = await fileToCompressedBase64(file, 800, 0.6);
+          await addDoc(collection(db, "galleryImages"), {
+            image: base64,
+            addedAt: new Date().toISOString()
+          });
+        }
+        document.getElementById("gallery-files").value = "";
+        await loadGallery();
+        msg.textContent = "Saved!";
+        msg.style.color = "var(--cube-green)";
+        msg.classList.remove("hidden");
+      } catch (err) {
+        msg.textContent = "Error: " + err.message;
+        msg.style.color = "var(--cube-red)";
+        msg.classList.remove("hidden");
+      }
+    });
+
+    // ============================================
+    // Reviews management
+    // ============================================
+    const reviewsContainer = document.getElementById("reviews-rows");
+
+    function addReviewRow(name = "", text = "") {
+      const rowDiv = document.createElement("div");
+      rowDiv.className = "grid grid-cols-4 gap-2 items-start";
+      rowDiv.innerHTML = `
+        <input type="text" class="field rounded-lg px-3 py-2 text-sm review-name" placeholder="Name" value="${name}">
+        <textarea class="field rounded-lg px-3 py-2 text-sm review-text col-span-2" placeholder="Review text" rows="2">${text}</textarea>
+        <button type="button" class="remove-review-btn text-sm py-2 rounded-lg" style="color:var(--cube-red); border:1px solid rgba(255,255,255,0.1);">Remove</button>
+      `;
+      rowDiv.querySelector(".remove-review-btn").addEventListener("click", () => rowDiv.remove());
+      reviewsContainer.appendChild(rowDiv);
+    }
+
+    document.getElementById("add-review-btn").addEventListener("click", () => addReviewRow());
+
+    async function loadReviews() {
+      const snap = await getDoc(doc(db, "site", "reviews"));
+      reviewsContainer.innerHTML = "";
+      if (snap.exists() && snap.data().items && snap.data().items.length > 0) {
+        snap.data().items.forEach(r => addReviewRow(r.name, r.text));
+      } else {
+        addReviewRow();
+      }
+    }
+
+    document.getElementById("save-reviews-btn").addEventListener("click", async () => {
+      const msg = document.getElementById("reviews-save-msg");
+      const items = Array.from(reviewsContainer.children).map(rowDiv => ({
+        name: rowDiv.querySelector(".review-name").value,
+        text: rowDiv.querySelector(".review-text").value
+      })).filter(r => r.text.trim() !== "");
+
+      try {
+        await setDoc(doc(db, "site", "reviews"), { items: items });
+        msg.textContent = "Saved!";
+        msg.style.color = "var(--cube-green)";
+        msg.classList.remove("hidden");
+      } catch (err) {
+        msg.textContent = "Error: " + err.message;
+        msg.style.color = "var(--cube-red)";
+        msg.classList.remove("hidden");
+      }
+    });
+
+    // ============================================
+    // FAQ management
+    // ============================================
+    const faqContainer = document.getElementById("faq-rows");
+
+    function addFaqRow(q = "", a = "") {
+      const rowDiv = document.createElement("div");
+      rowDiv.className = "space-y-2 pb-3 border-b border-white/5";
+      rowDiv.innerHTML = `
+        <input type="text" class="field w-full rounded-lg px-3 py-2 text-sm faq-q" placeholder="Question" value="${q}">
+        <textarea class="field w-full rounded-lg px-3 py-2 text-sm faq-a" placeholder="Answer" rows="2">${a}</textarea>
+        <button type="button" class="remove-faq-btn text-sm py-1 px-3 rounded-lg" style="color:var(--cube-red); border:1px solid rgba(255,255,255,0.1);">Remove</button>
+      `;
+      rowDiv.querySelector(".remove-faq-btn").addEventListener("click", () => rowDiv.remove());
+      faqContainer.appendChild(rowDiv);
+    }
+
+    document.getElementById("add-faq-btn").addEventListener("click", () => addFaqRow());
+
+    async function loadFaq() {
+      const snap = await getDoc(doc(db, "site", "faq"));
+      faqContainer.innerHTML = "";
+      if (snap.exists() && snap.data().items && snap.data().items.length > 0) {
+        snap.data().items.forEach(f => addFaqRow(f.q, f.a));
+      } else {
+        addFaqRow();
+      }
+    }
+
+    document.getElementById("save-faq-btn").addEventListener("click", async () => {
+      const msg = document.getElementById("faq-save-msg");
+      const items = Array.from(faqContainer.children).map(rowDiv => ({
+        q: rowDiv.querySelector(".faq-q").value,
+        a: rowDiv.querySelector(".faq-a").value
+      })).filter(f => f.q.trim() !== "");
+
+      try {
+        await setDoc(doc(db, "site", "faq"), { items: items });
+        msg.textContent = "Saved!";
+        msg.style.color = "var(--cube-green)";
+        msg.classList.remove("hidden");
+      } catch (err) {
+        msg.textContent = "Error: " + err.message;
+        msg.style.color = "var(--cube-red)";
+        msg.classList.remove("hidden");
+      }
+    });
+
+    // ============================================
+    // Hall of Fame management
+    // ============================================
+    const hofContainer = document.getElementById("hof-rows");
+
+    function addHofRow(name = "", achievement = "", event = "", photo = "") {
+      const rowDiv = document.createElement("div");
+      rowDiv.className = "space-y-2 pb-3 border-b border-white/5";
+      rowDiv.innerHTML = `
+        <div class="grid md:grid-cols-2 gap-2">
+          <input type="text" class="field w-full rounded-lg px-3 py-2 text-sm hof-name" placeholder="Name" value="${name}">
+          <input type="text" class="field w-full rounded-lg px-3 py-2 text-sm hof-achievement" placeholder="Achievement e.g. S1 Champion, National Record" value="${achievement}">
+        </div>
+        <div class="grid md:grid-cols-2 gap-2">
+          <input type="text" class="field w-full rounded-lg px-3 py-2 text-sm hof-event" placeholder="Event e.g. 3x3 (optional)" value="${event}">
+          <input type="text" class="field w-full rounded-lg px-3 py-2 text-sm hof-photo" placeholder="Photo URL (optional)" value="${photo}">
+        </div>
+        <button type="button" class="remove-hof-btn text-sm py-1 px-3 rounded-lg" style="color:var(--cube-red); border:1px solid rgba(255,255,255,0.1);">Remove</button>
+      `;
+      rowDiv.querySelector(".remove-hof-btn").addEventListener("click", () => rowDiv.remove());
+      hofContainer.appendChild(rowDiv);
+    }
+
+    document.getElementById("add-hof-btn").addEventListener("click", () => addHofRow());
+
+    async function loadHallOfFame() {
+      const snap = await getDoc(doc(db, "site", "hallOfFame"));
+      hofContainer.innerHTML = "";
+      if (snap.exists() && snap.data().items && snap.data().items.length > 0) {
+        snap.data().items.forEach(h => addHofRow(h.name, h.achievement, h.event, h.photo));
+      } else {
+        addHofRow();
+      }
+    }
+
+    document.getElementById("save-hof-btn").addEventListener("click", async () => {
+      const msg = document.getElementById("hof-save-msg");
+      const items = Array.from(hofContainer.children).map(rowDiv => ({
+        name: rowDiv.querySelector(".hof-name").value,
+        achievement: rowDiv.querySelector(".hof-achievement").value,
+        event: rowDiv.querySelector(".hof-event").value,
+        photo: rowDiv.querySelector(".hof-photo").value
+      })).filter(h => h.name.trim() !== "");
+
+      try {
+        await setDoc(doc(db, "site", "hallOfFame"), { items: items });
+        msg.textContent = "Saved! Homepage updates instantly.";
+        msg.style.color = "var(--cube-green)";
+        msg.classList.remove("hidden");
+      } catch (err) {
+        msg.textContent = "Error: " + err.message;
+        msg.style.color = "var(--cube-red)";
+        msg.classList.remove("hidden");
+      }
+    });
+
+    // ============================================
+    // Referral Program management
+    // ============================================
+    const referralsContainer = document.getElementById("referrals-rows");
+    const referralsTotalEl = document.getElementById("referrals-total");
+
+    function addReferralRow(id, data) {
+      const rowDiv = document.createElement("div");
+      rowDiv.className = "surface-card rounded-xl p-4 space-y-3";
+      rowDiv.dataset.id = id;
+      const rewardStatus = data.rewardStatus || "none";
+      rowDiv.innerHTML = `
+        <div class="grid md:grid-cols-3 gap-2 text-sm">
+          <div><span style="color:var(--ink-muted)">Name:</span> <b>${data.name || ""}</b></div>
+          <div><span style="color:var(--ink-muted)">Email:</span> ${data.email || ""}</div>
+          <div><span style="color:var(--ink-muted)">WhatsApp:</span> ${data.whatsapp || ""}</div>
+        </div>
+        <div class="grid md:grid-cols-3 gap-2 items-end">
+          <div>
+            <label class="block text-xs font-mono mb-1" style="color:var(--ink-muted);">Verified Referral Count</label>
+            <input type="number" min="0" class="field w-full rounded-lg px-3 py-2 text-sm ref-count" value="${data.referralCount || 0}">
+          </div>
+          <div>
+            <label class="block text-xs font-mono mb-1" style="color:var(--ink-muted);">Reward Status</label>
+            <select class="field w-full rounded-lg px-3 py-2 text-sm ref-reward">
+              <option value="none" ${rewardStatus === "none" ? "selected" : ""}>No Reward Yet</option>
+              <option value="free" ${rewardStatus === "free" ? "selected" : ""}>Free Registration</option>
+              <option value="free_cube" ${rewardStatus === "free_cube" ? "selected" : ""}>Free Registration + Cube</option>
+            </select>
+          </div>
+          <div class="flex gap-2">
+            <button type="button" class="save-ref-btn btn-primary flex-1 py-2 rounded-lg text-sm">Save</button>
+            <button type="button" class="delete-ref-btn flex-1 py-2 rounded-lg text-sm" style="color:var(--cube-red); border:1px solid rgba(255,255,255,0.1);">Delete</button>
+          </div>
+        </div>
+        <p class="ref-row-msg text-xs hidden"></p>
+      `;
+
+      const msg = rowDiv.querySelector(".ref-row-msg");
+
+      rowDiv.querySelector(".save-ref-btn").addEventListener("click", async () => {
+        const countVal = parseInt(rowDiv.querySelector(".ref-count").value, 10) || 0;
+        const rewardVal = rowDiv.querySelector(".ref-reward").value;
+        try {
+          await updateDoc(doc(db, "referrals", id), {
+            referralCount: countVal,
+            rewardStatus: rewardVal
+          });
+          msg.textContent = "Saved!";
+          msg.style.color = "var(--cube-green)";
+          msg.classList.remove("hidden");
+        } catch (err) {
+          msg.textContent = "Error: " + err.message;
+          msg.style.color = "var(--cube-red)";
+          msg.classList.remove("hidden");
+        }
+      });
+
+      rowDiv.querySelector(".delete-ref-btn").addEventListener("click", async () => {
+        if (!confirm(`Delete referrer "${data.name}"? This cannot be undone.`)) return;
+        try {
+          await deleteDoc(doc(db, "referrals", id));
+          rowDiv.remove();
+          referralsTotalEl.textContent = String(referralsContainer.children.length);
+        } catch (err) {
+          msg.textContent = "Error: " + err.message;
+          msg.style.color = "var(--cube-red)";
+          msg.classList.remove("hidden");
+        }
+      });
+
+      referralsContainer.appendChild(rowDiv);
+    }
+
+    async function loadReferrals() {
+      referralsContainer.innerHTML = `<p class="text-sm" style="color:var(--ink-muted)">Loading...</p>`;
+      try {
+        const snap = await getDocs(collection(db, "referrals"));
+        referralsContainer.innerHTML = "";
+        if (snap.empty) {
+          referralsContainer.innerHTML = `<p class="text-sm" style="color:var(--ink-muted)">No referrers yet.</p>`;
+          referralsTotalEl.textContent = "0";
+          return;
+        }
+        const docs = [];
+        snap.forEach(d => docs.push({ id: d.id, ...d.data() }));
+        docs.sort((a, b) => (b.referralCount || 0) - (a.referralCount || 0));
+        docs.forEach(d => addReferralRow(d.id, d));
+        referralsTotalEl.textContent = String(docs.length);
+      } catch (err) {
+        referralsContainer.innerHTML = `<p class="text-sm" style="color:var(--cube-red)">Error loading referrals: ${err.message}</p>`;
+      }
+    }
+
+    document.getElementById("refresh-referrals-btn").addEventListener("click", () => loadReferrals());
+  </script>
+</body>
+</html>
