@@ -118,6 +118,13 @@
           <div id="poster-preview" class="mt-3"></div>
         </div>
 
+        <div>
+          <label class="block text-sm font-mono mb-1" style="color:var(--ink-muted);">Sponsors (is competition ke liye — optional)</label>
+          <div id="sponsors-rows" class="space-y-3"></div>
+          <button id="add-sponsor-btn" type="button" class="w-full py-2 rounded-lg border border-white/15 font-mono text-sm mt-2" style="color:var(--ink-muted);">+ Add Sponsor</button>
+          <p class="text-xs mt-2" style="color:var(--ink-muted);">Koi sponsor add nahi karoge to homepage par sponsors wala section bilkul nahi dikhega — sirf "Save Changes" dabane se ye is competition ke saath save/update ho jayenge. Status "No Upcoming Competition" hote hi ye bhi apne aap hide ho jayenge.</p>
+        </div>
+
         <button id="save-btn" class="btn-primary w-full py-3 rounded-lg mt-2">Save Changes</button>
         <p id="save-msg" class="text-sm hidden"></p>
       </div>
@@ -287,6 +294,7 @@
         loadReviews();
         loadFaq();
         loadHallOfFame();
+        loadSponsors();
         loadReferrals();
       } else {
         document.getElementById("pin-error").classList.remove("hidden");
@@ -314,6 +322,32 @@
     }
 
     document.getElementById("add-event-btn").addEventListener("click", () => addEventRow());
+
+    // ============================================
+    // Sponsors (tied to this upcoming competition only)
+    // ============================================
+    const sponsorsContainer = document.getElementById("sponsors-rows");
+
+    function addSponsorRow(name = "", logoUrl = "") {
+      const rowDiv = document.createElement("div");
+      rowDiv.className = "space-y-2 pb-3 border-b border-white/5";
+      rowDiv.innerHTML = `
+        <div class="grid md:grid-cols-2 gap-2 items-start">
+          <input type="text" class="field w-full rounded-lg px-3 py-2 text-sm sponsor-name" placeholder="Sponsor Name" value="${name}">
+          <div>
+            <input type="file" accept="image/*" class="field w-full rounded-lg px-3 py-2 text-sm sponsor-logo-file">
+            <p class="text-xs mt-1" style="color:var(--ink-muted);">Naya logo upload karo (blank chhodo agar purana hi rakhna hai)</p>
+          </div>
+        </div>
+        <div class="sponsor-logo-preview">${logoUrl ? `<img src="${logoUrl}" class="h-12 rounded bg-white/5 p-1 mt-1">` : ""}</div>
+        <button type="button" class="remove-sponsor-btn text-sm py-1 px-3 rounded-lg" style="color:var(--cube-red); border:1px solid rgba(255,255,255,0.1);">Remove</button>
+      `;
+      rowDiv.dataset.logoUrl = logoUrl;
+      rowDiv.querySelector(".remove-sponsor-btn").addEventListener("click", () => rowDiv.remove());
+      sponsorsContainer.appendChild(rowDiv);
+    }
+
+    document.getElementById("add-sponsor-btn").addEventListener("click", () => addSponsorRow());
 
     async function loadCurrentData() {
       const snap = await getDoc(doc(db, "site", "upcomingCompetition"));
@@ -343,6 +377,11 @@
         } else {
           addEventRow();
         }
+
+        sponsorsContainer.innerHTML = "";
+        if (d.sponsors && d.sponsors.length > 0) {
+          d.sponsors.forEach(s => addSponsorRow(s.name, s.logoUrl));
+        }
       } else {
         addEventRow();
       }
@@ -366,6 +405,18 @@
           posterUrl = await fileToCompressedBase64(file, 900, 0.7);
         }
 
+        const sponsors = [];
+        for (const rowDiv of Array.from(sponsorsContainer.children)) {
+          const name = rowDiv.querySelector(".sponsor-name").value;
+          if (name.trim() === "") continue;
+          const logoFile = rowDiv.querySelector(".sponsor-logo-file").files[0];
+          let logoUrl = rowDiv.dataset.logoUrl || "";
+          if (logoFile) {
+            logoUrl = await fileToCompressedBase64(logoFile, 400, 0.8);
+          }
+          sponsors.push({ name: name, logoUrl: logoUrl });
+        }
+
         await setDoc(doc(db, "site", "upcomingCompetition"), {
           status: document.getElementById("status").value,
           title: document.getElementById("title").value,
@@ -378,6 +429,7 @@
           regLink: document.getElementById("reglink").value,
           details: document.getElementById("details").value,
           posterUrl: posterUrl,
+          sponsors: sponsors,
           updatedAt: new Date().toISOString()
         });
 
