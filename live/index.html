@@ -41,20 +41,32 @@
   #live-results-badge.show{ display:inline-block; }
   #last-updated{ font-family:'JetBrains Mono', monospace; font-size:0.75rem; color:var(--ink-muted); }
 
-  #live-event-tabs{ display:flex; flex-wrap:wrap; gap:8px; margin-bottom:16px; }
+  #live-event-tabs{ display:flex; flex-wrap:wrap; gap:8px; margin-bottom:12px; }
   .live-tab-btn{ font-family:'JetBrains Mono', monospace; font-size:0.85rem; padding:8px 16px; border-radius:9999px; border:1px solid rgba(255,255,255,0.1); background:var(--bg-surface); color:var(--ink-muted); cursor:pointer; transition:background .2s ease, color .2s ease; }
   .live-tab-btn.active{ background:var(--cube-red); color:#fff; border-color:var(--cube-red); }
+
+  #live-round-tabs{ display:none; flex-wrap:wrap; gap:8px; margin-bottom:16px; }
+  .live-round-btn{ font-family:'JetBrains Mono', monospace; font-size:0.78rem; padding:6px 14px; border-radius:9999px; border:1px solid rgba(255,255,255,0.12); background:transparent; color:var(--ink-muted); cursor:pointer; transition:background .2s ease, color .2s ease; }
+  .live-round-btn.active{ background:var(--cube-blue); color:#fff; border-color:var(--cube-blue); }
 
   #live-results-wrap{ background:var(--bg-surface); border:1px solid rgba(255,255,255,0.06); border-radius:16px; overflow:hidden; box-shadow:0 18px 35px rgba(0,0,0,0.25); }
   .live-row{ display:flex; align-items:center; justify-content:space-between; padding:16px 20px; border-bottom:1px solid rgba(255,255,255,0.05); }
   .live-row:last-child{ border-bottom:none; }
   .live-row.top3{ background:rgba(255,255,255,0.03); }
-  .rank{ font-family:'JetBrains Mono', monospace; width:32px; text-align:center; color:var(--ink-muted); }
+  .live-row.advancing-yellow{ background:rgba(242,183,5,0.10); }
+  .live-row.advancing-yellow .rank{ border-left:3px solid var(--cube-yellow); }
+  .live-row.advancing-green{ background:rgba(34,163,92,0.12); }
+  .live-row.advancing-green .rank{ border-left:3px solid var(--cube-green); }
+  .rank{ font-family:'JetBrains Mono', monospace; width:32px; text-align:center; color:var(--ink-muted); padding-left:6px; margin-left:-6px; border-left:3px solid transparent; }
   .rank.medal{ font-size:1.25rem; }
   .name{ font-weight:600; margin-left:14px; }
-  .left-part{ display:flex; align-items:center; }
-  .time{ font-family:'JetBrains Mono', monospace; font-weight:700; font-size:1.1rem; color:var(--cube-yellow); }
+  .left-part{ display:flex; align-items:center; flex-wrap:wrap; row-gap:4px; }
+  .time{ font-family:'JetBrains Mono', monospace; font-weight:700; font-size:1.1rem; color:var(--cube-yellow); white-space:nowrap; }
   .empty-state{ padding:40px 20px; text-align:center; color:var(--ink-muted); }
+
+  .advance-tag{ font-family:'JetBrains Mono', monospace; font-size:0.62rem; padding:3px 9px; border-radius:9999px; margin-left:10px; text-transform:uppercase; letter-spacing:0.06em; }
+  .advance-tag-yellow{ background:rgba(242,183,5,0.18); color:var(--cube-yellow); }
+  .advance-tag-green{ background:rgba(34,163,92,0.2); color:var(--cube-green); }
 
   footer{ text-align:center; padding:24px; font-family:'JetBrains Mono', monospace; font-size:0.7rem; color:var(--ink-muted); border-top:1px solid rgba(255,255,255,0.06); }
 </style>
@@ -80,6 +92,7 @@
   </div>
 
   <div id="live-event-tabs"></div>
+  <div id="live-round-tabs"></div>
 
   <div id="live-results-wrap">
     <p class="empty-state">Waiting for results…</p>
@@ -96,32 +109,95 @@
   const liveApp = initializeApp(firebaseConfig, "liveResultsPageApp");
   const liveDb = getFirestore(liveApp);
   const tabsEl = document.getElementById("live-event-tabs");
+  const roundTabsEl = document.getElementById("live-round-tabs");
   const liveWrap = document.getElementById("live-results-wrap");
   const liveBadgeEl = document.getElementById("live-results-badge");
   const lastUpdatedEl = document.getElementById("last-updated");
 
   let activeEventIdx = 0;
+  let activeRoundIdx = 0;
 
-  function renderEvent(events) {
-    if (activeEventIdx >= events.length) activeEventIdx = 0;
-    const ev = events[activeEventIdx];
-    const sorted = [...(ev.rows || [])].sort((a, b) => (a.timeMs ?? Infinity) - (b.timeMs ?? Infinity));
+  // Decide who's highlighted yellow/green for a given round.
+  // Finals-type rounds -> top 3. Everything else -> top 8.
+  // Yellow = provisional (not everyone in this round has a time yet).
+  // Green  = confirmed (every participant in this round has a time).
+  function computeHighlights(rows, roundName) {
+    const isFinal = /final/i.test(roundName || "");
+    const cutoff = isFinal ? 3 : 8;
+    const sorted = [...(rows || [])].sort((a, b) => (a.timeMs ?? Infinity) - (b.timeMs ?? Infinity));
+    const hasAnyTime = sorted.some(r => r.timeMs !== null && r.timeMs !== undefined);
+    const allHaveTimes = sorted.length > 0 && sorted.every(r => r.timeMs !== null && r.timeMs !== undefined);
+    return sorted.map((r, i) => {
+      let highlight = null;
+      if (hasAnyTime && i < cutoff && r.timeMs !== null && r.timeMs !== undefined) {
+        highlight = allHaveTimes ? "green" : "yellow";
+      }
+      return { ...r, highlight };
+    });
+  }
+
+  function renderRound(event) {
+    const rounds = event.rounds || [];
+    if (rounds.length === 0) {
+      liveWrap.innerHTML = `<p class="empty-state">Waiting for results…</p>`;
+      return;
+    }
+    if (activeRoundIdx >= rounds.length) activeRoundIdx = 0;
+    const round = rounds[activeRoundIdx];
+    const rows = computeHighlights(round.rows, round.name);
     const medals = ["🥇", "🥈", "🥉"];
 
-    if (sorted.length === 0) {
+    if (rows.length === 0) {
       liveWrap.innerHTML = `<p class="empty-state">Waiting for results…</p>`;
       return;
     }
 
-    liveWrap.innerHTML = sorted.map((r, i) => `
-      <div class="live-row ${i < 3 ? 'top3' : ''}">
+    liveWrap.innerHTML = rows.map((r, i) => {
+      const highlightClass = r.highlight === "green" ? "advancing-green" : (r.highlight === "yellow" ? "advancing-yellow" : "");
+      const tag = r.highlight === "green"
+        ? '<span class="advance-tag advance-tag-green">Advancing ✓</span>'
+        : (r.highlight === "yellow" ? '<span class="advance-tag advance-tag-yellow">Next Round</span>' : "");
+      return `
+      <div class="live-row ${i < 3 ? 'top3' : ''} ${highlightClass}">
         <div class="left-part">
           <span class="rank ${i < 3 ? 'medal' : ''}">${medals[i] || (i + 1)}</span>
           <span class="name">${r.name || ""}</span>
+          ${tag}
         </div>
         <span class="time">${r.timeDisplay || ""}</span>
       </div>
-    `).join("");
+    `;
+    }).join("");
+  }
+
+  function renderRoundTabs(event) {
+    const rounds = event.rounds || [];
+    if (rounds.length <= 1) {
+      roundTabsEl.innerHTML = "";
+      roundTabsEl.style.display = "none";
+      return;
+    }
+    roundTabsEl.style.display = "flex";
+    roundTabsEl.innerHTML = rounds.map((rd, i) => `
+      <button type="button" data-idx="${i}" class="live-round-btn ${i === activeRoundIdx ? 'active' : ''}">
+        ${rd.name || "Round"}
+      </button>`).join("");
+
+    roundTabsEl.querySelectorAll(".live-round-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        activeRoundIdx = parseInt(btn.dataset.idx, 10);
+        renderRoundTabs(event);
+        renderRound(event);
+      });
+    });
+  }
+
+  function renderEvent(events) {
+    if (activeEventIdx >= events.length) activeEventIdx = 0;
+    const ev = events[activeEventIdx];
+    activeRoundIdx = 0;
+    renderRoundTabs(ev);
+    renderRound(ev);
   }
 
   function renderTabs(events) {
@@ -139,16 +215,23 @@
     });
   }
 
+  function showNotLive() {
+    tabsEl.innerHTML = "";
+    roundTabsEl.innerHTML = "";
+    roundTabsEl.style.display = "none";
+    liveWrap.innerHTML = `<p class="empty-state">Results aren't live yet. Check back soon!</p>`;
+    liveBadgeEl.classList.remove("show");
+    lastUpdatedEl.textContent = "";
+  }
+
   onSnapshot(doc(liveDb, "site", "liveResults"), (snap) => {
-    if (!snap.exists() || !snap.data().events || snap.data().events.length === 0) {
-      tabsEl.innerHTML = "";
-      liveWrap.innerHTML = `<p class="empty-state">Waiting for results…</p>`;
-      liveBadgeEl.classList.remove("show");
-      lastUpdatedEl.textContent = "";
+    // Rankings/medals only ever render when the organizer has flipped "Mark as LIVE" on.
+    if (!snap.exists() || !snap.data().isLive || !snap.data().events || snap.data().events.length === 0) {
+      showNotLive();
       return;
     }
     const d = snap.data();
-    liveBadgeEl.classList.toggle("show", !!d.isLive);
+    liveBadgeEl.classList.add("show");
     renderTabs(d.events);
     renderEvent(d.events);
     lastUpdatedEl.textContent = "Updated: " + new Date().toLocaleTimeString();

@@ -19,6 +19,8 @@
   .btn-primary:hover{ filter:brightness(1.08); }
   .field{ background:var(--bg-base); border:1px solid rgba(255,255,255,0.12); color:var(--ink); }
   .field:focus{ outline:none; border-color:var(--cube-blue); }
+  .live-event-block{ background:rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.1); border-radius:14px; padding:16px; }
+  .live-round-block{ background:rgba(255,255,255,0.015); border:1px dashed rgba(255,255,255,0.15); border-radius:12px; padding:14px; }
 </style>
 </head>
 <body class="min-h-screen">
@@ -48,7 +50,7 @@
 
       <div class="surface-card rounded-2xl p-8 shadow-xl space-y-4">
         <label class="flex items-center gap-2 text-sm font-mono" style="color:var(--ink-muted);">
-          <input type="checkbox" id="live-results-live"> Mark as LIVE (shows a red LIVE badge, updates instantly on the live page)
+          <input type="checkbox" id="live-results-live"> Mark as LIVE (rankings/medals on the live page only show when this is ON)
         </label>
 
         <div id="live-events" class="space-y-6"></div>
@@ -56,7 +58,12 @@
         <button id="add-live-event-btn" type="button" class="w-full py-2 rounded-lg border border-white/15 font-mono text-sm" style="color:var(--ink-muted);">+ Add Event (e.g. 3x3, 2x2, Clock)</button>
         <button id="save-live-results-btn" class="btn-primary w-full py-3 rounded-lg mt-2">Save Live Results</button>
         <p id="live-results-save-msg" class="text-sm hidden"></p>
-        <p class="text-xs" style="color:var(--ink-muted);">Har event ke liye alag block hai. Registration close hote hi naam add kar do (time khaali chhod ke). Jaise-jaise session khatam ho, us row mein time daal ke phir se "Save" dabao — us event ke tab par best time apne aap sabse upar chala jayega. Time format: <span class="font-mono">12.34</span> ya <span class="font-mono">1:02.45</span></p>
+        <div class="text-xs space-y-1" style="color:var(--ink-muted);">
+          <p>Har event ke andar multiple <strong>Rounds</strong> bana sakte ho — jaise "Round 1", "Round 2", "Finals". Har round ka apna participant list hoga.</p>
+          <p>Registration close hote hi naam add kar do (time khaali chhod ke). Jaise-jaise session khatam ho, us row mein time daal ke phir se "Save" dabao.</p>
+          <p>Jab tak round ke SABHI participants ka time nahi bhara, tab tak top 8 (round ka naam "Final" ho to top 3) live page par halka <span style="color:var(--cube-yellow);">yellow</span> dikhenge — matlab "next round mein ja rahe hain (provisional)". Jaise hi sabka time bhar doge, wahi top 8/3 <span style="color:var(--cube-green);">green</span> ho jayenge — confirm advancing.</p>
+          <p>Yeh sab sirf tab dikhega jab upar "Mark as LIVE" ON ho. Time format: <span class="font-mono">12.34</span> ya <span class="font-mono">1:02.45</span></p>
+        </div>
       </div>
     </main>
   </div>
@@ -92,7 +99,7 @@
     }
 
     // ============================================
-    // Live Results management (auto-sorted, real-time)
+    // Live Results management (events -> rounds -> rows)
     // ============================================
     const liveEventsContainer = document.getElementById("live-events");
 
@@ -131,27 +138,52 @@
       rowsContainer.appendChild(rowDiv);
     }
 
-    function addLiveEvent(eventName = "", rows = []) {
-      const eventDiv = document.createElement("div");
-      eventDiv.className = "border border-white/10 rounded-xl p-4 space-y-3 live-event-block";
-      eventDiv.innerHTML = `
+    function addLiveRound(roundsContainer, roundName = "", rows = []) {
+      const roundDiv = document.createElement("div");
+      roundDiv.className = "live-round-block space-y-3";
+      roundDiv.innerHTML = `
         <div class="flex items-center gap-2">
-          <input type="text" class="field flex-grow rounded-lg px-3 py-2 text-sm live-event-name" placeholder="Event name e.g. 3x3, 2x2, Clock" value="${eventName}">
-          <button type="button" class="remove-live-event-btn text-sm py-2 px-3 rounded-lg" style="color:var(--cube-red); border:1px solid rgba(255,255,255,0.1);">Remove Event</button>
+          <input type="text" class="field flex-grow rounded-lg px-3 py-2 text-sm live-round-name" placeholder="Round name e.g. Round 1, Finals" value="${roundName}">
+          <button type="button" class="remove-live-round-btn text-sm py-2 px-3 rounded-lg" style="color:var(--cube-red); border:1px solid rgba(255,255,255,0.1);">Remove Round</button>
         </div>
-        <div class="live-event-rows space-y-2"></div>
+        <div class="live-round-rows space-y-2"></div>
         <button type="button" class="add-live-row-btn w-full py-2 rounded-lg border border-white/10 font-mono text-xs" style="color:var(--ink-muted);">+ Add Participant</button>
       `;
 
-      const rowsContainer = eventDiv.querySelector(".live-event-rows");
+      const rowsContainer = roundDiv.querySelector(".live-round-rows");
       if (rows.length > 0) {
         rows.forEach(r => addLiveRow(rowsContainer, r.name, r.timeDisplay === "—" ? "" : (r.timeDisplay || "")));
       } else {
         addLiveRow(rowsContainer);
       }
 
+      roundDiv.querySelector(".remove-live-round-btn").addEventListener("click", () => roundDiv.remove());
+      roundDiv.querySelector(".add-live-row-btn").addEventListener("click", () => addLiveRow(rowsContainer));
+
+      roundsContainer.appendChild(roundDiv);
+    }
+
+    function addLiveEvent(eventName = "", rounds = []) {
+      const eventDiv = document.createElement("div");
+      eventDiv.className = "live-event-block space-y-4";
+      eventDiv.innerHTML = `
+        <div class="flex items-center gap-2">
+          <input type="text" class="field flex-grow rounded-lg px-3 py-2 text-sm live-event-name font-semibold" placeholder="Event name e.g. 3x3, 2x2, Clock" value="${eventName}">
+          <button type="button" class="remove-live-event-btn text-sm py-2 px-3 rounded-lg" style="color:var(--cube-red); border:1px solid rgba(255,255,255,0.1);">Remove Event</button>
+        </div>
+        <div class="live-event-rounds space-y-4"></div>
+        <button type="button" class="add-live-round-btn w-full py-2 rounded-lg border border-white/15 font-mono text-xs" style="color:var(--ink-muted);">+ Add Round (e.g. Round 1, Finals)</button>
+      `;
+
+      const roundsContainer = eventDiv.querySelector(".live-event-rounds");
+      if (rounds.length > 0) {
+        rounds.forEach(rd => addLiveRound(roundsContainer, rd.name, rd.rows));
+      } else {
+        addLiveRound(roundsContainer, "Round 1");
+      }
+
       eventDiv.querySelector(".remove-live-event-btn").addEventListener("click", () => eventDiv.remove());
-      eventDiv.querySelector(".add-live-row-btn").addEventListener("click", () => addLiveRow(rowsContainer));
+      eventDiv.querySelector(".add-live-round-btn").addEventListener("click", () => addLiveRound(roundsContainer));
 
       liveEventsContainer.appendChild(eventDiv);
     }
@@ -164,8 +196,12 @@
       if (snap.exists() && snap.data().events && snap.data().events.length > 0) {
         document.getElementById("live-results-live").checked = !!snap.data().isLive;
         snap.data().events.forEach(ev => {
-          const sorted = [...(ev.rows || [])].sort((a, b) => (a.timeMs ?? Infinity) - (b.timeMs ?? Infinity));
-          addLiveEvent(ev.name, sorted);
+          const rounds = (ev.rounds && ev.rounds.length > 0) ? ev.rounds : [{ name: "Round 1", rows: ev.rows || [] }];
+          const roundsWithSortedRows = rounds.map(rd => ({
+            name: rd.name,
+            rows: [...(rd.rows || [])].sort((a, b) => (a.timeMs ?? Infinity) - (b.timeMs ?? Infinity))
+          }));
+          addLiveEvent(ev.name, roundsWithSortedRows);
         });
       } else {
         addLiveEvent();
@@ -178,15 +214,21 @@
 
       const events = Array.from(liveEventsContainer.children).map(eventDiv => {
         const name = eventDiv.querySelector(".live-event-name").value.trim();
-        const rows = Array.from(eventDiv.querySelectorAll(".live-event-rows > div")).map(rowDiv => {
-          const rname = rowDiv.querySelector(".live-row-name").value.trim();
-          const timeStr = rowDiv.querySelector(".live-row-time").value.trim();
-          if (!timeStr) return { name: rname, timeMs: null, timeDisplay: "—" }; // name added, time not in yet
-          const timeMs = parseTimeToMs(timeStr);
-          return { name: rname, timeMs, timeDisplay: timeMs !== null ? formatMs(timeMs) : timeStr };
-        }).filter(r => r.name !== "");
-        return { name, rows };
-      }).filter(ev => ev.name !== "");
+        const roundsContainer = eventDiv.querySelector(".live-event-rounds");
+        const rounds = Array.from(roundsContainer.children).map(roundDiv => {
+          const roundName = roundDiv.querySelector(".live-round-name").value.trim();
+          const rowsContainer = roundDiv.querySelector(".live-round-rows");
+          const rows = Array.from(rowsContainer.children).map(rowDiv => {
+            const rname = rowDiv.querySelector(".live-row-name").value.trim();
+            const timeStr = rowDiv.querySelector(".live-row-time").value.trim();
+            if (!timeStr) return { name: rname, timeMs: null, timeDisplay: "—" }; // name added, time not in yet
+            const timeMs = parseTimeToMs(timeStr);
+            return { name: rname, timeMs, timeDisplay: timeMs !== null ? formatMs(timeMs) : timeStr };
+          }).filter(r => r.name !== "");
+          return { name: roundName, rows };
+        }).filter(rd => rd.name !== "");
+        return { name, rounds };
+      }).filter(ev => ev.name !== "" && ev.rounds.length > 0);
 
       try {
         await setDoc(doc(db, "site", "liveResults"), {
