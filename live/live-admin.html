@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Manage Live Results - Twist & Turn</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg-base:#101218; --bg-surface:#181B24; --ink:#F2F1ED; --ink-muted:#9297A6;
+    --cube-red:#E8412B; --cube-yellow:#F2B705; --cube-blue:#2F6FE0; --cube-green:#22A35C;
+  }
+  body{ font-family:'Inter', sans-serif; background:var(--bg-base); color:var(--ink); }
+  .font-display{ font-family:'Space Grotesk', sans-serif; }
+  .font-mono{ font-family:'JetBrains Mono', monospace; }
+  .surface-card{ background:var(--bg-surface); border:1px solid rgba(255,255,255,0.06); }
+  .btn-primary{ background:var(--cube-red); color:#fff; font-family:'Space Grotesk',sans-serif; font-weight:600; }
+  .btn-primary:hover{ filter:brightness(1.08); }
+  .field{ background:var(--bg-base); border:1px solid rgba(255,255,255,0.12); color:var(--ink); }
+  .field:focus{ outline:none; border-color:var(--cube-blue); }
+</style>
+</head>
+<body class="min-h-screen">
+
+  <!-- Password gate -->
+  <div id="gate" class="min-h-screen flex items-center justify-center px-4">
+    <div class="w-full max-w-sm surface-card rounded-2xl p-8 shadow-2xl text-center">
+      <h1 class="font-display text-xl font-bold mb-4">Live Results — Organizer Access</h1>
+      <input type="password" id="pin-input" class="field w-full rounded-lg px-4 py-3 mb-3 text-center font-mono" placeholder="Enter Password">
+      <button id="pin-submit" class="btn-primary w-full py-3 rounded-lg">Enter</button>
+      <p id="pin-error" class="text-sm mt-3 hidden" style="color:var(--cube-red);">Wrong password, try again.</p>
+    </div>
+  </div>
+
+  <!-- Actual panel (hidden until password correct) -->
+  <div id="panel" class="hidden">
+    <nav class="sticky top-0 z-50 border-b border-white/5" style="background:rgba(16,18,24,0.9);">
+      <div class="max-w-3xl mx-auto px-4 h-16 flex items-center justify-between">
+        <span class="font-display font-bold text-xl cursor-pointer" onclick="window.location.href='../index.html'">Twist &amp; Turn — Live Admin</span>
+        <a href="index.html" target="_blank" class="font-mono text-xs uppercase tracking-wider" style="color:var(--ink-muted);">View Live Page ↗</a>
+      </div>
+    </nav>
+
+    <main class="max-w-3xl mx-auto px-4 py-16">
+      <p class="font-mono text-xs tracking-widest uppercase mb-2" style="color:var(--ink-muted);">Right Now</p>
+      <h1 class="font-display text-3xl font-bold mb-8">Manage Live Results</h1>
+
+      <div class="surface-card rounded-2xl p-8 shadow-xl space-y-4">
+        <label class="flex items-center gap-2 text-sm font-mono" style="color:var(--ink-muted);">
+          <input type="checkbox" id="live-results-live"> Mark as LIVE (shows a red LIVE badge, updates instantly on the live page)
+        </label>
+
+        <div id="live-events" class="space-y-6"></div>
+
+        <button id="add-live-event-btn" type="button" class="w-full py-2 rounded-lg border border-white/15 font-mono text-sm" style="color:var(--ink-muted);">+ Add Event (e.g. 3x3, 2x2, Clock)</button>
+        <button id="save-live-results-btn" class="btn-primary w-full py-3 rounded-lg mt-2">Save Live Results</button>
+        <p id="live-results-save-msg" class="text-sm hidden"></p>
+        <p class="text-xs" style="color:var(--ink-muted);">Har event ke liye alag block hai. Registration close hote hi naam add kar do (time khaali chhod ke). Jaise-jaise session khatam ho, us row mein time daal ke phir se "Save" dabao — us event ke tab par best time apne aap sabse upar chala jayega. Time format: <span class="font-mono">12.34</span> ya <span class="font-mono">1:02.45</span></p>
+      </div>
+    </main>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    import { firebaseConfig } from "../firebase-config.js";
+
+    // ============================================
+    // CHANGE THIS PASSWORD to whatever you want
+    // ============================================
+    const ADMIN_PIN = "T&T2026";
+
+    const app = initializeApp(firebaseConfig, "liveAdminApp");
+    const db = getFirestore(app);
+
+    const gate = document.getElementById("gate");
+    const panel = document.getElementById("panel");
+
+    document.getElementById("pin-submit").addEventListener("click", tryEnter);
+    document.getElementById("pin-input").addEventListener("keydown", (e) => { if (e.key === "Enter") tryEnter(); });
+
+    function tryEnter() {
+      const val = document.getElementById("pin-input").value;
+      if (val === ADMIN_PIN) {
+        gate.classList.add("hidden");
+        panel.classList.remove("hidden");
+        loadLiveResults();
+      } else {
+        document.getElementById("pin-error").classList.remove("hidden");
+      }
+    }
+
+    // ============================================
+    // Live Results management (auto-sorted, real-time)
+    // ============================================
+    const liveEventsContainer = document.getElementById("live-events");
+
+    // Accepts "12.34" or "1:02.45" style times, returns milliseconds (for sorting)
+    function parseTimeToMs(str) {
+      str = (str || "").trim();
+      if (/^\d+:\d{1,2}(\.\d+)?$/.test(str)) {
+        const [m, s] = str.split(":");
+        return Math.round((parseInt(m, 10) * 60 + parseFloat(s)) * 1000);
+      }
+      if (/^\d+(\.\d+)?$/.test(str)) {
+        return Math.round(parseFloat(str) * 1000);
+      }
+      return null;
+    }
+
+    function formatMs(ms) {
+      const totalSec = ms / 1000;
+      if (totalSec >= 60) {
+        const m = Math.floor(totalSec / 60);
+        const s = (totalSec % 60).toFixed(2).padStart(5, "0");
+        return `${m}:${s}`;
+      }
+      return totalSec.toFixed(2);
+    }
+
+    function addLiveRow(rowsContainer, name = "", timeStr = "") {
+      const rowDiv = document.createElement("div");
+      rowDiv.className = "grid grid-cols-4 gap-2 items-center";
+      rowDiv.innerHTML = `
+        <input type="text" class="field rounded-lg px-3 py-2 text-sm live-row-name col-span-2" placeholder="Participant name" value="${name}">
+        <input type="text" class="field rounded-lg px-3 py-2 text-sm live-row-time" placeholder="12.34 or 1:02.45 (leave blank until done)" value="${timeStr}">
+        <button type="button" class="remove-live-row-btn text-sm py-2 rounded-lg" style="color:var(--cube-red); border:1px solid rgba(255,255,255,0.1);">Remove</button>
+      `;
+      rowDiv.querySelector(".remove-live-row-btn").addEventListener("click", () => rowDiv.remove());
+      rowsContainer.appendChild(rowDiv);
+    }
+
+    function addLiveEvent(eventName = "", rows = []) {
+      const eventDiv = document.createElement("div");
+      eventDiv.className = "border border-white/10 rounded-xl p-4 space-y-3 live-event-block";
+      eventDiv.innerHTML = `
+        <div class="flex items-center gap-2">
+          <input type="text" class="field flex-grow rounded-lg px-3 py-2 text-sm live-event-name" placeholder="Event name e.g. 3x3, 2x2, Clock" value="${eventName}">
+          <button type="button" class="remove-live-event-btn text-sm py-2 px-3 rounded-lg" style="color:var(--cube-red); border:1px solid rgba(255,255,255,0.1);">Remove Event</button>
+        </div>
+        <div class="live-event-rows space-y-2"></div>
+        <button type="button" class="add-live-row-btn w-full py-2 rounded-lg border border-white/10 font-mono text-xs" style="color:var(--ink-muted);">+ Add Participant</button>
+      `;
+
+      const rowsContainer = eventDiv.querySelector(".live-event-rows");
+      if (rows.length > 0) {
+        rows.forEach(r => addLiveRow(rowsContainer, r.name, r.timeDisplay === "—" ? "" : (r.timeDisplay || "")));
+      } else {
+        addLiveRow(rowsContainer);
+      }
+
+      eventDiv.querySelector(".remove-live-event-btn").addEventListener("click", () => eventDiv.remove());
+      eventDiv.querySelector(".add-live-row-btn").addEventListener("click", () => addLiveRow(rowsContainer));
+
+      liveEventsContainer.appendChild(eventDiv);
+    }
+
+    document.getElementById("add-live-event-btn").addEventListener("click", () => addLiveEvent());
+
+    async function loadLiveResults() {
+      const snap = await getDoc(doc(db, "site", "liveResults"));
+      liveEventsContainer.innerHTML = "";
+      if (snap.exists() && snap.data().events && snap.data().events.length > 0) {
+        document.getElementById("live-results-live").checked = !!snap.data().isLive;
+        snap.data().events.forEach(ev => {
+          const sorted = [...(ev.rows || [])].sort((a, b) => (a.timeMs ?? Infinity) - (b.timeMs ?? Infinity));
+          addLiveEvent(ev.name, sorted);
+        });
+      } else {
+        addLiveEvent();
+      }
+    }
+
+    document.getElementById("save-live-results-btn").addEventListener("click", async () => {
+      const msg = document.getElementById("live-results-save-msg");
+      msg.classList.add("hidden");
+
+      const events = Array.from(liveEventsContainer.children).map(eventDiv => {
+        const name = eventDiv.querySelector(".live-event-name").value.trim();
+        const rows = Array.from(eventDiv.querySelectorAll(".live-event-rows > div")).map(rowDiv => {
+          const rname = rowDiv.querySelector(".live-row-name").value.trim();
+          const timeStr = rowDiv.querySelector(".live-row-time").value.trim();
+          if (!timeStr) return { name: rname, timeMs: null, timeDisplay: "—" }; // name added, time not in yet
+          const timeMs = parseTimeToMs(timeStr);
+          return { name: rname, timeMs, timeDisplay: timeMs !== null ? formatMs(timeMs) : timeStr };
+        }).filter(r => r.name !== "");
+        return { name, rows };
+      }).filter(ev => ev.name !== "");
+
+      try {
+        await setDoc(doc(db, "site", "liveResults"), {
+          isLive: document.getElementById("live-results-live").checked,
+          events: events,
+          updatedAt: new Date().toISOString()
+        });
+        msg.textContent = "Saved! Live page updates instantly.";
+        msg.style.color = "var(--cube-green)";
+        msg.classList.remove("hidden");
+      } catch (err) {
+        msg.textContent = "Error: " + err.message;
+        msg.style.color = "var(--cube-red)";
+        msg.classList.remove("hidden");
+      }
+    });
+  </script>
+
+</body>
+</html>
