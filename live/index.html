@@ -122,11 +122,13 @@
   // Yellow = provisional (not everyone in this round has a time yet).
   // Green  = confirmed (every participant in this round has a time).
   // A row "has a result" if it has a numeric time OR a recorded non-time
-  // outcome like DNF/DNS (shown via timeDisplay). Only a row with nothing
-  // entered at all (no timeMs and no timeDisplay) counts as "not yet done".
+  // outcome like DNF/DNS (shown via timeDisplay). The admin panel saves
+  // "—" as a placeholder when a name is added but no time entered yet —
+  // that must NOT count as a result, or the round looks done too early.
   function hasResult(r) {
     if (r.timeMs !== null && r.timeMs !== undefined) return true;
-    return !!(r.timeDisplay && r.timeDisplay.trim());
+    const td = (r.timeDisplay || "").trim();
+    return td !== "" && td !== "—" && td !== "-";
   }
 
   function computeHighlights(rows, roundName) {
@@ -163,15 +165,11 @@
 
     liveWrap.innerHTML = rows.map((r, i) => {
       const highlightClass = r.highlight === "green" ? "advancing-green" : (r.highlight === "yellow" ? "advancing-yellow" : "");
-      const tag = r.highlight === "green"
-        ? '<span class="advance-tag advance-tag-green">Advancing ✓</span>'
-        : (r.highlight === "yellow" ? '<span class="advance-tag advance-tag-yellow">Next Round</span>' : "");
       return `
       <div class="live-row ${i < 3 ? 'top3' : ''} ${highlightClass}">
         <div class="left-part">
           <span class="rank ${i < 3 ? 'medal' : ''}">${medals[i] || (i + 1)}</span>
           <span class="name">${r.name || ""}</span>
-          ${tag}
         </div>
         <span class="time">${r.timeDisplay || ""}</span>
       </div>
