@@ -121,16 +121,25 @@
   // Finals-type rounds -> top 3. Everything else -> top 8.
   // Yellow = provisional (not everyone in this round has a time yet).
   // Green  = confirmed (every participant in this round has a time).
+  // A row "has a result" if it has a numeric time OR a recorded non-time
+  // outcome like DNF/DNS (shown via timeDisplay). Only a row with nothing
+  // entered at all (no timeMs and no timeDisplay) counts as "not yet done".
+  function hasResult(r) {
+    if (r.timeMs !== null && r.timeMs !== undefined) return true;
+    return !!(r.timeDisplay && r.timeDisplay.trim());
+  }
+
   function computeHighlights(rows, roundName) {
     const isFinal = /final/i.test(roundName || "");
     const cutoff = isFinal ? 3 : 8;
+    // DNF/DNS (no timeMs) sort to the bottom, same as before.
     const sorted = [...(rows || [])].sort((a, b) => (a.timeMs ?? Infinity) - (b.timeMs ?? Infinity));
-    const hasAnyTime = sorted.some(r => r.timeMs !== null && r.timeMs !== undefined);
-    const allHaveTimes = sorted.length > 0 && sorted.every(r => r.timeMs !== null && r.timeMs !== undefined);
+    const hasAnyResult = sorted.some(hasResult);
+    const allHaveResults = sorted.length > 0 && sorted.every(hasResult);
     return sorted.map((r, i) => {
       let highlight = null;
-      if (hasAnyTime && i < cutoff && r.timeMs !== null && r.timeMs !== undefined) {
-        highlight = allHaveTimes ? "green" : "yellow";
+      if (hasAnyResult && i < cutoff && hasResult(r)) {
+        highlight = allHaveResults ? "green" : "yellow";
       }
       return { ...r, highlight };
     });
