@@ -248,9 +248,10 @@
         </div>
         <p class="text-xs" style="color:var(--ink-muted);">Naya event add karne se ye Records/Rankings page par event tabs mein turant dikhne lagega (jab tak koi result save nahi hota, wo "no record yet" dikhayega).</p>
 
-        <div class="flex items-center gap-3 pt-2">
+        <div class="flex items-center gap-3 pt-2 flex-wrap">
           <button type="button" data-cat="single" class="rec-cat-btn btn-primary px-5 py-2 rounded-lg text-sm">Single</button>
           <button type="button" data-cat="ao5" class="rec-cat-btn px-5 py-2 rounded-lg text-sm border border-white/15" style="color:var(--ink-muted);">Average of 5 (Ao5)</button>
+          <button id="rec-copy-names-btn" type="button" class="px-4 py-2 rounded-lg text-sm border border-white/15 ml-auto" style="color:var(--cube-blue);">📋 Copy Names from <span id="rec-copy-names-src">Ao5</span></button>
         </div>
 
         <div>
@@ -999,11 +1000,14 @@
     let recEventCache = {};  // id -> full doc data { label, order, single, ao5 }
     let recActiveEvent = null;
     let recActiveCat = "single";
+    let recPendingByCat = { single: null, ao5: null }; // in-memory unsaved edits for the current event, per category
 
     const recEventSelect = document.getElementById("rec-event-select");
     const recRowsContainer = document.getElementById("rec-rows");
     const recSaveMsg = document.getElementById("rec-save-msg");
     const recCatBtns = document.querySelectorAll(".rec-cat-btn");
+    const recCopyNamesBtn = document.getElementById("rec-copy-names-btn");
+    const recCopyNamesSrcEl = document.getElementById("rec-copy-names-src");
 
     function recParseTimeToMs(str) {
       if (!str) return Infinity;
@@ -1015,6 +1019,9 @@
       const secs = parseFloat(m[2]);
       return Math.round((mins * 60 + secs) * 1000);
     }
+
+    function otherCat(cat) { return cat === "ao5" ? "single" : "ao5"; }
+    function catLabel(cat) { return cat === "ao5" ? "Average of 5 (Ao5)" : "Single"; }
 
     function setActiveCatButtonStyles() {
       recCatBtns.forEach(b => {
@@ -1028,6 +1035,7 @@
           b.style.color = "var(--ink-muted)";
         }
       });
+      recCopyNamesSrcEl.textContent = catLabel(otherCat(recActiveCat));
     }
 
     function addRecRow(name = "", time = "", competition = "", date = "") {
@@ -1046,16 +1054,31 @@
 
     document.getElementById("rec-add-row-btn").addEventListener("click", () => addRecRow());
 
-    function renderRecRows() {
+    function getRowsFromDOM() {
+      return Array.from(recRowsContainer.children).map(rowDiv => ({
+        name: rowDiv.querySelector(".rec-name").value,
+        time: rowDiv.querySelector(".rec-time").value,
+        competition: rowDiv.querySelector(".rec-comp").value,
+        date: rowDiv.querySelector(".rec-date").value
+      }));
+    }
+
+    function renderRowsFromList(list) {
       recRowsContainer.innerHTML = "";
       recSaveMsg.classList.add("hidden");
-      const data = recEventCache[recActiveEvent] || {};
-      const list = Array.isArray(data[recActiveCat]) ? data[recActiveCat].slice() : [];
       list
         .slice()
         .sort((a, b) => (a.timeMs ?? recParseTimeToMs(a.time)) - (b.timeMs ?? recParseTimeToMs(b.time)))
         .forEach(r => addRecRow(r.name, r.time, r.competition, r.date));
       if (list.length === 0) addRecRow();
+    }
+
+    function renderRecRows() {
+      const pending = recPendingByCat[recActiveCat];
+      if (pending) { renderRowsFromList(pending); return; }
+      const data = recEventCache[recActiveEvent] || {};
+      const list = Array.isArray(data[recActiveCat]) ? data[recActiveCat] : [];
+      renderRowsFromList(list);
     }
 
     function populateRecEventSelect() {
@@ -1096,18 +1119,62 @@
     }
 
     recEventSelect.addEventListener("change", () => {
+      recPendingByCat = { single: null, ao5: null }; // switching events — start fresh from saved data
       recActiveEvent = recEventSelect.value;
       renderRecRows();
     });
 
     recCatBtns.forEach(btn => {
       btn.addEventListener("click", () => {
+        if (btn.dataset.cat === recActiveCat) return;
+        recPendingByCat[recActiveCat] = getRowsFromDOM(); // keep whatever's typed so far
         recActiveCat = btn.dataset.cat;
         setActiveCatButtonStyles();
         renderRecRows();
       });
     });
     setActiveCatButtonStyles();
+
+    // Copy Names: pulls names from the other category (unsaved edits first,
+    // then saved data) into the current one, so the same cuber list doesn't
+    // need retyping — only time/competition/date need filling in.
+    recCopyNamesBtn.addEventListener("click", () => {
+      const src = otherCat(recActiveCat);
+      let sourceList = recPendingByCat[src];
+      if (!sourceList) {
+        const data = recEventCache[recActiveEvent] || {};
+        sourceList = Array.isArray(data[src]) ? data[src] : [];
+      }
+      const sourceNames = sourceList.map(r => (r.name || "").trim()).filter(n => n !== "");
+      if (sourceNames.length === 0) {
+        alert(`${catLabel(src)} mein abhi koi naam nahi hai copy karne ke liye.`);
+        return;
+      }
+
+      const existingRows = Array.from(recRowsContainer.children);
+      const existingNames = new Set(
+        existingRows.map(r => r.querySelector(".rec-name").value.trim().toLowerCase()).filter(n => n !== "")
+      );
+
+      // Remove a single leftover blank starter row before appending copied names
+      if (existingRows.length === 1) {
+        const r = existingRows[0];
+        const allBlank = [".rec-name", ".rec-time", ".rec-comp", ".rec-date"]
+          .every(sel => r.querySelector(sel).value.trim() === "");
+        if (allBlank) r.remove();
+      }
+
+      let added = 0;
+      sourceNames.forEach(name => {
+        if (!existingNames.has(name.toLowerCase())) {
+          addRecRow(name, "", "", "");
+          existingNames.add(name.toLowerCase());
+          added++;
+        }
+      });
+
+      if (added === 0) alert("Saare naam pehle se maujood hain.");
+    });
 
     document.getElementById("rec-add-event-btn").addEventListener("click", () => {
       const label = prompt("New event name (e.g. Megaminx, Square-1):");
@@ -1119,6 +1186,7 @@
         recEventsMeta[slug] = { label: label.trim(), order: maxOrder + 1 };
         recEventCache[slug] = { label: label.trim(), order: maxOrder + 1, single: [], ao5: [] };
       }
+      recPendingByCat = { single: null, ao5: null };
       recActiveEvent = slug;
       populateRecEventSelect();
       renderRecRows();
@@ -1148,6 +1216,7 @@
       try {
         await setDoc(doc(db, "ttRecords", recActiveEvent), payload, { merge: true });
         recEventCache[recActiveEvent] = { ...(recEventCache[recActiveEvent] || {}), ...payload };
+        recPendingByCat[recActiveCat] = null;
         recSaveMsg.textContent = "Saved! Records & Rankings page updates instantly.";
         recSaveMsg.style.color = "var(--cube-green)";
         recSaveMsg.classList.remove("hidden");
