@@ -33,5 +33,14 @@ service cloud.firestore {
       allow write: if request.auth != null
                    && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true;
     }
+
+    // T&T Records & Rankings — one doc per event (3x3, 2x2, pyraminx, clock, fto, ...).
+    // Public site reads records/rankings directly (no auth), and manage.html writes
+    // updates after its own PIN gate — same open-collection pattern this project
+    // already uses for /site, /galleryImages and /referrals.
+    match /ttRecords/{eventId} {
+      allow read: if true;
+      allow write: if true;
+    }
   }
 }

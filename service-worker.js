@@ -5,6 +5,7 @@
 const CACHE_NAME = "tt-cache-v1";
 const APP_SHELL = [
   "./index.html",
+  "./records.html",
   "./manifest.json",
   "./icon-192.png",
   "./icon-512.png",

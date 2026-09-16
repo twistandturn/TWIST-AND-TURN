@@ -234,6 +234,44 @@
         <div id="referrals-rows" class="space-y-4"></div>
       </div>
 
+      <p class="font-mono text-xs tracking-widest uppercase mt-16 mb-2" style="color:var(--ink-muted);">T&amp;T Records &amp; Rankings</p>
+      <h1 class="font-display text-3xl font-bold mb-8">Records Management</h1>
+
+      <div class="surface-card rounded-2xl p-8 shadow-xl space-y-5">
+
+        <div class="grid md:grid-cols-2 gap-4 items-end">
+          <div>
+            <label class="block text-sm font-mono mb-1" style="color:var(--ink-muted);">Event</label>
+            <select id="rec-event-select" class="field w-full rounded-lg px-4 py-3"></select>
+          </div>
+          <button id="rec-add-event-btn" type="button" class="py-3 rounded-lg border border-white/15 font-mono text-sm" style="color:var(--ink-muted);">+ Add New Event</button>
+        </div>
+        <p class="text-xs" style="color:var(--ink-muted);">Naya event add karne se ye Records/Rankings page par event tabs mein turant dikhne lagega (jab tak koi result save nahi hota, wo "no record yet" dikhayega).</p>
+
+        <div class="flex items-center gap-3 pt-2">
+          <button type="button" data-cat="single" class="rec-cat-btn btn-primary px-5 py-2 rounded-lg text-sm">Single</button>
+          <button type="button" data-cat="ao5" class="rec-cat-btn px-5 py-2 rounded-lg text-sm border border-white/15" style="color:var(--ink-muted);">Average of 5 (Ao5)</button>
+        </div>
+
+        <div>
+          <div class="grid grid-cols-12 gap-2 mb-1 px-1">
+            <span class="col-span-3 text-xs font-mono" style="color:var(--ink-muted);">Cuber Name</span>
+            <span class="col-span-2 text-xs font-mono" style="color:var(--ink-muted);">Time</span>
+            <span class="col-span-3 text-xs font-mono" style="color:var(--ink-muted);">Competition</span>
+            <span class="col-span-2 text-xs font-mono" style="color:var(--ink-muted);">Date</span>
+            <span class="col-span-2"></span>
+          </div>
+          <div id="rec-rows" class="space-y-2"></div>
+          <button id="rec-add-row-btn" type="button" class="w-full py-2 rounded-lg border border-white/15 font-mono text-sm mt-2" style="color:var(--ink-muted);">+ Add Result</button>
+        </div>
+
+        <button id="rec-save-btn" class="btn-primary w-full py-3 rounded-lg mt-2">Save Records</button>
+        <p id="rec-save-msg" class="text-sm hidden"></p>
+        <p class="text-xs" style="color:var(--ink-muted);">
+          Best (sabse fast) time apne aap "Current Record" ban jayega aur baaki sab "Record History" + "Top 10 Rankings" mein sort ho jayenge — koi alag se history maintain karne ki zaroorat nahi. Time format: <span class="font-mono">12.34</span> ya <span class="font-mono">1:02.45</span> (DNF bhi likh sakte ho).
+        </p>
+      </div>
+
     </main>
   </div>
 
@@ -296,6 +334,7 @@
         loadHallOfFame();
         loadSponsors();
         loadReferrals();
+        loadRecordEvents();
       } else {
         document.getElementById("pin-error").classList.remove("hidden");
       }
@@ -938,6 +977,184 @@
     }
 
     document.getElementById("refresh-referrals-btn").addEventListener("click", () => loadReferrals());
+
+    // ============================================
+    // T&T Records & Rankings management
+    // Data model: collection "ttRecords", one doc per event id
+    // (e.g. "3x3", "2x2"), each doc = { label, order, single:[...], ao5:[...] }
+    // Rankings + "Current Record" + "Record History" are all derived on the
+    // public page by sorting that same array — nothing extra to maintain here.
+    // ============================================
+    const DEFAULT_REC_EVENTS = [
+      { id: "3x3", label: "3×3", order: 1 },
+      { id: "2x2", label: "2×2", order: 2 },
+      { id: "pyraminx", label: "Pyraminx", order: 3 },
+      { id: "clock", label: "Clock", order: 4 },
+      { id: "fto", label: "FTO", order: 5 },
+      { id: "skewb", label: "Skewb", order: 6 },
+      { id: "3x3oh", label: "3×3 OH", order: 7 }
+    ];
+
+    let recEventsMeta = {};   // id -> { label, order }
+    let recEventCache = {};  // id -> full doc data { label, order, single, ao5 }
+    let recActiveEvent = null;
+    let recActiveCat = "single";
+
+    const recEventSelect = document.getElementById("rec-event-select");
+    const recRowsContainer = document.getElementById("rec-rows");
+    const recSaveMsg = document.getElementById("rec-save-msg");
+    const recCatBtns = document.querySelectorAll(".rec-cat-btn");
+
+    function recParseTimeToMs(str) {
+      if (!str) return Infinity;
+      const s = String(str).trim().toUpperCase();
+      if (s === "DNF" || s === "DNS") return Infinity;
+      const m = s.match(/^(?:(\d+):)?(\d+(?:\.\d+)?)$/);
+      if (!m) return Infinity;
+      const mins = m[1] ? parseInt(m[1], 10) : 0;
+      const secs = parseFloat(m[2]);
+      return Math.round((mins * 60 + secs) * 1000);
+    }
+
+    function setActiveCatButtonStyles() {
+      recCatBtns.forEach(b => {
+        if (b.dataset.cat === recActiveCat) {
+          b.classList.add("btn-primary");
+          b.classList.remove("border", "border-white/15");
+          b.style.color = "";
+        } else {
+          b.classList.remove("btn-primary");
+          b.classList.add("border", "border-white/15");
+          b.style.color = "var(--ink-muted)";
+        }
+      });
+    }
+
+    function addRecRow(name = "", time = "", competition = "", date = "") {
+      const rowDiv = document.createElement("div");
+      rowDiv.className = "grid grid-cols-12 gap-2 items-center";
+      rowDiv.innerHTML = `
+        <input type="text" class="field col-span-3 rounded-lg px-3 py-2 text-sm rec-name" placeholder="Cuber Name" value="${name}">
+        <input type="text" class="field col-span-2 rounded-lg px-3 py-2 text-sm rec-time font-mono" placeholder="12.34" value="${time}">
+        <input type="text" class="field col-span-3 rounded-lg px-3 py-2 text-sm rec-comp" placeholder="Competition" value="${competition}">
+        <input type="text" class="field col-span-2 rounded-lg px-3 py-2 text-sm rec-date" placeholder="Date" value="${date}">
+        <button type="button" class="remove-rec-btn col-span-2 text-sm py-2 rounded-lg" style="color:var(--cube-red); border:1px solid rgba(255,255,255,0.1);">Remove</button>
+      `;
+      rowDiv.querySelector(".remove-rec-btn").addEventListener("click", () => rowDiv.remove());
+      recRowsContainer.appendChild(rowDiv);
+    }
+
+    document.getElementById("rec-add-row-btn").addEventListener("click", () => addRecRow());
+
+    function renderRecRows() {
+      recRowsContainer.innerHTML = "";
+      recSaveMsg.classList.add("hidden");
+      const data = recEventCache[recActiveEvent] || {};
+      const list = Array.isArray(data[recActiveCat]) ? data[recActiveCat].slice() : [];
+      list
+        .slice()
+        .sort((a, b) => (a.timeMs ?? recParseTimeToMs(a.time)) - (b.timeMs ?? recParseTimeToMs(b.time)))
+        .forEach(r => addRecRow(r.name, r.time, r.competition, r.date));
+      if (list.length === 0) addRecRow();
+    }
+
+    function populateRecEventSelect() {
+      const ids = Object.keys(recEventsMeta).sort((a, b) => (recEventsMeta[a].order ?? 99) - (recEventsMeta[b].order ?? 99));
+      recEventSelect.innerHTML = ids.map(id => `<option value="${id}">${recEventsMeta[id].label}</option>`).join("");
+      if (!recActiveEvent || !recEventsMeta[recActiveEvent]) recActiveEvent = ids[0] || null;
+      recEventSelect.value = recActiveEvent;
+    }
+
+    async function loadRecordEvents() {
+      recEventsMeta = {};
+      recEventCache = {};
+      try {
+        const snap = await getDocs(collection(db, "ttRecords"));
+        if (!snap.empty) {
+          snap.forEach(d => {
+            const data = d.data();
+            recEventsMeta[d.id] = { label: data.label || d.id, order: typeof data.order === "number" ? data.order : 99 };
+            recEventCache[d.id] = data;
+          });
+        }
+      } catch (err) {
+        // fall through to defaults below
+      }
+      // Make sure the default events are always selectable even before any
+      // doc exists for them yet in Firestore.
+      DEFAULT_REC_EVENTS.forEach(ev => {
+        if (!recEventsMeta[ev.id]) {
+          recEventsMeta[ev.id] = { label: ev.label, order: ev.order };
+          recEventCache[ev.id] = { label: ev.label, order: ev.order, single: [], ao5: [] };
+        }
+      });
+      populateRecEventSelect();
+      renderRecRows();
+    }
+
+    recEventSelect.addEventListener("change", () => {
+      recActiveEvent = recEventSelect.value;
+      renderRecRows();
+    });
+
+    recCatBtns.forEach(btn => {
+      btn.addEventListener("click", () => {
+        recActiveCat = btn.dataset.cat;
+        setActiveCatButtonStyles();
+        renderRecRows();
+      });
+    });
+    setActiveCatButtonStyles();
+
+    document.getElementById("rec-add-event-btn").addEventListener("click", () => {
+      const label = prompt("New event name (e.g. Megaminx, Square-1):");
+      if (!label || !label.trim()) return;
+      const slug = label.trim().toLowerCase().replace(/[^a-z0-9]+/g, "");
+      if (!slug) return;
+      if (!recEventsMeta[slug]) {
+        const maxOrder = Math.max(0, ...Object.values(recEventsMeta).map(e => e.order || 0));
+        recEventsMeta[slug] = { label: label.trim(), order: maxOrder + 1 };
+        recEventCache[slug] = { label: label.trim(), order: maxOrder + 1, single: [], ao5: [] };
+      }
+      recActiveEvent = slug;
+      populateRecEventSelect();
+      renderRecRows();
+    });
+
+    document.getElementById("rec-save-btn").addEventListener("click", async () => {
+      recSaveMsg.classList.add("hidden");
+      if (!recActiveEvent) return;
+
+      const results = Array.from(recRowsContainer.children).map(rowDiv => {
+        const name = rowDiv.querySelector(".rec-name").value.trim();
+        const time = rowDiv.querySelector(".rec-time").value.trim();
+        const competition = rowDiv.querySelector(".rec-comp").value.trim();
+        const date = rowDiv.querySelector(".rec-date").value.trim();
+        return { name, time, competition, date, timeMs: recParseTimeToMs(time) };
+      }).filter(r => r.name !== "" && r.time !== "");
+
+      results.sort((a, b) => a.timeMs - b.timeMs);
+
+      const meta = recEventsMeta[recActiveEvent];
+      const payload = {
+        label: meta.label,
+        order: meta.order,
+        [recActiveCat]: results
+      };
+
+      try {
+        await setDoc(doc(db, "ttRecords", recActiveEvent), payload, { merge: true });
+        recEventCache[recActiveEvent] = { ...(recEventCache[recActiveEvent] || {}), ...payload };
+        recSaveMsg.textContent = "Saved! Records & Rankings page updates instantly.";
+        recSaveMsg.style.color = "var(--cube-green)";
+        recSaveMsg.classList.remove("hidden");
+        renderRecRows();
+      } catch (err) {
+        recSaveMsg.textContent = "Error: " + err.message;
+        recSaveMsg.style.color = "var(--cube-red)";
+        recSaveMsg.classList.remove("hidden");
+      }
+    });
   </script>
 </body>
 </html>
