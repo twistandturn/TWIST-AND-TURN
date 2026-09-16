@@ -34,10 +34,35 @@ service cloud.firestore {
                    && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true;
     }
 
+    // ------------------------------------------------------------------
+    // Everything below is content the public homepage reads directly
+    // (no login) and the PIN-gated manage.html panel writes to. There is
+    // no Firebase Auth for the admin panel — manage.html protects itself
+    // with its own client-side PIN — so these stay open at the database
+    // level, same as this project has always relied on.
+    // ------------------------------------------------------------------
+
+    // Homepage content docs: site/upcomingCompetition, site/results,
+    // site/liveResults, site/general, site/reviews, site/faq, site/hallOfFame
+    match /site/{docId} {
+      allow read: if true;
+      allow write: if true;
+    }
+
+    // Homepage gallery photos
+    match /galleryImages/{imageId} {
+      allow read: if true;
+      allow write: if true;
+    }
+
+    // Referral program entries (created by the registration flow, managed
+    // from manage.html)
+    match /referrals/{referralId} {
+      allow read: if true;
+      allow write: if true;
+    }
+
     // T&T Records & Rankings — one doc per event (3x3, 2x2, pyraminx, clock, fto, ...).
-    // Public site reads records/rankings directly (no auth), and manage.html writes
-    // updates after its own PIN gate — same open-collection pattern this project
-    // already uses for /site, /galleryImages and /referrals.
     match /ttRecords/{eventId} {
       allow read: if true;
       allow write: if true;
