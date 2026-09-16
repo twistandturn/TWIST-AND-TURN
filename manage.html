@@ -1065,9 +1065,20 @@
       recEventSelect.value = recActiveEvent;
     }
 
+    // Fill the dropdown with the default events RIGHT AWAY (no network wait),
+    // so it's never empty even if Firestore is slow, offline, or its rules
+    // haven't been redeployed yet. Real data merges in once it arrives.
+    function seedDefaultRecEvents() {
+      DEFAULT_REC_EVENTS.forEach(ev => {
+        recEventsMeta[ev.id] = { label: ev.label, order: ev.order };
+        recEventCache[ev.id] = { label: ev.label, order: ev.order, single: [], ao5: [] };
+      });
+      populateRecEventSelect();
+      renderRecRows();
+    }
+    seedDefaultRecEvents();
+
     async function loadRecordEvents() {
-      recEventsMeta = {};
-      recEventCache = {};
       try {
         const snap = await getDocs(collection(db, "ttRecords"));
         if (!snap.empty) {
@@ -1076,20 +1087,12 @@
             recEventsMeta[d.id] = { label: data.label || d.id, order: typeof data.order === "number" ? data.order : 99 };
             recEventCache[d.id] = data;
           });
+          populateRecEventSelect();
+          renderRecRows();
         }
       } catch (err) {
-        // fall through to defaults below
+        console.error("Could not load ttRecords from Firestore — showing defaults only.", err);
       }
-      // Make sure the default events are always selectable even before any
-      // doc exists for them yet in Firestore.
-      DEFAULT_REC_EVENTS.forEach(ev => {
-        if (!recEventsMeta[ev.id]) {
-          recEventsMeta[ev.id] = { label: ev.label, order: ev.order };
-          recEventCache[ev.id] = { label: ev.label, order: ev.order, single: [], ao5: [] };
-        }
-      });
-      populateRecEventSelect();
-      renderRecRows();
     }
 
     recEventSelect.addEventListener("change", () => {

@@ -2,7 +2,7 @@
 // Caches the app shell so the site opens (with cached content) even offline,
 // while always trying the network first so live data (results, FAQ, etc.) stays fresh.
 
-const CACHE_NAME = "tt-cache-v1";
+const CACHE_NAME = "tt-cache-v2";
 const APP_SHELL = [
   "./index.html",
   "./records.html",
