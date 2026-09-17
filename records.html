@@ -154,7 +154,7 @@
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-  import { getFirestore, collection, getDocs, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+  import { getFirestore, collection, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
   import { firebaseConfig } from "./firebase-config.js";
 
   const app = initializeApp(firebaseConfig, "recordsApp");
@@ -176,7 +176,6 @@
 
   let eventsMeta = {};      // id -> { label, order }
   let eventDataCache = {};  // id -> firestore doc data (single/ao5 arrays)
-  let unsubscribers = {};   // id -> onSnapshot unsubscribe fn
   let activeEvent = null;
   let activeCategory = "single";
 
@@ -201,14 +200,6 @@
         renderEventTabs();
         renderAll();
       });
-    });
-  }
-
-  function watchEvent(id) {
-    if (unsubscribers[id]) return; // already watching
-    unsubscribers[id] = onSnapshot(doc(db, "ttRecords", id), (snap) => {
-      eventDataCache[id] = snap.exists() ? snap.data() : { single: [], ao5: [] };
-      if (id === activeEvent) renderAll();
     });
   }
 
@@ -306,27 +297,35 @@
     historyToggleBtn.textContent = isHidden ? "▴ Hide Record History" : "▾ Show Record History";
   });
 
-  // Load event list from Firestore ("ttRecords" collection), falling back
-  // to the default list so the page still works before any admin data exists.
-  getDocs(collection(db, "ttRecords")).then(snap => {
+  // Live-watch the whole "ttRecords" collection (one listener instead of
+  // one-per-event) so new events, new records, and Top 10 changes pushed
+  // from the admin panel — including the auto-push after a competition's
+  // final results go live — appear here instantly, with no page refresh.
+  // Falls back to the default event list so the page still looks right
+  // before any admin data exists.
+  let gotFirstSnapshot = false;
+  onSnapshot(collection(db, "ttRecords"), (snap) => {
     if (!snap.empty) {
       snap.forEach(d => {
         const data = d.data();
         eventsMeta[d.id] = { label: data.label || d.id, order: typeof data.order === "number" ? data.order : 99 };
         eventDataCache[d.id] = data;
       });
-    } else {
+    } else if (!gotFirstSnapshot) {
       DEFAULT_EVENTS.forEach(ev => {
         eventsMeta[ev.id] = { label: ev.label, order: ev.order };
         eventDataCache[ev.id] = { single: [], ao5: [] };
       });
     }
-    const ids = Object.keys(eventsMeta).sort((a, b) => eventsMeta[a].order - eventsMeta[b].order);
-    activeEvent = ids[0] || null;
+    gotFirstSnapshot = true;
+    if (!activeEvent || !eventsMeta[activeEvent]) {
+      const ids = Object.keys(eventsMeta).sort((a, b) => eventsMeta[a].order - eventsMeta[b].order);
+      activeEvent = ids[0] || null;
+    }
     renderEventTabs();
     renderAll();
-    ids.forEach(watchEvent); // live updates for every event tab
-  }).catch(() => {
+  }, () => {
+    if (gotFirstSnapshot) return;
     DEFAULT_EVENTS.forEach(ev => {
       eventsMeta[ev.id] = { label: ev.label, order: ev.order };
       eventDataCache[ev.id] = { single: [], ao5: [] };
