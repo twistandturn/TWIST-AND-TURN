@@ -17,6 +17,8 @@
   .surface-card{ background:var(--bg-surface); border:1px solid rgba(255,255,255,0.06); }
   .btn-primary{ background:var(--cube-red); color:#fff; font-family:'Space Grotesk',sans-serif; font-weight:600; }
   .btn-primary:hover{ filter:brightness(1.08); }
+  .btn-secondary{ background:var(--cube-green); color:#0B1A10; font-family:'Space Grotesk',sans-serif; font-weight:700; }
+  .btn-secondary:hover{ filter:brightness(1.08); }
   .field{ background:var(--bg-base); border:1px solid rgba(255,255,255,0.12); color:var(--ink); }
   .field:focus{ outline:none; border-color:var(--cube-blue); }
   .live-event-block{ background:rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.1); border-radius:14px; padding:16px; }
@@ -63,6 +65,29 @@
           <p>Registration close hote hi naam add kar do (time khaali chhod ke). Jaise-jaise session khatam ho, us row mein time daal ke phir se "Save" dabao.</p>
           <p>Jab tak round ke SABHI participants ka time nahi bhara, tab tak top 8 (round ka naam "Final" ho to top 3) live page par halka <span style="color:var(--cube-yellow);">yellow</span> dikhenge — matlab "next round mein ja rahe hain (provisional)". Jaise hi sabka time bhar doge, wahi top 8/3 <span style="color:var(--cube-green);">green</span> ho jayenge — confirm advancing.</p>
           <p>Yeh sab sirf tab dikhega jab upar "Mark as LIVE" ON ho. Time format: <span class="font-mono">12.34</span> ya <span class="font-mono">1:02.45</span></p>
+        </div>
+      </div>
+
+      <p class="font-mono text-xs tracking-widest uppercase mt-16 mb-2" style="color:var(--ink-muted);">Comp Khatam?</p>
+      <h1 class="font-display text-3xl font-bold mb-8">Push Final Results</h1>
+
+      <div class="surface-card rounded-2xl p-8 shadow-xl space-y-4">
+        <div>
+          <label class="block text-sm font-mono mb-1" style="color:var(--ink-muted);">Competition Name (Main Results heading aur Records mein "competition" ke taur pe save hoga)</label>
+          <input type="text" id="push-comp-name" class="field w-full rounded-lg px-4 py-3" placeholder="e.g. Twist & Turn : Cubing Battle 2026">
+        </div>
+
+        <label class="flex items-center gap-2 text-sm font-mono" style="color:var(--ink-muted);">
+          <input type="checkbox" id="push-end-live" checked> Push ke baad Live Results ka LIVE badge OFF kar do (comp khatam ho gaya)
+        </label>
+
+        <button id="push-to-main-btn" type="button" class="btn-secondary w-full py-3 rounded-lg">🏁 Push Final Results → Main Results &amp; Records</button>
+        <p id="push-msg" class="text-sm hidden"></p>
+
+        <div class="text-xs space-y-1" style="color:var(--ink-muted);">
+          <p>Pehle upar se <strong>"Save Live Results"</strong> zaroor dabao — ye button Firestore mein jo abhi saved hai wahi se padhta hai.</p>
+          <p>Har event ke liye: agar koi round ka naam <span class="font-mono">Final</span>/<span class="font-mono">Finals</span> hai to wahi use hoga; agar us event ka sirf ek hi round hai to wahi use hoga (jab uske sab participants ka time bhar jaye); agar multiple rounds hain aur koi "Final" naam ka nahi to wo event skip ho jayega (summary mein dikh jayega).</p>
+          <p>Top 3 us round se seedha <strong>Manage Results</strong> table mein event row ban ke chala jayega (1st/2nd/3rd), aur us round ke SAARE valid time wale participants <strong>T&amp;T Records</strong> (Top 10/Rankings) ki "Single" list mein bhi jud jayenge — naya record ban jaye to record page khud-ba-khud update ho jayega, aur agla live event mein wahi time <span style="color:var(--cube-red);">🔥 TTR</span> tag ke saath highlight hoga.</p>
         </div>
       </div>
     </main>
@@ -124,6 +149,12 @@
         return `${m}:${s}`;
       }
       return totalSec.toFixed(2);
+    }
+
+    // Same rule used by manage.html's Records Management ("+ Add New Event")
+    // so a live event name maps onto the same ttRecords/{id} doc.
+    function slugify(name) {
+      return (name || "").trim().toLowerCase().replace(/[^a-z0-9]+/g, "");
     }
 
     function addLiveRow(rowsContainer, name = "", timeStr = "") {
@@ -243,6 +274,149 @@
         msg.textContent = "Error: " + err.message;
         msg.style.color = "var(--cube-red)";
         msg.classList.remove("hidden");
+      }
+    });
+
+    // ============================================
+    // Push Final Results -> Main Results (site/results) + T&T Records (ttRecords/*)
+    // ============================================
+
+    function hasResult(r) {
+      if (r.timeMs !== null && r.timeMs !== undefined) return true;
+      const td = (r.timeDisplay || "").trim();
+      return td !== "" && td !== "—" && td !== "-";
+    }
+
+    // Finals round if one exists (name contains "final"); otherwise the
+    // event's only round, if there's exactly one; otherwise null (ambiguous).
+    function pickFinalRound(ev) {
+      const rounds = ev.rounds || [];
+      if (rounds.length === 0) return null;
+      const finalRound = rounds.find(r => /final/i.test(r.name || ""));
+      if (finalRound) return finalRound;
+      if (rounds.length === 1) return rounds[0];
+      return null;
+    }
+
+    function todayDisplay() {
+      return new Date().toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
+    }
+
+    document.getElementById("push-to-main-btn").addEventListener("click", async () => {
+      const msgEl = document.getElementById("push-msg");
+      msgEl.classList.add("hidden");
+
+      const compName = document.getElementById("push-comp-name").value.trim();
+      if (!compName) {
+        msgEl.textContent = "Pehle Competition Name likho.";
+        msgEl.style.color = "var(--cube-red)";
+        msgEl.classList.remove("hidden");
+        return;
+      }
+
+      const liveSnap = await getDoc(doc(db, "site", "liveResults"));
+      if (!liveSnap.exists() || !liveSnap.data().events || liveSnap.data().events.length === 0) {
+        msgEl.textContent = "Live Results mein kuch saved nahi mila — pehle upar 'Save Live Results' dabao.";
+        msgEl.style.color = "var(--cube-red)";
+        msgEl.classList.remove("hidden");
+        return;
+      }
+
+      const events = liveSnap.data().events;
+      const today = todayDisplay();
+
+      const resultRows = [];      // for site/results (event/1st/2nd/3rd)
+      const recordPushes = [];    // [{ slug, label, finishers }]
+      const skipped = [];
+
+      events.forEach(ev => {
+        const round = pickFinalRound(ev);
+        if (!round) { skipped.push(ev.name); return; }
+
+        const finishers = (round.rows || []).filter(hasResult);
+        if (finishers.length === 0) { skipped.push(ev.name); return; }
+
+        const sorted = finishers.slice().sort((a, b) => (a.timeMs ?? Infinity) - (b.timeMs ?? Infinity));
+        const podium = sorted.slice(0, 3);
+        const fmt = r => r ? `${r.name} — ${r.timeDisplay || ""}` : "";
+        resultRows.push({
+          event: ev.name,
+          first: fmt(podium[0]),
+          second: fmt(podium[1]),
+          third: fmt(podium[2])
+        });
+
+        const slug = slugify(ev.name);
+        if (slug) recordPushes.push({ slug, label: ev.name, finishers: sorted });
+      });
+
+      if (resultRows.length === 0) {
+        msgEl.textContent = "Koi bhi event ka Final/single round complete nahi mila. Skipped: " + (skipped.join(", ") || "—");
+        msgEl.style.color = "var(--cube-red)";
+        msgEl.classList.remove("hidden");
+        return;
+      }
+
+      try {
+        // --- Merge into Main Results (site/results) ---
+        const resultsSnap = await getDoc(doc(db, "site", "results"));
+        const existingRows = (resultsSnap.exists() && Array.isArray(resultsSnap.data().rows)) ? resultsSnap.data().rows.slice() : [];
+        resultRows.forEach(nr => {
+          const idx = existingRows.findIndex(r => (r.event || "").trim().toLowerCase() === nr.event.trim().toLowerCase());
+          if (idx !== -1) existingRows[idx] = nr; else existingRows.push(nr);
+        });
+        await setDoc(doc(db, "site", "results"), {
+          competitionName: compName,
+          rows: existingRows,
+          updatedAt: new Date().toISOString()
+        }, { merge: true });
+
+        // --- Merge into T&T Records / Rankings (ttRecords/{slug}) ---
+        const newTTRs = [];
+        for (const rp of recordPushes) {
+          const recSnap = await getDoc(doc(db, "ttRecords", rp.slug));
+          const recData = recSnap.exists() ? recSnap.data() : { label: rp.label, order: 99, single: [], ao5: [] };
+          const existingSingle = Array.isArray(recData.single) ? recData.single.slice() : [];
+          const prevBestMs = existingSingle.length
+            ? Math.min(...existingSingle.map(r => (typeof r.timeMs === "number" ? r.timeMs : Infinity)))
+            : Infinity;
+
+          rp.finishers.forEach(f => {
+            const dup = existingSingle.some(r => r.name === f.name && r.competition === compName && r.time === f.timeDisplay);
+            if (!dup && typeof f.timeMs === "number") {
+              existingSingle.push({ name: f.name, time: f.timeDisplay, timeMs: f.timeMs, competition: compName, date: today });
+            }
+          });
+          existingSingle.sort((a, b) => a.timeMs - b.timeMs);
+
+          const newBestMs = existingSingle.length ? existingSingle[0].timeMs : Infinity;
+          if (newBestMs < prevBestMs) {
+            newTTRs.push(`${rp.label}: ${existingSingle[0].name} (${existingSingle[0].time})`);
+          }
+
+          await setDoc(doc(db, "ttRecords", rp.slug), {
+            label: recData.label || rp.label,
+            order: typeof recData.order === "number" ? recData.order : 99,
+            single: existingSingle
+          }, { merge: true });
+        }
+
+        // --- Optionally turn the LIVE badge off, comp is done ---
+        if (document.getElementById("push-end-live").checked) {
+          await setDoc(doc(db, "site", "liveResults"), { isLive: false }, { merge: true });
+          document.getElementById("live-results-live").checked = false;
+        }
+
+        let msg = `✅ ${resultRows.length} event(s) pushed to Main Results as "${compName}".`;
+        if (skipped.length) msg += ` Skipped (no Final/single round ready): ${skipped.join(", ")}.`;
+        if (newTTRs.length) msg += ` 🔥 New TTR(s): ${newTTRs.join(" | ")}`;
+        msgEl.textContent = msg;
+        msgEl.style.color = "var(--cube-green)";
+        msgEl.classList.remove("hidden");
+      } catch (err) {
+        msgEl.textContent = "Error: " + err.message;
+        msgEl.style.color = "var(--cube-red)";
+        msgEl.classList.remove("hidden");
       }
     });
   </script>

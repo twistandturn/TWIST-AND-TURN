@@ -57,10 +57,13 @@
   .live-row.advancing-yellow .rank{ border-left:3px solid var(--cube-yellow); }
   .live-row.advancing-green{ background:rgba(34,163,92,0.12); }
   .live-row.advancing-green .rank{ border-left:3px solid var(--cube-green); }
+  .live-row.is-ttr{ box-shadow:inset 0 0 0 1.5px var(--cube-red); background:rgba(232,65,43,0.08); }
   .rank{ font-family:'JetBrains Mono', monospace; width:32px; text-align:center; color:var(--ink-muted); padding-left:6px; margin-left:-6px; border-left:3px solid transparent; }
   .rank.medal{ font-size:1.25rem; }
   .name{ font-weight:600; margin-left:14px; }
   .left-part{ display:flex; align-items:center; flex-wrap:wrap; row-gap:4px; }
+  .time-wrap{ display:flex; flex-direction:column; align-items:flex-end; gap:2px; }
+  .ttr-tag{ font-family:'JetBrains Mono', monospace; font-size:0.62rem; font-weight:700; color:var(--cube-red); letter-spacing:0.06em; line-height:1; text-transform:uppercase; }
   .time{ font-family:'JetBrains Mono', monospace; font-weight:700; font-size:1.1rem; color:var(--cube-yellow); white-space:nowrap; }
   .empty-state{ padding:40px 20px; text-align:center; color:var(--ink-muted); }
 
@@ -103,7 +106,7 @@
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-  import { getFirestore, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+  import { getFirestore, doc, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
   import { firebaseConfig } from "../firebase-config.js";
 
   const liveApp = initializeApp(firebaseConfig, "liveResultsPageApp");
@@ -116,6 +119,19 @@
 
   let activeEventIdx = 0;
   let activeRoundIdx = 0;
+  let latestEvents = null; // last events array we received, so we can re-render on record updates
+
+  // ttRecords/{eventSlug} -> current best (fastest) single time in ms.
+  // Kept live so a TTR tag can appear the instant someone in a live round
+  // beats the existing platform record, without needing a page refresh.
+  let recordsBestMs = {};
+
+  // Same slugging rule used by manage.html/live-admin.html when creating a
+  // ttRecords doc id from an event's display name (e.g. "3x3 OH" -> "3x3oh"),
+  // so a live event can be matched up to its record doc.
+  function slugify(name) {
+    return (name || "").trim().toLowerCase().replace(/[^a-z0-9]+/g, "");
+  }
 
   // Decide who's highlighted yellow/green for a given round.
   // Finals-type rounds -> top 3. Everything else -> top 8.
@@ -131,19 +147,26 @@
     return td !== "" && td !== "—" && td !== "-";
   }
 
-  function computeHighlights(rows, roundName) {
+  function computeHighlights(rows, roundName, eventName) {
     const isFinal = /final/i.test(roundName || "");
     const cutoff = isFinal ? 3 : 8;
     // DNF/DNS (no timeMs) sort to the bottom, same as before.
     const sorted = [...(rows || [])].sort((a, b) => (a.timeMs ?? Infinity) - (b.timeMs ?? Infinity));
     const hasAnyResult = sorted.some(hasResult);
     const allHaveResults = sorted.length > 0 && sorted.every(hasResult);
+
+    // Current official record for this event (Infinity if none set yet,
+    // so the very first time recorded counts as a fresh TTR).
+    const slug = slugify(eventName);
+    const recordMs = recordsBestMs[slug] ?? Infinity;
+
     return sorted.map((r, i) => {
       let highlight = null;
       if (hasAnyResult && i < cutoff && hasResult(r)) {
         highlight = allHaveResults ? "green" : "yellow";
       }
-      return { ...r, highlight };
+      const isTTR = typeof r.timeMs === "number" && r.timeMs < recordMs;
+      return { ...r, highlight, isTTR };
     });
   }
 
@@ -155,7 +178,7 @@
     }
     if (activeRoundIdx >= rounds.length) activeRoundIdx = 0;
     const round = rounds[activeRoundIdx];
-    const rows = computeHighlights(round.rows, round.name);
+    const rows = computeHighlights(round.rows, round.name, event.name);
     const medals = ["🥇", "🥈", "🥉"];
 
     if (rows.length === 0) {
@@ -165,13 +188,18 @@
 
     liveWrap.innerHTML = rows.map((r, i) => {
       const highlightClass = r.highlight === "green" ? "advancing-green" : (r.highlight === "yellow" ? "advancing-yellow" : "");
+      const ttrClass = r.isTTR ? "is-ttr" : "";
+      const ttrTag = r.isTTR ? `<span class="ttr-tag">🔥 TTR</span>` : "";
       return `
-      <div class="live-row ${i < 3 ? 'top3' : ''} ${highlightClass}">
+      <div class="live-row ${i < 3 ? 'top3' : ''} ${highlightClass} ${ttrClass}">
         <div class="left-part">
           <span class="rank ${i < 3 ? 'medal' : ''}">${medals[i] || (i + 1)}</span>
           <span class="name">${r.name || ""}</span>
         </div>
-        <span class="time">${r.timeDisplay || ""}</span>
+        <div class="time-wrap">
+          ${ttrTag}
+          <span class="time">${r.timeDisplay || ""}</span>
+        </div>
       </div>
     `;
     }).join("");
@@ -222,6 +250,18 @@
     });
   }
 
+  // Re-draws just the current round (no tab/index reset) — used when the
+  // records collection changes underneath an already-open live page, so a
+  // TTR tag can pop in without disturbing which event/round the visitor is on.
+  function rerenderCurrent() {
+    if (!latestEvents || !latestEvents.length) return;
+    if (activeEventIdx >= latestEvents.length) activeEventIdx = 0;
+    const ev = latestEvents[activeEventIdx];
+    if (!ev) return;
+    renderRoundTabs(ev);
+    renderRound(ev);
+  }
+
   function showNotLive() {
     tabsEl.innerHTML = "";
     roundTabsEl.innerHTML = "";
@@ -229,6 +269,7 @@
     liveWrap.innerHTML = `<p class="empty-state">Results aren't live yet. Check back soon!</p>`;
     liveBadgeEl.classList.remove("show");
     lastUpdatedEl.textContent = "";
+    latestEvents = null;
   }
 
   onSnapshot(doc(liveDb, "site", "liveResults"), (snap) => {
@@ -238,10 +279,26 @@
       return;
     }
     const d = snap.data();
+    latestEvents = d.events;
     liveBadgeEl.classList.add("show");
     renderTabs(d.events);
     renderEvent(d.events);
     lastUpdatedEl.textContent = "Updated: " + new Date().toLocaleTimeString();
+  });
+
+  // Live-watch every platform record so a mid-round time that beats the
+  // existing record gets its "TTR" tag the moment it's saved.
+  onSnapshot(collection(liveDb, "ttRecords"), (snap) => {
+    const map = {};
+    snap.forEach(d => {
+      const data = d.data();
+      const list = Array.isArray(data.single) ? data.single : [];
+      let best = Infinity;
+      list.forEach(r => { if (typeof r.timeMs === "number" && r.timeMs < best) best = r.timeMs; });
+      map[d.id] = best;
+    });
+    recordsBestMs = map;
+    rerenderCurrent();
   });
 </script>
 
