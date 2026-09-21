@@ -200,17 +200,23 @@
       }
 
       extra.classList.remove("hidden");
-      referralSection.classList.remove("hidden");
       const d = snap.data();
+      if (d.referralEnabled) {
+        referralSection.classList.remove("hidden");
+      } else {
+        referralSection.classList.add("hidden");
+      }
 
       document.title = (d.title || "Upcoming Competition") + " : Twist & Turn";
 
-      // Registration closes 10 Sept 2026, 5:00 PM (IST) — override via regCloseISO in Firestore if needed
-      const regCloseDate = new Date(d.regCloseISO || "2026-09-10T17:00:00");
-      const regClosed = isNaN(regCloseDate.getTime()) ? false : Date.now() >= regCloseDate.getTime();
+      // Registration open/closed is decided ONLY by the "Status" dropdown in the admin panel.
+      const regClosed = d.status !== "open";
 
-      // Countdown timer to registration close
-      if (!regClosed && !isNaN(regCloseDate.getTime())) {
+      // Optional countdown: only runs if you manually set a "regCloseISO" field in Firestore
+      // (e.g. "2026-10-20T17:00:00"). If you don't set one, no countdown is shown — this never
+      // forces registration closed on its own, it's purely a visual countdown while status is "open".
+      const regCloseDate = d.regCloseISO ? new Date(d.regCloseISO) : null;
+      if (!regClosed && regCloseDate && !isNaN(regCloseDate.getTime()) && regCloseDate.getTime() > Date.now()) {
         const cdBox = document.getElementById("countdown-box");
         cdBox.classList.remove("hidden");
         const elDays = document.getElementById("cd-days");
@@ -222,10 +228,6 @@
           if (diff <= 0) {
             clearInterval(timer);
             cdBox.classList.add("hidden");
-            document.getElementById("reg-status-label").textContent = "🔴 Registration Closed";
-            document.getElementById("reg-status-label").style.color = "var(--cube-red)";
-            const btn = document.getElementById("reg-btn");
-            if (btn) btn.outerHTML = `<span class="inline-block px-8 py-4 rounded-xl font-display font-semibold" style="background:rgba(255,255,255,0.08); color:var(--ink-muted); cursor:not-allowed;">Registration Closed</span>`;
             return;
           }
           const days = Math.floor(diff / 86400000);
@@ -258,6 +260,43 @@
           </div>
         </div>` : "";
 
+      const ageCategories = Array.isArray(d.ageCategories) ? d.ageCategories.filter(a => a && a.name) : [];
+      const ageCategoriesHtml = ageCategories.length > 0 ? `
+        <div class="max-w-3xl mx-auto mb-8 text-left">
+          <div class="surface-card rounded-xl p-4">
+            <b>🎂 Age Categories</b>
+            <div class="flex flex-wrap gap-2 mt-3">
+              ${ageCategories.map(a => `<span class="px-3 py-1 rounded-full text-sm font-mono" style="background:rgba(47,111,224,0.15); border:1px solid var(--cube-blue);">${a.name}</span>`).join("")}
+            </div>
+          </div>
+        </div>` : "";
+
+      const otherPrizes = Array.isArray(d.otherPrizes) ? d.otherPrizes.filter(p => p && p.name) : [];
+      const otherPrizesHtml = otherPrizes.length > 0 ? `
+        <div class="max-w-3xl mx-auto mb-8 text-left">
+          <div class="surface-card rounded-xl p-4">
+            <b>🏆 Special Prize Categories</b>
+            <div class="flex flex-wrap gap-2 mt-3">
+              ${otherPrizes.map(p => `<span class="px-3 py-1 rounded-full text-sm font-mono" style="background:rgba(242,183,5,0.15); border:1px solid var(--cube-yellow);">${p.name}</span>`).join("")}
+            </div>
+          </div>
+        </div>` : "";
+
+      const sponsors = Array.isArray(d.sponsors) ? d.sponsors.filter(s => s && s.name) : [];
+      const sponsorsHtml = sponsors.length > 0 ? `
+        <div class="max-w-3xl mx-auto mb-8 text-left">
+          <div class="surface-card rounded-xl p-6">
+            <b class="block text-center mb-4">🤝 Our Sponsors</b>
+            <div class="flex flex-wrap items-center justify-center gap-6">
+              ${sponsors.map(s => `
+                <div class="flex flex-col items-center gap-2">
+                  ${s.logoUrl ? `<img src="${s.logoUrl}" class="h-14 rounded bg-white/5 p-1">` : ""}
+                  <span class="text-sm font-mono" style="color:var(--ink-muted)">${s.name}</span>
+                </div>`).join("")}
+            </div>
+          </div>
+        </div>` : "";
+
       box.innerHTML = `
         ${d.posterUrl ? `<img src="${d.posterUrl}" class="w-full h-auto">` : ""}
         <div class="p-8 text-center">
@@ -271,6 +310,9 @@
             ${d.baseFee ? `<div class="surface-card rounded-xl p-4"><b>💰 Base Entry Fee</b><br>${d.baseFee}</div>` : ""}
           </div>
           ${eventsHtml}
+          ${ageCategoriesHtml}
+          ${otherPrizesHtml}
+          ${sponsorsHtml}
           ${d.details ? `<p class="mb-6" style="color:var(--ink-muted)">${d.details}</p>` : ""}
           ${regClosed
             ? `<span class="inline-block px-8 py-4 rounded-xl font-display font-semibold" style="background:rgba(255,255,255,0.08); color:var(--ink-muted); cursor:not-allowed;">Registration Closed</span>`
