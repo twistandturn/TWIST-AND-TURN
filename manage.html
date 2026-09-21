@@ -107,6 +107,20 @@
         </div>
 
         <div>
+          <label class="block text-sm font-mono mb-1" style="color:var(--ink-muted);">Age Categories (is competition ke liye — optional)</label>
+          <div id="agecat-rows" class="space-y-2"></div>
+          <button id="add-agecat-btn" type="button" class="w-full py-2 rounded-lg border border-white/15 font-mono text-sm mt-2" style="color:var(--ink-muted);">+ Add Age Category</button>
+          <p class="text-xs mt-2" style="color:var(--ink-muted);">Koi bhi add nahi karoge to homepage par age category wala section bilkul nahi dikhega. Agar hai to naam daalo (jaise "Under 12", "Under 18", "Open/Senior").</p>
+        </div>
+
+        <div>
+          <label class="block text-sm font-mono mb-1" style="color:var(--ink-muted);">Other Prize Categories (is competition ke liye — optional)</label>
+          <div id="prizecat-rows" class="space-y-2"></div>
+          <button id="add-prizecat-btn" type="button" class="w-full py-2 rounded-lg border border-white/15 font-mono text-sm mt-2" style="color:var(--ink-muted);">+ Add Prize Category</button>
+          <p class="text-xs mt-2" style="color:var(--ink-muted);">Koi bhi add nahi karoge to homepage par ye section bilkul nahi dikhega. Dena ho to naam daalo (jaise "Best Fresher", "Best Female Cuber", "Fastest Solve of the Day").</p>
+        </div>
+
+        <div>
           <label class="block text-sm font-mono mb-1" style="color:var(--ink-muted);">Registration Link</label>
           <input type="text" id="reglink" class="field w-full rounded-lg px-4 py-3" placeholder="https://forms.gle/...">
         </div>
@@ -395,6 +409,42 @@
     document.getElementById("add-event-btn").addEventListener("click", () => addEventRow());
 
     // ============================================
+    // Age Categories (optional, tied to this upcoming competition only)
+    // ============================================
+    const agecatContainer = document.getElementById("agecat-rows");
+
+    function addAgecatRow(name = "") {
+      const rowDiv = document.createElement("div");
+      rowDiv.className = "grid grid-cols-4 gap-2 items-center";
+      rowDiv.innerHTML = `
+        <input type="text" class="field rounded-lg px-3 py-2 text-sm agecat-name col-span-3" placeholder="e.g. Under 12" value="${name}">
+        <button type="button" class="remove-agecat-btn text-sm py-2 rounded-lg" style="color:var(--cube-red); border:1px solid rgba(255,255,255,0.1);">Remove</button>
+      `;
+      rowDiv.querySelector(".remove-agecat-btn").addEventListener("click", () => rowDiv.remove());
+      agecatContainer.appendChild(rowDiv);
+    }
+
+    document.getElementById("add-agecat-btn").addEventListener("click", () => addAgecatRow());
+
+    // ============================================
+    // Other Prize Categories (optional, tied to this upcoming competition only)
+    // ============================================
+    const prizecatContainer = document.getElementById("prizecat-rows");
+
+    function addPrizecatRow(name = "") {
+      const rowDiv = document.createElement("div");
+      rowDiv.className = "grid grid-cols-4 gap-2 items-center";
+      rowDiv.innerHTML = `
+        <input type="text" class="field rounded-lg px-3 py-2 text-sm prizecat-name col-span-3" placeholder="e.g. Best Fresher" value="${name}">
+        <button type="button" class="remove-prizecat-btn text-sm py-2 rounded-lg" style="color:var(--cube-red); border:1px solid rgba(255,255,255,0.1);">Remove</button>
+      `;
+      rowDiv.querySelector(".remove-prizecat-btn").addEventListener("click", () => rowDiv.remove());
+      prizecatContainer.appendChild(rowDiv);
+    }
+
+    document.getElementById("add-prizecat-btn").addEventListener("click", () => addPrizecatRow());
+
+    // ============================================
     // Sponsors (tied to this upcoming competition only)
     // ============================================
     const sponsorsContainer = document.getElementById("sponsors-rows");
@@ -449,6 +499,16 @@
           addEventRow();
         }
 
+        agecatContainer.innerHTML = "";
+        if (d.ageCategories && d.ageCategories.length > 0) {
+          d.ageCategories.forEach(a => addAgecatRow(a.name));
+        }
+
+        prizecatContainer.innerHTML = "";
+        if (d.otherPrizes && d.otherPrizes.length > 0) {
+          d.otherPrizes.forEach(p => addPrizecatRow(p.name));
+        }
+
         sponsorsContainer.innerHTML = "";
         if (d.sponsors && d.sponsors.length > 0) {
           d.sponsors.forEach(s => addSponsorRow(s.name, s.logoUrl));
@@ -470,6 +530,14 @@
         fee: rowDiv.querySelector(".event-fee").value,
         format: rowDiv.querySelector(".event-format").value
       })).filter(e => e.name.trim() !== "");
+
+      const ageCategories = Array.from(agecatContainer.children).map(rowDiv => ({
+        name: rowDiv.querySelector(".agecat-name").value
+      })).filter(a => a.name.trim() !== "");
+
+      const otherPrizes = Array.from(prizecatContainer.children).map(rowDiv => ({
+        name: rowDiv.querySelector(".prizecat-name").value
+      })).filter(p => p.name.trim() !== "");
 
       try {
         if (file) {
@@ -494,6 +562,8 @@
           date: document.getElementById("date").value,
           mode: document.getElementById("mode").value,
           events: events,
+          ageCategories: ageCategories,
+          otherPrizes: otherPrizes,
           participantsLimit: document.getElementById("participantsLimit").value,
           format: document.getElementById("format").value,
           baseFee: document.getElementById("baseFee").value,
