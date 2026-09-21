@@ -121,6 +121,13 @@
         </div>
 
         <div>
+          <label class="flex items-center gap-2 text-sm font-mono" style="color:var(--ink-muted);">
+            <input type="checkbox" id="referral-enabled"> Enable Referral Program for this competition
+          </label>
+          <p class="text-xs mt-1" style="color:var(--ink-muted);">Tick karoge to hi "Referral Program" section main site (cuberush page) par dikhega — untick rehne pe wo poora section hidden rahega.</p>
+        </div>
+
+        <div>
           <label class="block text-sm font-mono mb-1" style="color:var(--ink-muted);">Registration Link</label>
           <input type="text" id="reglink" class="field w-full rounded-lg px-4 py-3" placeholder="https://forms.gle/...">
         </div>
@@ -484,6 +491,7 @@
         document.getElementById("baseFee").value = d.baseFee || "";
         document.getElementById("reglink").value = d.regLink || "";
         document.getElementById("details").value = d.details || "";
+        document.getElementById("referral-enabled").checked = !!d.referralEnabled;
         currentPosterUrl = d.posterUrl || "";
         if (currentPosterUrl) {
           document.getElementById("poster-preview").innerHTML =
@@ -568,6 +576,7 @@
           format: document.getElementById("format").value,
           baseFee: document.getElementById("baseFee").value,
           regLink: document.getElementById("reglink").value,
+          referralEnabled: document.getElementById("referral-enabled").checked,
           details: document.getElementById("details").value,
           posterUrl: posterUrl,
           sponsors: sponsors,
