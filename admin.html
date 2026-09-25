@@ -40,15 +40,6 @@
     </nav>
 
     <main class="max-w-3xl mx-auto px-4 py-16">
-
-      <!-- ============ PENDING SIGNUP APPROVALS ============ -->
-      <p class="font-mono text-xs tracking-widest uppercase mb-2" style="color:var(--ink-muted);">New Signups</p>
-      <h1 class="font-display text-3xl font-bold mb-8">Pending Approvals</h1>
-
-      <div id="pending-list" class="space-y-4 mb-16"></div>
-      <p id="no-pending-msg" class="hidden text-sm mb-16" style="color:var(--ink-muted);">No pending signups right now.</p>
-
-      <!-- ============ CONFIRM PARTICIPATION ============ -->
       <p class="font-mono text-xs tracking-widest uppercase mb-2" style="color:var(--ink-muted);">Confirm Participation</p>
       <h1 class="font-display text-3xl font-bold mb-8">Assign Competitor ID &amp; Record Result</h1>
 
@@ -91,21 +82,6 @@
               <input type="text" id="placement" class="field w-full rounded-lg px-4 py-3" placeholder="1st Place">
             </div>
           </div>
-          <div class="grid grid-cols-2 gap-4">
-            <div>
-              <label class="block text-sm font-mono mb-1" style="color:var(--ink-muted);">Medal</label>
-              <select id="medal" class="field w-full rounded-lg px-4 py-3">
-                <option value="">None</option>
-                <option value="gold">🥇 Gold</option>
-                <option value="silver">🥈 Silver</option>
-                <option value="bronze">🥉 Bronze</option>
-              </select>
-            </div>
-            <div>
-              <label class="block text-sm font-mono mb-1" style="color:var(--ink-muted);">Time (e.g. 12.34 or DNF)</label>
-              <input type="text" id="result-time" class="field w-full rounded-lg px-4 py-3" placeholder="12.34">
-            </div>
-          </div>
 
           <button id="confirm-btn" class="btn-primary w-full py-3 rounded-lg">Confirm Participation &amp; Assign ID</button>
           <p id="confirm-msg" class="text-sm hidden"></p>
@@ -117,7 +93,7 @@
   </div>
 
   <script type="module">
-    import { watchAuthState, getUserProfile, findUserByEmail, addResultAndConfirm, getPendingApprovalUsers, approveUser } from "./auth.js";
+    import { watchAuthState, getUserProfile, findUserByEmail, addResultAndConfirm } from "./auth.js";
 
     let currentFoundUser = null;
 
@@ -132,46 +108,7 @@
         return;
       }
       document.getElementById("admin-panel").classList.remove("hidden");
-      loadPendingApprovals();
     });
-
-    async function loadPendingApprovals() {
-      const list = document.getElementById("pending-list");
-      const noneMsg = document.getElementById("no-pending-msg");
-      list.innerHTML = "";
-
-      const pending = await getPendingApprovalUsers();
-      if (pending.length === 0) {
-        noneMsg.classList.remove("hidden");
-        return;
-      }
-      noneMsg.classList.add("hidden");
-
-      pending.forEach((p) => {
-        const card = document.createElement("div");
-        card.className = "surface-card rounded-2xl p-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4";
-        card.innerHTML = `
-          <div>
-            <p class="font-semibold">${p.name || "—"}</p>
-            <p class="text-sm font-mono" style="color:var(--ink-muted);">${p.email || "—"}</p>
-            <p class="text-sm mt-1" style="color:var(--ink-muted);">
-              DOB: ${p.dob || "—"} &nbsp;•&nbsp; Phone: ${p.phone || "—"} &nbsp;•&nbsp; WCA ID: ${p.wcaId || "—"}
-            </p>
-          </div>
-          <button class="approve-btn btn-primary px-5 py-2 rounded-lg whitespace-nowrap" data-uid="${p.uid}">Approve</button>
-        `;
-        list.appendChild(card);
-      });
-
-      document.querySelectorAll(".approve-btn").forEach((btn) => {
-        btn.addEventListener("click", async () => {
-          btn.disabled = true;
-          btn.textContent = "Approving...";
-          await approveUser(btn.dataset.uid);
-          loadPendingApprovals();
-        });
-      });
-    }
 
     document.getElementById("search-btn").addEventListener("click", async () => {
       const email = document.getElementById("search-email").value.trim();
@@ -201,8 +138,6 @@
       const year = document.getElementById("competition-year").value.trim();
       const eventName = document.getElementById("event-name").value.trim();
       const placement = document.getElementById("placement").value.trim();
-      const medal = document.getElementById("medal").value; // "", "gold", "silver", "bronze"
-      const resultTime = document.getElementById("result-time").value.trim();
 
       if (!competitionName || !year || !eventName || !placement) {
         confirmMsg.textContent = "Please fill in all fields.";
@@ -213,23 +148,13 @@
 
       await addResultAndConfirm(currentFoundUser.uid, currentFoundUser.name, {
         competition: competitionName,
-        year: Number(year),
         event: eventName,
-        placement: placement,
-        medal: medal || null,
-        time: resultTime || null,
-        recordedAt: new Date().toISOString()
+        placement: placement
       });
 
       confirmMsg.textContent = "Result recorded and ID assigned (if this was their first confirmation).";
       confirmMsg.style.color = "var(--cube-green)";
       confirmMsg.classList.remove("hidden");
-
-      // clear the result fields for the next entry (email/name stay so you can add more results for the same person)
-      document.getElementById("event-name").value = "";
-      document.getElementById("placement").value = "";
-      document.getElementById("medal").value = "";
-      document.getElementById("result-time").value = "";
 
       // refresh displayed ID
       const refreshed = await findUserByEmail(currentFoundUser.email);

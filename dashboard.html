@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>My Dashboard - Twist & Turn</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg-base:#101218; --bg-surface:#181B24; --ink:#F2F1ED; --ink-muted:#9297A6;
+    --cube-red:#E8412B; --cube-yellow:#F2B705; --cube-blue:#2F6FE0; --cube-green:#22A35C;
+  }
+  body{ font-family:'Inter', sans-serif; background:var(--bg-base); color:var(--ink); }
+  .font-display{ font-family:'Space Grotesk', sans-serif; }
+  .font-mono{ font-family:'JetBrains Mono', monospace; }
+  .surface-card{ background:var(--bg-surface); border:1px solid rgba(255,255,255,0.06); }
+  .btn-primary{ background:var(--cube-red); color:#fff; font-family:'Space Grotesk',sans-serif; font-weight:600; }
+  .btn-primary:hover{ filter:brightness(1.08); }
+  .id-badge{ background:linear-gradient(135deg, var(--cube-blue), var(--cube-green)); }
+</style>
+</head>
+<body class="min-h-screen">
+
+  <nav class="sticky top-0 z-50 border-b border-white/5" style="background:rgba(16,18,24,0.9);">
+    <div class="max-w-5xl mx-auto px-4 h-16 flex items-center justify-between">
+      <span class="font-display font-bold text-xl cursor-pointer" onclick="window.location.href='index.html'">Twist &amp; Turn</span>
+      <button id="logout-btn" class="font-mono text-sm px-4 py-2 rounded-lg" style="border:1px solid rgba(255,255,255,0.15);">Log Out</button>
+    </div>
+  </nav>
+
+  <main class="max-w-3xl mx-auto px-4 py-16">
+    <p class="font-mono text-xs tracking-widest uppercase mb-2" style="color:var(--ink-muted);">Competitor Profile</p>
+    <h1 id="welcome" class="font-display text-3xl font-bold mb-8">Welcome</h1>
+
+    <div class="surface-card rounded-2xl p-8 shadow-xl mb-8">
+      <p class="font-mono text-sm mb-2" style="color:var(--ink-muted);">Your Competitor ID</p>
+      <div id="id-block"></div>
+    </div>
+
+    <div class="surface-card rounded-2xl p-8 shadow-xl">
+      <h2 class="font-display font-bold text-xl mb-4">Your Results</h2>
+      <div id="results-block" style="color:var(--ink-muted);">Loading...</div>
+    </div>
+  </main>
+
+  <script type="module">
+    import { auth, watchAuthState, getUserProfile, logoutUser } from "./auth.js";
+
+    watchAuthState(async (user) => {
+      if (!user) {
+        window.location.href = "login.html";
+        return;
+      }
+
+      const profile = await getUserProfile(user.uid);
+      document.getElementById("welcome").textContent = `Welcome, ${profile.name}`;
+
+      const idBlock = document.getElementById("id-block");
+      if (profile.competitorId) {
+        idBlock.innerHTML = `
+          <span class="id-badge font-mono font-bold text-lg text-white px-4 py-2 rounded-lg inline-block">
+            ${profile.competitorId}
+          </span>`;
+      } else {
+        idBlock.innerHTML = `
+          <p style="color:var(--ink-muted);">
+            Not assigned yet — you'll get your unique Competitor ID once the organizer confirms your first competition participation.
+          </p>`;
+      }
+
+      const resultsBlock = document.getElementById("results-block");
+      if (profile.results && profile.results.length > 0) {
+        resultsBlock.innerHTML = profile.results.map(r => `
+          <div class="py-3 border-b border-white/5 last:border-0">
+            <span class="font-semibold">${r.competition}</span> — ${r.event}: <span class="font-mono">${r.placement}</span>
+          </div>
+        `).join("");
+      } else {
+        resultsBlock.textContent = "No results recorded yet.";
+      }
+    });
+
+    document.getElementById("logout-btn").addEventListener("click", async () => {
+      await logoutUser();
+      window.location.href = "index.html";
+    });
+  </script>
+</body>
+</html>
