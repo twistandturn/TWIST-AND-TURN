@@ -50,7 +50,7 @@
   </div>
 
   <script type="module">
-    import { loginUser } from "./auth.js";
+    import { loginUser, getUserProfile } from "./auth.js";
 
     const form = document.getElementById("login-form");
     const errorMsg = document.getElementById("error-msg");
@@ -63,10 +63,27 @@
       const password = document.getElementById("password").value;
 
       try {
-        await loginUser(email, password);
-        window.location.href = "dashboard.html";
+        const cred = await loginUser(email, password);
+        const profile = await getUserProfile(cred.user.uid);
+
+        if (profile && profile.status === "approved") {
+          window.location.href = "dashboard.html";
+        } else {
+          // pending_otp or pending_approval — verify-otp.html shows the right state
+          window.location.href = "verify-otp.html";
+        }
       } catch (err) {
-        errorMsg.textContent = err.message.replace("Firebase: ", "");
+        const code = err?.code || "";
+        const messageMap = {
+          "auth/invalid-credential": "Incorrect email or password. Please check the credentials and try again.",
+          "auth/user-not-found": "No account exists for this email. Please sign up first.",
+          "auth/wrong-password": "The password is incorrect. Please try again.",
+          "auth/too-many-requests": "Too many login attempts. Please wait a minute and try again.",
+          "auth/invalid-email": "Please enter a valid email address.",
+          "auth/network-request-failed": "Network error. Please check your internet connection and try again."
+        };
+
+        errorMsg.textContent = messageMap[code] || (err?.message || "Login failed. Please try again.").replace("Firebase: ", "");
         errorMsg.classList.remove("hidden");
       }
     });
