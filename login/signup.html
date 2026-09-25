@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sign Up - Twist & Turn</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{--bg-base:#101218;--bg-surface:#181B24;--ink:#F2F1ED;--ink-muted:#9297A6;--cube-red:#E8412B;--cube-blue:#2F6FE0;--cube-green:#22A35C;}
+  body{font-family:'Inter',sans-serif;background:var(--bg-base);color:var(--ink)}
+  .font-display{font-family:'Space Grotesk',sans-serif}.font-mono{font-family:'JetBrains Mono',monospace}
+  .surface-card{background:var(--bg-surface);border:1px solid rgba(255,255,255,.06)}
+  .field{background:var(--bg-base);border:1px solid rgba(255,255,255,.12);color:var(--ink)}
+  .field:focus{outline:none;border-color:var(--cube-blue)}
+  .btn-primary{background:var(--cube-red);color:#fff;font-family:'Space Grotesk',sans-serif;font-weight:600}
+  .btn-primary:hover{filter:brightness(1.08)}
+</style>
+</head>
+<body class="min-h-screen flex items-center justify-center px-4 py-10">
+  <main class="w-full max-w-xl">
+    <div class="text-center mb-8">
+      <a href="../index.html" class="font-display font-bold text-2xl">Twist &amp; Turn</a>
+      <p class="font-mono text-xs tracking-widest uppercase mt-1" style="color:var(--ink-muted)">Competitor Registration</p>
+    </div>
+    <form id="signup-form" class="surface-card rounded-2xl p-8 shadow-2xl space-y-4">
+      <div class="grid sm:grid-cols-2 gap-4">
+        <div><label class="block text-sm font-mono mb-1" style="color:var(--ink-muted)">Full name</label><input id="name" required class="field w-full rounded-lg px-4 py-3" autocomplete="name"></div>
+        <div><label class="block text-sm font-mono mb-1" style="color:var(--ink-muted)">Age</label><input id="age" required type="number" min="5" max="100" class="field w-full rounded-lg px-4 py-3"></div>
+      </div>
+      <div><label class="block text-sm font-mono mb-1" style="color:var(--ink-muted)">Email</label><input id="email" required type="email" class="field w-full rounded-lg px-4 py-3" autocomplete="email"></div>
+      <div><label class="block text-sm font-mono mb-1" style="color:var(--ink-muted)">Phone number</label><input id="phone" required type="tel" placeholder="+91 9876543210" class="field w-full rounded-lg px-4 py-3" autocomplete="tel"><p class="text-xs mt-1" style="color:var(--ink-muted)">Use international format, including country code.</p></div>
+      <div><label class="block text-sm font-mono mb-1" style="color:var(--ink-muted)">WCA ID <span style="color:var(--ink-muted)">(optional)</span></label><input id="wca-id" class="field w-full rounded-lg px-4 py-3" placeholder="2024EKHL01"></div>
+      <div><label class="block text-sm font-mono mb-1" style="color:var(--ink-muted)">Password</label><input id="password" required type="password" minlength="6" class="field w-full rounded-lg px-4 py-3" autocomplete="new-password"></div>
+      <p id="error-msg" class="text-sm hidden" style="color:var(--cube-red)"></p>
+      <button id="signup-btn" type="submit" class="btn-primary w-full py-3 rounded-lg">Create competitor account</button>
+      <p class="text-center text-sm" style="color:var(--ink-muted)">Already registered? <a href="login.html" class="underline" style="color:var(--cube-blue)">Log in</a></p>
+    </form>
+    <div id="recaptcha-container"></div>
+  </main>
+<script type="module">
+  import { signUpUser, sendSignupOtp } from './auth.js';
+  const form = document.getElementById('signup-form');
+  const errorMsg = document.getElementById('error-msg');
+  form.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    errorMsg.classList.add('hidden');
+    const button = document.getElementById('signup-btn');
+    button.disabled = true;
+    button.textContent = 'Creating account...';
+    try {
+      const name = document.getElementById('name').value.trim();
+      const email = document.getElementById('email').value.trim();
+      const phone = document.getElementById('phone').value.trim();
+      const user = await signUpUser({
+        name,
+        email,
+        phone,
+        age: document.getElementById('age').value.trim(),
+        password: document.getElementById('password').value,
+        wcaId: document.getElementById('wca-id').value.trim()
+      });
+      await sendSignupOtp(user.uid, name, email);
+      window.location.href = 'verify-otp.html';
+    } catch (error) {
+      errorMsg.textContent = (error.message || 'Unable to create account.').replace('Firebase: ', '');
+      errorMsg.classList.remove('hidden');
+      button.disabled = false;
+      button.textContent = 'Create competitor account';
+    }
+  });
+</script>
+</body>
+</html>
