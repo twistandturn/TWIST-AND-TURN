@@ -2,11 +2,41 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <meta http-equiv="refresh" content="0; url=../compititions/">
-  <title>Opening Upcoming Competitions</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Average Calculator - Twist &amp; Turn</title>
+  <style>
+    :root { color-scheme: dark; font-family: system-ui, sans-serif; background: #101218; color: #f2f1ed; }
+    body { max-width: 720px; margin: 0 auto; padding: 2rem 1rem; }
+    main { background: #181b24; border: 1px solid #303542; border-radius: 16px; padding: 1.5rem; }
+    .grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: .6rem; }
+    input, button { width: 100%; box-sizing: border-box; padding: .8rem; border-radius: 8px; border: 1px solid #424958; background: #101218; color: inherit; }
+    button { background: #e8412b; border: 0; cursor: pointer; font-weight: 700; margin-top: 1rem; }
+    #result { color: #f2b705; font-size: 2rem; font-weight: 700; margin-top: 1.25rem; }
+    @media (max-width: 600px) { .grid { grid-template-columns: repeat(2, 1fr); } }
+  </style>
 </head>
 <body>
-  <p>Opening <a href="../compititions/">Upcoming Competitions</a>…</p>
-  <script>window.location.replace("../compititions/");</script>
+  <main>
+    <h1>Average Calculator</h1>
+    <p>Enter 2 to 5 solve times in seconds. Use <code>DNF</code> when needed.</p>
+    <div class="grid" id="inputs"></div>
+    <button id="calculate" type="button">Calculate Average</button>
+    <div id="result" aria-live="polite"></div>
+  </main>
+  <script>
+    const inputs = document.getElementById('inputs');
+    for (let i = 0; i < 5; i++) inputs.insertAdjacentHTML('beforeend', `<input type="text" aria-label="Solve ${i + 1}" placeholder="Solve ${i + 1}">`);
+    document.getElementById('calculate').addEventListener('click', () => {
+      const values = [...inputs.querySelectorAll('input')].map(input => input.value.trim()).filter(Boolean);
+      if (values.length < 2) { document.getElementById('result').textContent = 'Enter at least 2 solves.'; return; }
+      const times = values.map(value => value.toUpperCase() === 'DNF' ? Infinity : Number(value));
+      if (times.some(value => Number.isNaN(value) || value < 0)) { document.getElementById('result').textContent = 'Use seconds like 12.45 or DNF.'; return; }
+      if (times.filter(value => value === Infinity).length > (times.length === 5 ? 1 : 0)) { document.getElementById('result').textContent = 'DNF'; return; }
+      const sorted = [...times].sort((a, b) => a - b);
+      const sample = times.length === 5 ? sorted.slice(1, -1) : sorted;
+      const average = sample.reduce((sum, value) => sum + value, 0) / sample.length;
+      document.getElementById('result').textContent = Number.isFinite(average) ? `Average: ${average.toFixed(2)} s` : 'DNF';
+    });
+  </script>
 </body>
 </html>
