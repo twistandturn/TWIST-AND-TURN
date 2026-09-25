@@ -11,8 +11,8 @@
 // ==========================================================
 
 export const firebaseConfig = {
-  apiKey: "AIzaSyAmgZw3YeTDZSfrpwsULUAq6SnmtFQ1qTE",
-  authDomain: "twistnturn-9623d.firebaseapp.com",
+  apiKey: "AIzaSyAmgZw3YeTDZSfrpwsUlUAq6SnmtFQ1qTE",
+  authDomain: "twistandturn.co.in",
   projectId: "twistnturn-9623d",
   storageBucket: "twistnturn-9623d.firebasestorage.app",
   messagingSenderId: "802786554775",
