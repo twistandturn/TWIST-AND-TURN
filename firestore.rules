@@ -3,23 +3,44 @@ service cloud.firestore {
   match /databases/{database}/documents {
 
     match /users/{userId} {
-      // Anyone signed in can read profiles (needed for admin search-by-email)
+      // Anyone signed in can read profiles (needed for admin search-by-email
+      // and the pending-approvals list)
       allow read: if request.auth != null;
 
       // A user can create their own profile on signup, but cannot set
-      // themselves as admin or invent their own competitorId
+      // themselves as admin, invent their own competitorId, or skip the
+      // OTP step — every new account must start as "pending_otp".
       allow create: if request.auth != null
                     && request.auth.uid == userId
                     && request.resource.data.isAdmin == false
-                    && request.resource.data.competitorId == null;
+                    && request.resource.data.competitorId == null
+                    && request.resource.data.status == "pending_otp";
 
-      // Users can update their own profile, but never touch isAdmin
-      // or competitorId directly — those are admin-only via the app logic.
+      // Users can update their own profile (name/phone/wcaId/photoURL/OTP
+      // fields), but never touch isAdmin, competitorId, or results directly
+      // — those are admin-only via the app logic. The ONE status change a
+      // user can make themselves is confirming their own OTP
+      // (pending_otp -> pending_phone -> pending_approval); moving to
+      // "approved" is admin-only.
       // Admins (checked via their own doc) can update any user's doc.
       allow update: if request.auth != null && (
                       (request.auth.uid == userId
                        && request.resource.data.isAdmin == resource.data.isAdmin
-                       && request.resource.data.competitorId == resource.data.competitorId)
+                       && request.resource.data.competitorId == resource.data.competitorId
+                       && request.resource.data.results == resource.data.results
+                       && (
+                            request.resource.data.status == resource.data.status
+                            ||
+                            (resource.data.status == "pending_otp"
+                             && request.resource.data.status == "pending_phone"
+                             && request.resource.data.emailVerified == true)
+                            ||
+                            (resource.data.status == "pending_phone"
+                             && request.resource.data.status == "pending_approval"
+                             && request.resource.data.emailVerified == true
+                             && request.resource.data.phoneVerified == true)
+                          )
+                      )
                       ||
                       get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true
                     );
@@ -27,8 +48,8 @@ service cloud.firestore {
       allow delete: if false;
     }
 
-    match /counters/{year} {
-      // Only admins can touch the ID counters (used inside assignCompetitorId)
+    match /counters/{counterId} {
+      // Only admins can touch the ID counter (used inside assignCompetitorId)
       allow read: if request.auth != null;
       allow write: if request.auth != null
                    && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true;
