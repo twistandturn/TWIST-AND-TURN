@@ -5,7 +5,12 @@
 const CACHE_NAME = "tt-cache-v2";
 const APP_SHELL = [
   "./index.html",
-  "./records.html",
+  "./compititions/index.html",
+  "./timer/index.html",
+  "./Avg%20calculator/index.html",
+  "./learnalgs/index.html",
+  "./T%26T%20records/records.html",
+  "./T%26T%20live/index.html",
   "./manifest.json",
   "./icon-192.png",
   "./icon-512.png",

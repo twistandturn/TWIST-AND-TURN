@@ -4,7 +4,11 @@
 
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
-    navigator.serviceWorker.register("service-worker.js").catch(() => {});
+    const script = Array.from(document.scripts).find((item) => item.src.endsWith("/script.js"));
+    const serviceWorkerUrl = script
+      ? new URL("service-worker.js", script.src)
+      : new URL("service-worker.js", document.baseURI);
+    navigator.serviceWorker.register(serviceWorkerUrl).catch(() => {});
   });
 }
 
