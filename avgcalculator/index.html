@@ -1,12 +1,424 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta http-equiv="refresh" content="0; url=../Avg%20calculator/">
-  <title>Opening Average Calculator</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Avg Calculator — Twist & Turn</title>
+<meta name="theme-color" content="#E8412B">
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg-base:#101218;
+    --bg-surface:#181B24;
+    --ink:#F2F1ED;
+    --ink-muted:#9297A6;
+    --cube-red:#E8412B;
+    --cube-yellow:#F2B705;
+    --cube-blue:#2F6FE0;
+    --cube-green:#22A35C;
+  }
+  body{ font-family:'Inter', sans-serif; background:var(--bg-base); color:var(--ink); min-height:100vh; }
+  .font-display{ font-family:'Space Grotesk', sans-serif; }
+  .font-mono{ font-family:'JetBrains Mono', monospace; }
+
+  #home{ position:relative; overflow:hidden; background:radial-gradient(1200px 500px at 80% -10%, rgba(47,111,224,0.18), transparent 60%), radial-gradient(900px 400px at 10% 110%, rgba(242,183,5,0.12), transparent 60%), var(--bg-base); }
+  .scramble-row{ white-space:nowrap; position:absolute; left:0; width:200%; display:flex; opacity:0.12; font-size:1.1rem; letter-spacing:0.15em; color:var(--ink); user-select:none; pointer-events:none; }
+  .scramble-row span{ padding:0 2rem; }
+  .scramble-row.r1{ top:8%; animation:scrollLeft 38s linear infinite; }
+  .scramble-row.r2{ top:88%; animation:scrollRight 44s linear infinite; }
+  @keyframes scrollLeft{ from{ transform:translateX(0); } to{ transform:translateX(-50%); } }
+  @keyframes scrollRight{ from{ transform:translateX(-50%); } to{ transform:translateX(0); } }
+  @media (prefers-reduced-motion: reduce){ .scramble-row{ animation:none !important; } }
+
+  .cube-mark{ display:grid; grid-template-columns:repeat(3,1fr); gap:3px; width:30px; height:30px; }
+  .cube-mark span{ border-radius:2px; display:block; }
+  .cube-mark span:nth-child(1){ background:var(--cube-red); }
+  .cube-mark span:nth-child(2){ background:var(--cube-yellow); }
+  .cube-mark span:nth-child(3){ background:var(--cube-green); }
+  .cube-mark span:nth-child(4){ background:var(--cube-blue); }
+  .cube-mark span:nth-child(5){ background:var(--ink); }
+  .cube-mark span:nth-child(6){ background:var(--cube-red); }
+  .cube-mark span:nth-child(7){ background:var(--cube-blue); }
+  .cube-mark span:nth-child(8){ background:var(--cube-yellow); }
+  .cube-mark span:nth-child(9){ background:var(--cube-green); }
+  .cube-mark.spin{ animation:spin 3s linear infinite; }
+  @keyframes spin{ from{ transform:rotate(0deg); } to{ transform:rotate(360deg); } }
+
+  .eyebrow{ font-family:'JetBrains Mono', monospace; font-size:0.75rem; letter-spacing:0.2em; text-transform:uppercase; color:var(--ink-muted); }
+
+  .surface-card{ background:var(--bg-surface); border:1px solid rgba(255,255,255,0.07); }
+  .accent-border-red{ border-left:3px solid var(--cube-red); }
+  .accent-border-yellow{ border-left:3px solid var(--cube-yellow); }
+  .accent-border-blue{ border-left:3px solid var(--cube-blue); }
+  .accent-border-green{ border-left:3px solid var(--cube-green); }
+
+  .solve-input{ background:var(--bg-base); border:1px solid rgba(255,255,255,0.1); color:var(--ink); font-family:'JetBrains Mono', monospace; transition:border-color .2s ease, box-shadow .2s ease; }
+  .solve-input:focus{ outline:none; border-color:var(--cube-blue); box-shadow:0 0 0 3px rgba(47,111,224,0.25); }
+  .solve-input.is-best{ border-color:var(--cube-green); box-shadow:0 0 0 2px rgba(34,163,92,0.25); }
+  .solve-input.is-worst{ border-color:var(--cube-red); box-shadow:0 0 0 2px rgba(232,65,43,0.25); }
+  .solve-input.is-dnf{ color:var(--cube-red); }
+
+  .name-input{ background:var(--bg-base); border:1px solid rgba(255,255,255,0.1); color:var(--ink); }
+  .name-input:focus{ outline:none; border-color:var(--cube-yellow); box-shadow:0 0 0 3px rgba(242,183,5,0.2); }
+
+  .btn-primary{ background:var(--cube-red); color:#fff; font-family:'Space Grotesk',sans-serif; font-weight:600; transition:filter .2s ease, transform .15s ease; }
+  .btn-primary:hover{ filter:brightness(1.1); }
+  .btn-primary:active{ transform:scale(0.98); }
+  .btn-secondary{ background:var(--cube-yellow); color:#101218; font-family:'Space Grotesk',sans-serif; font-weight:700; transition:filter .2s ease, transform .15s ease; }
+  .btn-secondary:hover{ filter:brightness(1.08); }
+  .btn-secondary:active{ transform:scale(0.98); }
+
+  .result-box{ background:linear-gradient(135deg, rgba(232,65,43,0.12), rgba(47,111,224,0.10)); border:1px solid rgba(255,255,255,0.08); }
+  .result-value{ font-family:'JetBrains Mono', monospace; }
+
+  .history-row{ background:var(--bg-surface); border:1px solid rgba(255,255,255,0.06); }
+  .history-row:hover{ border-color:rgba(255,255,255,0.15); }
+
+  ::selection{ background:var(--cube-yellow); color:#101218; }
+
+  .tag-chip{ font-family:'JetBrains Mono', monospace; font-size:0.7rem; letter-spacing:0.1em; }
+</style>
 </head>
-<body>
-  <p>Opening the <a href="../Avg%20calculator/">Average Calculator</a>…</p>
-  <script>window.location.replace("../Avg%20calculator/");</script>
+<body class="antialiased flex flex-col">
+
+<section id="home" class="py-10 md:py-14 flex-grow">
+  <div class="scramble-row r1"><span>R U R' U'</span><span>F2 D' B L2</span><span>U' R2 F' D</span><span>B2 L R' U2</span><span>R U R' U'</span><span>F2 D' B L2</span><span>U' R2 F' D</span><span>B2 L R' U2</span></div>
+  <div class="scramble-row r2"><span>D2 R' F U2</span><span>L' B2 R U'</span><span>F R2 D' L</span><span>U B' R2 F'</span><span>D2 R' F U2</span><span>L' B2 R U'</span><span>F R2 D' L</span><span>U B' R2 F'</span></div>
+
+  <div class="relative z-10 max-w-3xl mx-auto px-4">
+
+    <div class="flex justify-center mb-4">
+      <div class="cube-mark spin"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
+    </div>
+
+    <div class="text-center mb-8">
+      <h1 class="font-display text-3xl md:text-5xl font-bold tracking-tight">Avg Calculator</h1>
+      <p class="eyebrow mt-2">TWIST &amp; TURN <span style="color:var(--cube-yellow)">•</span> SPEEDCUBING TOOLS</p>
+      <p class="mt-3 max-w-xl mx-auto" style="color:var(--ink-muted)">Enter up to 5 solves and get an accurate WCA-style average, with DNFs fully supported.</p>
+    </div>
+
+    <div class="surface-card rounded-2xl shadow-2xl p-6 md:p-8">
+
+      <div class="flex justify-between items-center mb-5">
+        <span class="tag-chip px-3 py-1 rounded-full" style="background:rgba(242,183,5,0.15); color:var(--cube-yellow);">EXAMPLE</span>
+        <span class="font-mono text-xs" style="color:var(--ink-muted)">3500 = 0:35.000 &nbsp;•&nbsp; 34567 = 3:45.670</span>
+      </div>
+
+      <div class="grid grid-cols-2 sm:grid-cols-5 gap-3">
+        <div>
+          <label class="block text-xs font-semibold mb-1" style="color:var(--ink-muted)">Solve 1</label>
+          <input type="text" id="s0" placeholder="3500" class="solve-input w-full rounded-lg px-3 py-3 text-center text-lg">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold mb-1" style="color:var(--ink-muted)">Solve 2</label>
+          <input type="text" id="s1" placeholder="3500" class="solve-input w-full rounded-lg px-3 py-3 text-center text-lg">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold mb-1" style="color:var(--ink-muted)">Solve 3</label>
+          <input type="text" id="s2" placeholder="3500" class="solve-input w-full rounded-lg px-3 py-3 text-center text-lg">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold mb-1" style="color:var(--ink-muted)">Solve 4</label>
+          <input type="text" id="s3" placeholder="3500" class="solve-input w-full rounded-lg px-3 py-3 text-center text-lg">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold mb-1" style="color:var(--ink-muted)">Solve 5</label>
+          <input type="text" id="s4" placeholder="3500" class="solve-input w-full rounded-lg px-3 py-3 text-center text-lg">
+        </div>
+      </div>
+
+      <div class="mt-5">
+        <label class="block text-xs font-semibold mb-1" style="color:var(--ink-muted)">Event name <span class="font-normal" style="color:var(--ink-muted)">optional</span></label>
+        <input type="text" id="eventName" placeholder="e.g. Skewb Round-1" class="name-input w-full rounded-lg px-4 py-3">
+      </div>
+
+      <div id="errorBox" class="hidden mt-4 rounded-lg px-4 py-3 text-sm font-mono" style="background:rgba(232,65,43,0.12); border:1px solid rgba(232,65,43,0.4); color:#ff8a75;"></div>
+
+      <div class="mt-6 flex gap-3">
+        <button id="calcBtn" class="btn-primary flex-grow rounded-xl py-4 shadow-lg">Calculate</button>
+        <button id="clearBtn" class="btn-secondary rounded-xl px-6 py-4 shadow-lg whitespace-nowrap">↺ Clear</button>
+      </div>
+
+      <div id="resultBox" class="result-box hidden mt-6 rounded-2xl p-6 text-center">
+        <p class="eyebrow mb-1" id="resultLabel">AVERAGE</p>
+        <p class="result-value text-4xl md:text-5xl font-bold" id="resultValue" style="color:var(--cube-yellow)">—</p>
+        <p class="mt-2 text-sm" id="resultDetail" style="color:var(--ink-muted)"></p>
+        <div id="resultBreakdown" class="mt-4 flex justify-center gap-3 flex-wrap"></div>
+      </div>
+
+    </div>
+
+    <div class="mt-10 border-t pt-6" style="border-color:rgba(255,255,255,0.08);">
+      <div class="flex justify-between items-center mb-4">
+        <h2 class="font-display text-xl font-bold">History <span class="eyebrow ml-1">SAVED HERE</span></h2>
+        <button id="clearHistoryBtn" class="text-xs font-mono px-3 py-1.5 rounded-full" style="color:var(--ink-muted); border:1px solid rgba(255,255,255,0.1);">Clear history</button>
+      </div>
+      <div id="historyList" class="space-y-2">
+        <p id="historyEmpty" class="text-sm font-mono" style="color:var(--ink-muted)">• Calculated averages will appear here.</p>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<footer class="py-6 text-center font-mono text-xs" style="color:var(--ink-muted); border-top:1px solid rgba(255,255,255,0.06);">
+  © 2026 Twist &amp; Turn — Speedcubing Arena
+</footer>
+
+<script>
+(function(){
+
+  const STORAGE_KEY = 'tt_avgcalc_history';
+
+  function parseTime(raw){
+    if(raw === undefined || raw === null) return null;
+    raw = raw.trim();
+    if(raw === '') return null;
+
+    const upper = raw.toUpperCase();
+    if(upper === 'DNF' || upper === 'DNS'){
+      return { ms: Infinity, dnf: true };
+    }
+
+    if(raw.includes(':')){
+      const [mmPart, rest = '0'] = raw.split(':');
+      const [ssPart, msPart] = rest.split('.');
+      const mm = parseInt(mmPart, 10) || 0;
+      const ss = parseInt(ssPart, 10) || 0;
+      let ms = 0;
+      if(msPart){
+        ms = parseInt(msPart.padEnd(3, '0').slice(0, 3), 10);
+      }
+      if(isNaN(mm) || isNaN(ss)) return { error: true };
+      return { ms: mm * 60000 + ss * 1000 + ms, dnf: false };
+    }
+
+    if(raw.includes('.')){
+      const sec = parseFloat(raw);
+      if(isNaN(sec) || sec < 0) return { error: true };
+      return { ms: Math.round(sec * 1000), dnf: false };
+    }
+
+    const digits = raw.replace(/\D/g, '');
+    if(digits === '' || digits !== raw){
+      return { error: true };
+    }
+
+    const cs = digits.slice(-2).padStart(2, '0');
+    const remaining = digits.slice(0, -2);
+    let ss, mm;
+    if(remaining.length <= 2){
+      ss = remaining ? parseInt(remaining, 10) : 0;
+      mm = 0;
+    } else {
+      ss = parseInt(remaining.slice(-2), 10);
+      mm = parseInt(remaining.slice(0, -2), 10);
+    }
+    const ms = mm * 60000 + ss * 1000 + parseInt(cs, 10) * 10;
+    return { ms, dnf: false };
+  }
+
+  function formatTime(totalMs){
+    if(totalMs === Infinity) return 'DNF';
+    totalMs = Math.round(totalMs);
+    const ms = totalMs % 1000;
+    const totalSec = Math.floor(totalMs / 1000);
+    const ss = totalSec % 60;
+    const mm = Math.floor(totalSec / 60);
+    return `${mm}:${String(ss).padStart(2,'0')}.${String(ms).padStart(3,'0')}`;
+  }
+
+  function computeAverage(entries){
+    // entries: array of {index, ms, dnf}
+    const n = entries.length;
+    const dnfCount = entries.filter(e => e.dnf).length;
+
+    if(n < 5){
+      if(dnfCount > 0){
+        return { ok:true, isDnf:true, result:'DNF', detail:`Mean of ${n} — includes a DNF, so the average is DNF`, best:null, worst:null };
+      }
+      const sum = entries.reduce((a,e)=>a+e.ms,0);
+      return { ok:true, isDnf:false, result: formatTime(sum/n), detail:`Mean of ${n} solve${n>1?'s':''}`, best:null, worst:null };
+    }
+
+    // n === 5 -> Ao5
+    if(dnfCount >= 2){
+      return { ok:true, isDnf:true, result:'DNF', detail:'2 or more DNFs — the Ao5 is automatically DNF', best:null, worst:null };
+    }
+    const sorted = [...entries].sort((a,b) => a.ms - b.ms);
+    const best = sorted[0];
+    const worst = sorted[sorted.length - 1];
+    const middle = sorted.slice(1, -1);
+    const sum = middle.reduce((a,e)=>a+e.ms, 0);
+    const avg = sum / middle.length;
+    return {
+      ok:true, isDnf:false,
+      result: formatTime(avg),
+      detail: 'Ao5 — best and worst dropped, average of the middle 3',
+      best: { index: best.index, display: best.dnf ? 'DNF' : formatTime(best.ms) },
+      worst: { index: worst.index, display: worst.dnf ? 'DNF' : formatTime(worst.ms) }
+    };
+  }
+
+  const inputs = [0,1,2,3,4].map(i => document.getElementById('s'+i));
+  const eventNameInput = document.getElementById('eventName');
+  const calcBtn = document.getElementById('calcBtn');
+  const clearBtn = document.getElementById('clearBtn');
+  const errorBox = document.getElementById('errorBox');
+  const resultBox = document.getElementById('resultBox');
+  const resultLabel = document.getElementById('resultLabel');
+  const resultValue = document.getElementById('resultValue');
+  const resultDetail = document.getElementById('resultDetail');
+  const resultBreakdown = document.getElementById('resultBreakdown');
+  const historyList = document.getElementById('historyList');
+  const historyEmpty = document.getElementById('historyEmpty');
+  const clearHistoryBtn = document.getElementById('clearHistoryBtn');
+
+  function showError(msg){
+    errorBox.textContent = msg;
+    errorBox.classList.remove('hidden');
+    resultBox.classList.add('hidden');
+  }
+  function hideError(){
+    errorBox.classList.add('hidden');
+  }
+
+  function clearHighlights(){
+    inputs.forEach(inp => inp.classList.remove('is-best','is-worst','is-dnf'));
+  }
+
+  function loadHistory(){
+    try{
+      return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+    }catch(e){ return []; }
+  }
+  function saveHistory(list){
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
+  }
+  function renderHistory(){
+    const list = loadHistory();
+    historyList.querySelectorAll('.history-row').forEach(el => el.remove());
+    if(list.length === 0){
+      historyEmpty.classList.remove('hidden');
+      return;
+    }
+    historyEmpty.classList.add('hidden');
+    list.slice().reverse().forEach(item => {
+      const row = document.createElement('div');
+      row.className = 'history-row rounded-xl px-4 py-3 flex justify-between items-center gap-3';
+      row.innerHTML = `
+        <div class="min-w-0">
+          <p class="font-display font-semibold truncate">${item.eventName ? escapeHtml(item.eventName) : 'Untitled solve set'}</p>
+          <p class="font-mono text-xs mt-0.5" style="color:var(--ink-muted)">${escapeHtml(item.times.join(', '))}</p>
+        </div>
+        <div class="text-right flex-shrink-0">
+          <p class="font-mono text-lg font-bold" style="color:${item.isDnf ? 'var(--cube-red)' : 'var(--cube-yellow)'}">${item.result}</p>
+          <p class="font-mono text-[10px]" style="color:var(--ink-muted)">${item.date}</p>
+        </div>
+      `;
+      historyList.appendChild(row);
+    });
+  }
+  function escapeHtml(str){
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+  }
+  function addHistoryEntry(entry){
+    const list = loadHistory();
+    list.push(entry);
+    if(list.length > 50) list.shift();
+    saveHistory(list);
+    renderHistory();
+  }
+
+  calcBtn.addEventListener('click', () => {
+    hideError();
+    clearHighlights();
+
+    const rawValues = inputs.map(inp => inp.value);
+    const parsedAll = rawValues.map(v => parseTime(v));
+
+    for(let i = 0; i < parsedAll.length; i++){
+      if(parsedAll[i] && parsedAll[i].error){
+        showError(`Couldn't understand Solve ${i+1} — try: 1057, 10.57, DNF, or 1:02.57`);
+        return;
+      }
+    }
+
+    const entries = [];
+    parsedAll.forEach((p, i) => {
+      if(p !== null) entries.push({ index: i, ms: p.ms, dnf: p.dnf });
+    });
+
+    if(entries.length < 2){
+      showError('Enter at least 2 solve times to calculate.');
+      return;
+    }
+
+    const res = computeAverage(entries);
+
+    resultBox.classList.remove('hidden');
+    resultLabel.textContent = entries.length === 5 ? 'AO5' : `MEAN OF ${entries.length}`;
+    resultValue.textContent = res.result;
+    resultValue.style.color = res.isDnf ? 'var(--cube-red)' : 'var(--cube-yellow)';
+    resultDetail.textContent = res.detail;
+
+    resultBreakdown.innerHTML = '';
+    if(res.best){
+      inputs[res.best.index].classList.add(inputs[res.best.index].value.toUpperCase().startsWith('D') ? 'is-dnf' : 'is-best');
+      const chip = document.createElement('span');
+      chip.className = 'tag-chip px-3 py-1.5 rounded-full';
+      chip.style.background = 'rgba(34,163,92,0.15)';
+      chip.style.color = 'var(--cube-green)';
+      chip.textContent = `BEST: ${res.best.display}`;
+      resultBreakdown.appendChild(chip);
+    }
+    if(res.worst){
+      inputs[res.worst.index].classList.add(res.worst.display === 'DNF' ? 'is-dnf' : 'is-worst');
+      const chip = document.createElement('span');
+      chip.className = 'tag-chip px-3 py-1.5 rounded-full';
+      chip.style.background = 'rgba(232,65,43,0.15)';
+      chip.style.color = 'var(--cube-red)';
+      chip.textContent = `WORST: ${res.worst.display}`;
+      resultBreakdown.appendChild(chip);
+    }
+
+    addHistoryEntry({
+      eventName: eventNameInput.value.trim(),
+      times: rawValues.filter(v => v.trim() !== ''),
+      result: res.result,
+      isDnf: res.isDnf,
+      date: new Date().toLocaleString('en-IN', { day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit' })
+    });
+  });
+
+  clearBtn.addEventListener('click', () => {
+    inputs.forEach(inp => inp.value = '');
+    eventNameInput.value = '';
+    clearHighlights();
+    hideError();
+    resultBox.classList.add('hidden');
+  });
+
+  clearHistoryBtn.addEventListener('click', () => {
+    saveHistory([]);
+    renderHistory();
+  });
+
+  inputs.forEach((inp, i) => {
+    inp.addEventListener('keydown', (e) => {
+      if(e.key === 'Enter'){
+        if(i < inputs.length - 1) inputs[i+1].focus();
+        else calcBtn.click();
+      }
+    });
+  });
+
+  renderHistory();
+})();
+</script>
+
 </body>
 </html>
