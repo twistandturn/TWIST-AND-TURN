@@ -35,6 +35,9 @@
   .status-pill{ font-family:'JetBrains Mono', monospace; font-size:0.75rem; padding:4px 12px; border-radius:9999px; background:rgba(34,163,92,0.15); color:var(--cube-green); }
   ::selection{ background:var(--cube-yellow); color:#101218; }
   section[id]{ scroll-margin-top: 80px; }
+  .comp-nav-btn{ font-family:'JetBrains Mono', monospace; font-size:0.8rem; padding:10px 18px; border-radius:9999px; border:1px solid rgba(255,255,255,0.1); color:var(--ink-muted); background:var(--bg-surface); transition:all .2s ease; white-space:nowrap; }
+  .comp-nav-btn:hover{ border-color:var(--cube-blue); color:var(--ink); }
+  .comp-nav-btn.active{ background:var(--cube-blue); border-color:var(--cube-blue); color:#fff; }
 </style>
 </head>
 <body class="antialiased min-h-screen flex flex-col">
@@ -77,80 +80,12 @@
   <section class="py-16">
     <div class="max-w-5xl mx-auto px-4">
 
-      <div class="interactive-card surface-card accent-border-green rounded-2xl shadow-xl overflow-hidden">
-        <img src="logo.png.jpeg" alt="Twist & Turn S1" class="w-full h-auto" onerror="this.style.display='none';">
+      <!-- Competition switcher: pick a past competition to view its poster + results -->
+      <div id="comp-nav" class="flex flex-wrap gap-2 mb-12"></div>
 
-        <div class="p-8">
-          <span class="status-pill">✅ Completed</span>
+      <div id="comp-detail"></div>
 
-          <h2 class="font-display text-3xl font-bold mt-4 mb-2">Twist &amp; Turn S1</h2>
-
-          <p style="color:var(--ink-muted);" class="mb-6 leading-relaxed">
-            📅 4–5 July 2026<br>
-            🌐 Online Competition
-          </p>
-
-          <a href="#s1-results" class="btn-primary inline-block px-6 py-3 rounded-xl shadow-md transition transform hover:-translate-y-1">
-            🏆 View Results
-          </a>
-        </div>
-      </div>
-
-      <section id="s1-results" class="mt-16">
-        <p class="eyebrow mb-2">Leaderboard</p>
-        <h2 class="font-display text-3xl font-bold mb-8">Twist &amp; Turn S1 Results</h2>
-
-        <div class="overflow-x-auto rounded-2xl shadow-xl surface-card">
-          <table class="w-full border-collapse font-mono text-sm">
-            <thead style="background:var(--cube-green); color:#0B1A10;">
-              <tr>
-                <th class="px-6 py-4 text-left font-bold">Event</th>
-                <th class="px-6 py-4 text-left font-bold">1st 🥇</th>
-                <th class="px-6 py-4 text-left font-bold">2nd 🥈</th>
-                <th class="px-6 py-4 text-left font-bold">3rd 🥉</th>
-              </tr>
-            </thead>
-            <tbody class="divide-y divide-white/5">
-              <tr class="hover:bg-white/5 transition-colors">
-                <td class="px-6 py-4 font-semibold">3x3</td>
-                <td class="px-6 py-4" style="color:#D6D8DF;">MOHITH B</td>
-                <td class="px-6 py-4" style="color:#D6D8DF;">LIM KAI YI</td>
-                <td class="px-6 py-4" style="color:#D6D8DF;">CHIRAG GUPTA</td>
-              </tr>
-              <tr class="hover:bg-white/5 transition-colors">
-                <td class="px-6 py-4 font-semibold">2x2</td>
-                <td class="px-6 py-4" style="color:#D6D8DF;">MOHITH B</td>
-                <td class="px-6 py-4" style="color:#D6D8DF;">RUTHVIK SHELKE</td>
-                <td class="px-6 py-4" style="color:#D6D8DF;">LIM KAI YI</td>
-              </tr>
-              <tr class="hover:bg-white/5 transition-colors">
-                <td class="px-6 py-4 font-semibold">3x3 One-Handed</td>
-                <td class="px-6 py-4" style="color:#D6D8DF;">MOHITH B</td>
-                <td class="px-6 py-4" style="color:#D6D8DF;">LIM KAI YI</td>
-                <td class="px-6 py-4" style="color:#D6D8DF;">SYED WAFA ANDRABI</td>
-              </tr>
-              <tr class="hover:bg-white/5 transition-colors">
-                <td class="px-6 py-4 font-semibold">Clock</td>
-                <td class="px-6 py-4" style="color:#D6D8DF;">JUNAID EKHLAQUE</td>
-                <td class="px-6 py-4" style="color:#D6D8DF;">AARIZ ALI</td>
-                <td class="px-6 py-4" style="color:#D6D8DF;">MOHITH B</td>
-              </tr>
-              <tr class="hover:bg-white/5 transition-colors">
-                <td class="px-6 py-4 font-semibold">Skewb</td>
-                <td class="px-6 py-4" style="color:#D6D8DF;">LIM KAI YI</td>
-                <td class="px-6 py-4" style="color:#D6D8DF;">MOHITH B</td>
-                <td class="px-6 py-4" style="color:#D6D8DF;">JUNAID EKHLAQUE</td>
-              </tr>
-              <tr class="hover:bg-white/5 transition-colors">
-                <td class="px-6 py-4 font-semibold">Pyraminx</td>
-                <td class="px-6 py-4" style="color:#D6D8DF;">MOHITH B</td>
-                <td class="px-6 py-4" style="color:#D6D8DF;">LIM KAI YI</td>
-                <td class="px-6 py-4" style="color:#D6D8DF;">SYED WAFA ANDRABI</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </section>
+      <p id="comp-empty" class="hidden text-center py-16" style="color:var(--ink-muted);">Abhi koi previous competition add nahi hui hai.</p>
 
     </div>
   </section>
@@ -170,6 +105,181 @@
       menuBtn.innerHTML = navLinks.classList.contains("hidden") ? "☰" : "✖";
     });
   }
+</script>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+  import { firebaseConfig } from "./firebase-config.js";
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  // Shown immediately (no network wait) so the page is never empty while
+  // Firestore loads / if it's offline. Anything saved via manage.html merges in on top.
+  const DEFAULT_COMPS = [
+    {
+      id: "s1-default",
+      order: 1,
+      title: "Twist & Turn S1",
+      date: "4–5 July 2026",
+      mode: "Online Competition",
+      poster: "logo.png.jpeg",
+      results: [
+        { event: "3x3", first: "MOHITH B", second: "LIM KAI YI", third: "CHIRAG GUPTA" },
+        { event: "2x2", first: "MOHITH B", second: "RUTHVIK SHELKE", third: "LIM KAI YI" },
+        { event: "3x3 One-Handed", first: "MOHITH B", second: "LIM KAI YI", third: "SYED WAFA ANDRABI" },
+        { event: "Clock", first: "JUNAID EKHLAQUE", second: "AARIZ ALI", third: "MOHITH B" },
+        { event: "Skewb", first: "LIM KAI YI", second: "MOHITH B", third: "JUNAID EKHLAQUE" },
+        { event: "Pyraminx", first: "MOHITH B", second: "LIM KAI YI", third: "SYED WAFA ANDRABI" }
+      ],
+      ageCategories: []
+    }
+  ];
+
+  const compNav = document.getElementById("comp-nav");
+  const compDetail = document.getElementById("comp-detail");
+  const compEmpty = document.getElementById("comp-empty");
+
+  let comps = {};
+  let activeId = null;
+
+  function escapeHtml(str) {
+    return (str || "").replace(/[&<>"']/g, c => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" }[c]));
+  }
+
+  function resultsTable(rows) {
+    if (!rows || rows.length === 0) return "";
+    return `
+      <div class="overflow-x-auto rounded-2xl shadow-xl surface-card">
+        <table class="w-full border-collapse font-mono text-sm">
+          <thead style="background:var(--cube-green); color:#0B1A10;">
+            <tr>
+              <th class="px-6 py-4 text-left font-bold">Event</th>
+              <th class="px-6 py-4 text-left font-bold">1st 🥇</th>
+              <th class="px-6 py-4 text-left font-bold">2nd 🥈</th>
+              <th class="px-6 py-4 text-left font-bold">3rd 🥉</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-white/5">
+            ${rows.map(r => `
+              <tr class="hover:bg-white/5 transition-colors">
+                <td class="px-6 py-4 font-semibold">${escapeHtml(r.event)}</td>
+                <td class="px-6 py-4" style="color:#D6D8DF;">${escapeHtml(r.first)}</td>
+                <td class="px-6 py-4" style="color:#D6D8DF;">${escapeHtml(r.second)}</td>
+                <td class="px-6 py-4" style="color:#D6D8DF;">${escapeHtml(r.third)}</td>
+              </tr>
+            `).join("")}
+          </tbody>
+        </table>
+      </div>
+    `;
+  }
+
+  function ageCategoryTable(rows) {
+    if (!rows || rows.length === 0) return "";
+    return `
+      <div class="overflow-x-auto rounded-2xl shadow-xl surface-card">
+        <table class="w-full border-collapse font-mono text-sm">
+          <thead style="background:var(--cube-yellow); color:#101218;">
+            <tr>
+              <th class="px-6 py-4 text-left font-bold">Age Category</th>
+              <th class="px-6 py-4 text-left font-bold">1st 🥇</th>
+              <th class="px-6 py-4 text-left font-bold">2nd 🥈</th>
+              <th class="px-6 py-4 text-left font-bold">3rd 🥉</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-white/5">
+            ${rows.map(r => `
+              <tr class="hover:bg-white/5 transition-colors">
+                <td class="px-6 py-4 font-semibold">${escapeHtml(r.category)}</td>
+                <td class="px-6 py-4" style="color:#D6D8DF;">${escapeHtml(r.first)}</td>
+                <td class="px-6 py-4" style="color:#D6D8DF;">${escapeHtml(r.second)}</td>
+                <td class="px-6 py-4" style="color:#D6D8DF;">${escapeHtml(r.third)}</td>
+              </tr>
+            `).join("")}
+          </tbody>
+        </table>
+      </div>
+    `;
+  }
+
+  function renderNav() {
+    const ids = Object.keys(comps).sort((a, b) => (comps[b].order || 0) - (comps[a].order || 0));
+    if (ids.length === 0) {
+      compNav.innerHTML = "";
+      compDetail.innerHTML = "";
+      compEmpty.classList.remove("hidden");
+      return;
+    }
+    compEmpty.classList.add("hidden");
+    if (!activeId || !comps[activeId]) activeId = ids[0];
+
+    compNav.innerHTML = ids.map(id => `
+      <button type="button" class="comp-nav-btn ${id === activeId ? "active" : ""}" data-id="${id}">${escapeHtml(comps[id].title)}</button>
+    `).join("");
+
+    compNav.querySelectorAll(".comp-nav-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        activeId = btn.dataset.id;
+        renderNav();
+        renderDetail();
+      });
+    });
+  }
+
+  function renderDetail() {
+    if (!activeId || !comps[activeId]) { compDetail.innerHTML = ""; return; }
+    const c = comps[activeId];
+
+    compDetail.innerHTML = `
+      <div class="interactive-card surface-card accent-border-green rounded-2xl shadow-xl overflow-hidden">
+        ${c.poster ? `<img src="${c.poster}" alt="${escapeHtml(c.title)}" class="w-full h-auto" onerror="this.style.display='none';">` : ""}
+        <div class="p-8">
+          <span class="status-pill">✅ Completed</span>
+          <h2 class="font-display text-3xl font-bold mt-4 mb-2">${escapeHtml(c.title)}</h2>
+          <p style="color:var(--ink-muted);" class="mb-2 leading-relaxed">
+            ${c.date ? `📅 ${escapeHtml(c.date)}<br>` : ""}
+            ${c.mode ? `🌐 ${escapeHtml(c.mode)}` : ""}
+          </p>
+        </div>
+      </div>
+
+      <section class="mt-16">
+        <p class="eyebrow mb-2">Leaderboard</p>
+        <h2 class="font-display text-3xl font-bold mb-8">${escapeHtml(c.title)} Results</h2>
+        ${resultsTable(c.results)}
+      </section>
+
+      ${c.ageCategories && c.ageCategories.length ? `
+        <section class="mt-16">
+          <p class="eyebrow mb-2">Age Category</p>
+          <h2 class="font-display text-3xl font-bold mb-8">Age Category Winners</h2>
+          ${ageCategoryTable(c.ageCategories)}
+        </section>
+      ` : ""}
+    `;
+  }
+
+  // Seed defaults immediately, then merge in whatever's saved in Firestore.
+  DEFAULT_COMPS.forEach(c => { comps[c.id] = c; });
+  renderNav();
+  renderDetail();
+
+  async function loadPrevComps() {
+    try {
+      const snap = await getDocs(collection(db, "previousCompetitions"));
+      if (snap.empty) return;
+      snap.forEach(d => {
+        comps[d.id] = { id: d.id, ...d.data() };
+      });
+      renderNav();
+      renderDetail();
+    } catch (err) {
+      console.error("Could not load previous competitions from Firestore — showing defaults only.", err);
+    }
+  }
+  loadPrevComps();
 </script>
 
 </body>
