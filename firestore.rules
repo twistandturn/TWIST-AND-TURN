@@ -88,5 +88,12 @@ service cloud.firestore {
       allow read: if true;
       allow write: if true;
     }
+
+    // Previous Competitions archive — one doc per past competition
+    // (title, date, mode, poster, results, ageCategories).
+    match /previousCompetitions/{compId} {
+      allow read: if true;
+      allow write: if true;
+    }
   }
 }
