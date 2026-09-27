@@ -178,6 +178,15 @@
         <p id="results-save-msg" class="text-sm hidden"></p>
       </div>
 
+      <p class="font-mono text-xs tracking-widest uppercase mt-16 mb-2" style="color:var(--ink-muted);">Archive</p>
+      <h1 class="font-display text-3xl font-bold mb-8">Manage Previous Competitions</h1>
+
+      <div class="surface-card rounded-2xl p-8 shadow-xl space-y-4">
+        <div id="prevcomps-list" class="space-y-4"></div>
+        <button id="add-prevcomp-btn" type="button" class="w-full py-2 rounded-lg border border-white/15 font-mono text-sm" style="color:var(--ink-muted);">+ Add Previous Competition</button>
+        <p class="text-xs mt-2" style="color:var(--ink-muted);">Har competition ka apna card hoga — poster, results (1st/2nd/3rd) aur agar chaho to age category winners (optional) bhar ke us card ka "Save This Competition" dabao. Save hote hi "Previous Competitions" page par uska naam ek list mein aa jayega — uspe click karte hi poster, results aur age category sab dikh jayenge. Delete karne pe wo waha se hamesha ke liye hat jayega.</p>
+      </div>
+
       <p class="font-mono text-xs tracking-widest uppercase mt-16 mb-2" style="color:var(--ink-muted);">Right Now</p>
       <h1 class="font-display text-3xl font-bold mb-8">Manage Live Results</h1>
 
@@ -380,6 +389,7 @@
         panel.classList.remove("hidden");
         loadCurrentData();
         loadResults();
+        loadPrevComps();
         loadLiveResults();
         loadGeneral();
         loadGallery();
@@ -654,6 +664,220 @@
         resultsMsg.classList.remove("hidden");
       }
     });
+
+    // ============================================
+    // Previous Competitions management (archive)
+    // Each competition = its own Firestore doc in "previousCompetitions"
+    // ============================================
+    const prevCompsList = document.getElementById("prevcomps-list");
+    let prevCompCounter = 0;
+
+    function pcMakeSlug(title) {
+      const s = title.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+      return s || ("comp-" + Date.now());
+    }
+
+    function pcAddResultRow(container, event = "", first = "", second = "", third = "") {
+      const rowDiv = document.createElement("div");
+      rowDiv.className = "grid grid-cols-5 gap-2 items-center";
+      rowDiv.innerHTML = `
+        <input type="text" class="field rounded-lg px-3 py-2 text-sm pc-row-event" placeholder="Event" value="${event}">
+        <input type="text" class="field rounded-lg px-3 py-2 text-sm pc-row-first" placeholder="1st" value="${first}">
+        <input type="text" class="field rounded-lg px-3 py-2 text-sm pc-row-second" placeholder="2nd" value="${second}">
+        <input type="text" class="field rounded-lg px-3 py-2 text-sm pc-row-third" placeholder="3rd" value="${third}">
+        <button type="button" class="pc-remove-row-btn text-sm py-2 rounded-lg" style="color:var(--cube-red); border:1px solid rgba(255,255,255,0.1);">Remove</button>
+      `;
+      rowDiv.querySelector(".pc-remove-row-btn").addEventListener("click", () => rowDiv.remove());
+      container.appendChild(rowDiv);
+    }
+
+    function pcAddAgeRow(container, category = "", first = "", second = "", third = "") {
+      const rowDiv = document.createElement("div");
+      rowDiv.className = "grid grid-cols-5 gap-2 items-center";
+      rowDiv.innerHTML = `
+        <input type="text" class="field rounded-lg px-3 py-2 text-sm pc-age-cat" placeholder="e.g. Under 12" value="${category}">
+        <input type="text" class="field rounded-lg px-3 py-2 text-sm pc-age-first" placeholder="1st" value="${first}">
+        <input type="text" class="field rounded-lg px-3 py-2 text-sm pc-age-second" placeholder="2nd" value="${second}">
+        <input type="text" class="field rounded-lg px-3 py-2 text-sm pc-age-third" placeholder="3rd" value="${third}">
+        <button type="button" class="pc-remove-row-btn text-sm py-2 rounded-lg" style="color:var(--cube-red); border:1px solid rgba(255,255,255,0.1);">Remove</button>
+      `;
+      rowDiv.querySelector(".pc-remove-row-btn").addEventListener("click", () => rowDiv.remove());
+      container.appendChild(rowDiv);
+    }
+
+    function createPrevCompCard(docId, data) {
+      data = data || {};
+      const isNew = !docId;
+
+      const card = document.createElement("details");
+      card.className = "live-event-block";
+      card.open = isNew;
+      card.dataset.docId = docId || "";
+
+      card.innerHTML = `
+        <summary class="cursor-pointer font-display font-bold text-lg flex items-center justify-between gap-3">
+          <span class="pc-summary-title truncate">${data.title || "New Competition"}</span>
+          <span class="pc-status-tag text-xs font-mono shrink-0" style="color:var(--ink-muted);">${isNew ? "unsaved" : "saved"}</span>
+        </summary>
+        <div class="mt-4 space-y-4">
+          <div>
+            <label class="block text-sm font-mono mb-1" style="color:var(--ink-muted);">Competition Title</label>
+            <input type="text" class="field w-full rounded-lg px-4 py-3 pc-title" placeholder="e.g. Twist & Turn S2" value="${data.title || ""}">
+          </div>
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-mono mb-1" style="color:var(--ink-muted);">Date</label>
+              <input type="text" class="field w-full rounded-lg px-4 py-3 pc-date" placeholder="e.g. 4–5 July 2026" value="${data.date || ""}">
+            </div>
+            <div>
+              <label class="block text-sm font-mono mb-1" style="color:var(--ink-muted);">Mode</label>
+              <input type="text" class="field w-full rounded-lg px-4 py-3 pc-mode" placeholder="Online Competition" value="${data.mode || ""}">
+            </div>
+          </div>
+          <div>
+            <label class="block text-sm font-mono mb-1" style="color:var(--ink-muted);">Poster Image</label>
+            <input type="file" accept="image/*" class="field w-full rounded-lg px-4 py-3 pc-poster-file">
+            <div class="pc-poster-preview mt-3">${data.poster ? `<img src="${data.poster}" class="rounded-xl max-h-40">` : ""}</div>
+          </div>
+          <div>
+            <label class="block text-sm font-mono mb-1" style="color:var(--ink-muted);">Results (Event, 1st, 2nd, 3rd)</label>
+            <div class="grid grid-cols-5 gap-2 mb-1">
+              <span class="text-xs font-mono" style="color:var(--ink-muted);">Event</span>
+              <span class="text-xs font-mono" style="color:var(--ink-muted);">1st</span>
+              <span class="text-xs font-mono" style="color:var(--ink-muted);">2nd</span>
+              <span class="text-xs font-mono" style="color:var(--ink-muted);">3rd</span>
+              <span></span>
+            </div>
+            <div class="pc-results-rows space-y-2"></div>
+            <button type="button" class="pc-add-result-btn w-full py-2 rounded-lg border border-white/15 font-mono text-sm mt-2" style="color:var(--ink-muted);">+ Add Event Row</button>
+          </div>
+          <div>
+            <label class="block text-sm font-mono mb-1" style="color:var(--ink-muted);">Age Category Winners (optional)</label>
+            <div class="pc-age-rows space-y-2"></div>
+            <button type="button" class="pc-add-age-btn w-full py-2 rounded-lg border border-white/15 font-mono text-sm mt-2" style="color:var(--ink-muted);">+ Add Age Category</button>
+            <p class="text-xs mt-2" style="color:var(--ink-muted);">Koi bhi add nahi karoge to is competition ke results page par age category wala section bilkul nahi dikhega.</p>
+          </div>
+          <div class="flex gap-3 pt-2">
+            <button type="button" class="pc-save-btn btn-primary flex-1 py-3 rounded-lg">💾 Save This Competition</button>
+            <button type="button" class="pc-delete-btn py-3 px-4 rounded-lg font-mono text-sm" style="color:var(--cube-red); border:1px solid rgba(255,255,255,0.15);">🗑️ Delete</button>
+          </div>
+          <p class="pc-save-msg text-sm hidden"></p>
+        </div>
+      `;
+
+      const resultsRowsEl = card.querySelector(".pc-results-rows");
+      const ageRowsEl = card.querySelector(".pc-age-rows");
+
+      const initialResults = (data.results && data.results.length) ? data.results : [{}];
+      initialResults.forEach(r => pcAddResultRow(resultsRowsEl, r.event, r.first, r.second, r.third));
+      (data.ageCategories || []).forEach(r => pcAddAgeRow(ageRowsEl, r.category, r.first, r.second, r.third));
+
+      card.querySelector(".pc-add-result-btn").addEventListener("click", () => pcAddResultRow(resultsRowsEl));
+      card.querySelector(".pc-add-age-btn").addEventListener("click", () => pcAddAgeRow(ageRowsEl));
+
+      const titleInput = card.querySelector(".pc-title");
+      const summaryTitle = card.querySelector(".pc-summary-title");
+      titleInput.addEventListener("input", () => {
+        summaryTitle.textContent = titleInput.value || "New Competition";
+      });
+
+      const posterFileInput = card.querySelector(".pc-poster-file");
+      const posterPreview = card.querySelector(".pc-poster-preview");
+      let posterBase64 = data.poster || "";
+      posterFileInput.addEventListener("change", async () => {
+        if (posterFileInput.files && posterFileInput.files[0]) {
+          posterBase64 = await fileToCompressedBase64(posterFileInput.files[0]);
+          posterPreview.innerHTML = `<img src="${posterBase64}" class="rounded-xl max-h-40">`;
+        }
+      });
+
+      const saveMsg = card.querySelector(".pc-save-msg");
+      const statusTag = card.querySelector(".pc-status-tag");
+
+      card.querySelector(".pc-save-btn").addEventListener("click", async () => {
+        saveMsg.classList.add("hidden");
+        const title = titleInput.value.trim();
+        if (!title) {
+          saveMsg.textContent = "Title zaroor daalo.";
+          saveMsg.style.color = "var(--cube-red)";
+          saveMsg.classList.remove("hidden");
+          return;
+        }
+
+        const results = Array.from(resultsRowsEl.children).map(rowDiv => ({
+          event: rowDiv.querySelector(".pc-row-event").value.trim(),
+          first: rowDiv.querySelector(".pc-row-first").value.trim(),
+          second: rowDiv.querySelector(".pc-row-second").value.trim(),
+          third: rowDiv.querySelector(".pc-row-third").value.trim()
+        })).filter(r => r.event !== "");
+
+        const ageCategories = Array.from(ageRowsEl.children).map(rowDiv => ({
+          category: rowDiv.querySelector(".pc-age-cat").value.trim(),
+          first: rowDiv.querySelector(".pc-age-first").value.trim(),
+          second: rowDiv.querySelector(".pc-age-second").value.trim(),
+          third: rowDiv.querySelector(".pc-age-third").value.trim()
+        })).filter(r => r.category !== "");
+
+        const id = card.dataset.docId || pcMakeSlug(title);
+        const payload = {
+          title,
+          date: card.querySelector(".pc-date").value.trim(),
+          mode: card.querySelector(".pc-mode").value.trim(),
+          poster: posterBase64 || "",
+          results,
+          ageCategories,
+          order: (typeof data.order === "number") ? data.order : Date.now(),
+          updatedAt: new Date().toISOString()
+        };
+
+        try {
+          await setDoc(doc(db, "previousCompetitions", id), payload);
+          card.dataset.docId = id;
+          data.order = payload.order;
+          statusTag.textContent = "saved";
+          saveMsg.textContent = "Saved! Previous Competitions page pe check karo.";
+          saveMsg.style.color = "var(--cube-green)";
+          saveMsg.classList.remove("hidden");
+        } catch (err) {
+          saveMsg.textContent = "Error: " + err.message;
+          saveMsg.style.color = "var(--cube-red)";
+          saveMsg.classList.remove("hidden");
+        }
+      });
+
+      card.querySelector(".pc-delete-btn").addEventListener("click", async () => {
+        if (!confirm(`"${titleInput.value || "Ye competition"}" delete karna hai? Ye permanent hai.`)) return;
+        if (card.dataset.docId) {
+          try {
+            await deleteDoc(doc(db, "previousCompetitions", card.dataset.docId));
+          } catch (err) {
+            alert("Error deleting: " + err.message);
+            return;
+          }
+        }
+        card.remove();
+      });
+
+      return card;
+    }
+
+    document.getElementById("add-prevcomp-btn").addEventListener("click", () => {
+      prevCompCounter++;
+      prevCompsList.prepend(createPrevCompCard(null, {}));
+    });
+
+    async function loadPrevComps() {
+      try {
+        const snap = await getDocs(collection(db, "previousCompetitions"));
+        const items = [];
+        snap.forEach(d => items.push({ id: d.id, data: d.data() }));
+        items.sort((a, b) => (b.data.order || 0) - (a.data.order || 0));
+        prevCompsList.innerHTML = "";
+        items.forEach(({ id, data }) => prevCompsList.appendChild(createPrevCompCard(id, data)));
+      } catch (err) {
+        console.error("Could not load previous competitions", err);
+      }
+    }
 
     // ============================================
     // Live Results management (events -> rounds -> rows)
