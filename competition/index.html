@@ -40,6 +40,16 @@
   .btn-primary{ background:var(--cube-red); color:#fff; font-family:'Space Grotesk',sans-serif; font-weight:600; }
   .btn-primary:hover{ filter:brightness(1.08); }
 
+
+  .pt-row{ transition:background .2s ease, transform .2s ease; }
+  .pt-row:hover{ background:rgba(255,255,255,0.04); transform:translateX(4px); }
+  .pt-badge{ display:inline-block; padding:4px 12px; border-radius:999px; font-family:'JetBrains Mono',monospace; font-size:0.75rem; font-weight:600; }
+  .pt-filter{ padding:6px 14px; border-radius:999px; font-family:'JetBrains Mono',monospace; font-size:0.75rem; border:1px solid rgba(255,255,255,0.15); color:var(--ink-muted); transition:all .2s ease; cursor:pointer; background:transparent; }
+  .pt-filter.active{ background:var(--ink); color:var(--bg-base); border-color:var(--ink); font-weight:700; }
+  @keyframes ptFade{ from{ opacity:0; transform:translateY(8px);} to{ opacity:1; transform:none; } }
+  .pt-row{ animation:ptFade .35s ease both; }
+  @media (prefers-reduced-motion: reduce){ .pt-row{ animation:none; } .pt-row:hover{ transform:none; } }
+
   ::selection{ background:var(--cube-yellow); color:#101218; }
 </style>
 </head>
@@ -57,7 +67,7 @@
       </div>
       <div id="navLinks" class="hidden absolute top-full right-0 mt-2 w-full md:static md:mt-0 md:w-auto md:flex md:items-center md:space-x-1 text-right md:text-left font-mono text-sm uppercase tracking-wider" style="background:var(--bg-surface);">
         <button onclick="window.location.href='../index.html'" class="block w-full px-4 py-3 text-left hover:text-[var(--cube-yellow)] transition border-b-2 border-transparent hover:border-[var(--cube-yellow)] md:inline-block md:w-auto md:p-2">Home</button>
-        <button onclick="window.location.href='../timer.html'" class="block w-full px-4 py-3 text-left hover:text-[var(--cube-red)] transition border-b-2 border-transparent hover:border-[var(--cube-red)] md:inline-block md:w-auto md:p-2">⏱️ Timer</button>
+        <button onclick="window.location.href='../timer/'" class="block w-full px-4 py-3 text-left hover:text-[var(--cube-red)] transition border-b-2 border-transparent hover:border-[var(--cube-red)] md:inline-block md:w-auto md:p-2">⏱️ Timer</button>
         <button onclick="window.location.href='../previous-competitions.html'" class="block w-full px-4 py-3 text-left hover:text-[var(--cube-blue)] transition border-b-2 border-transparent hover:border-[var(--cube-blue)] md:inline-block md:w-auto md:p-2">Previous</button>
         <button onclick="window.location.href='../index.html#rules'" class="block w-full px-4 py-3 text-left hover:text-[var(--cube-red)] transition border-b-2 border-transparent hover:border-[var(--cube-red)] md:inline-block md:w-auto md:p-2">Rules</button>
         <button onclick="window.location.href='../index.html#results'" class="block w-full px-4 py-3 text-left hover:text-[var(--cube-green)] transition border-b-2 border-transparent hover:border-[var(--cube-green)] md:inline-block md:w-auto md:p-2">Results</button>
@@ -100,6 +110,31 @@
 
       <div id="upcoming-content" class="interactive-card surface-card accent-border-blue rounded-2xl shadow-2xl overflow-hidden">
         <div class="p-10 text-center"><p style="color:var(--ink-muted)">Loading...</p></div>
+      </div>
+
+      <div id="participants-section" class="hidden mt-12">
+        <div class="flex flex-wrap items-end justify-between gap-3 mb-6">
+          <div>
+            <p class="eyebrow mb-2">Who's Competing</p>
+            <h3 class="font-display text-2xl font-bold">👥 Participants List</h3>
+          </div>
+          <span id="pt-count" class="font-mono text-sm px-4 py-2 rounded-full" style="background:rgba(34,163,92,0.15); border:1px solid var(--cube-green); color:var(--ink);">0 Competitors</span>
+        </div>
+
+        <div class="interactive-card surface-card accent-border-green rounded-2xl overflow-hidden">
+          <div class="p-4 md:p-5 space-y-3 border-b border-white/5">
+            <input id="pt-search" type="text" placeholder="🔍 Search competitor..." class="w-full rounded-lg px-4 py-3 bg-black/20 border border-white/10 focus:outline-none focus:border-[var(--cube-green)] text-[var(--ink)]">
+            <div id="pt-filters" class="flex flex-wrap gap-2"></div>
+          </div>
+
+          <div class="hidden sm:grid grid-cols-12 gap-4 px-6 py-3 border-b border-white/5" style="background:rgba(255,255,255,0.03);">
+            <span class="col-span-1 eyebrow">#</span>
+            <span class="col-span-5 eyebrow" style="color:var(--ink);">Competitor</span>
+            <span class="col-span-6 eyebrow" style="color:var(--ink);">Registered Events</span>
+          </div>
+
+          <div id="pt-list" class="divide-y divide-white/5"></div>
+        </div>
       </div>
 
       <div id="upcoming-extra" class="hidden">
@@ -196,10 +231,12 @@
           </div>`;
         extra.classList.add("hidden");
         referralSection.classList.add("hidden");
+        document.getElementById("participants-section").classList.add("hidden");
         return;
       }
 
       extra.classList.remove("hidden");
+      loadParticipants();
       const d = snap.data();
       if (d.referralEnabled) {
         referralSection.classList.remove("hidden");
@@ -319,6 +356,80 @@
             : (d.regLink ? `<a id="reg-btn" href="${d.regLink}" target="_blank" class="btn-primary inline-block px-8 py-4 rounded-xl">Register Now 🚀</a>` : "")}
         </div>`;
     });
+
+
+    // ---- Participants list (Competitor -> Registered Events) ----
+    const PT_COLORS = ["#E8412B", "#F2B705", "#2F6FE0", "#22A35C"];
+    const ptSlug = n => (n || "").trim().toLowerCase().replace(/[^a-z0-9]+/g, "");
+    const esc = t => String(t).replace(/[&<>"']/g, c => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" }[c]));
+    let ptData = [];
+    let ptEventOrder = [];
+    let ptActiveEvent = "";
+
+    function ptColor(ev) {
+      const i = Math.max(0, ptEventOrder.findIndex(e => ptSlug(e) === ptSlug(ev)));
+      return PT_COLORS[i % PT_COLORS.length];
+    }
+
+    function renderPtFilters() {
+      const wrap = document.getElementById("pt-filters");
+      if (ptEventOrder.length < 2) { wrap.innerHTML = ""; return; }
+      const all = [{ label: "All", key: "" }, ...ptEventOrder.map(e => ({ label: e, key: ptSlug(e) }))];
+      wrap.innerHTML = all.map(f => `<button type="button" class="pt-filter ${f.key === ptActiveEvent ? "active" : ""}" data-key="${esc(f.key)}">${esc(f.label)}</button>`).join("");
+      wrap.querySelectorAll(".pt-filter").forEach(b => b.addEventListener("click", () => {
+        ptActiveEvent = b.dataset.key;
+        renderPtFilters();
+        renderPtList();
+      }));
+    }
+
+    function renderPtList() {
+      const q = (document.getElementById("pt-search").value || "").trim().toLowerCase();
+      const rows = ptData.filter(p =>
+        (!q || p.name.toLowerCase().includes(q)) &&
+        (!ptActiveEvent || p.events.some(e => ptSlug(e) === ptActiveEvent))
+      );
+      document.getElementById("pt-count").textContent =
+        `${ptData.length} Competitor${ptData.length === 1 ? "" : "s"}`;
+
+      const list = document.getElementById("pt-list");
+      if (rows.length === 0) {
+        list.innerHTML = `<div class="p-8 text-center" style="color:var(--ink-muted);">${ptData.length === 0 ? "Participants list jaldi update hogi. Stay tuned! 🚀" : "No competitor found."}</div>`;
+        return;
+      }
+      list.innerHTML = rows.map((p, i) => `
+        <div class="pt-row grid grid-cols-12 gap-x-4 gap-y-2 px-4 sm:px-6 py-4 items-center" style="animation-delay:${Math.min(i, 20) * 25}ms;">
+          <span class="hidden sm:block col-span-1 font-mono text-sm" style="color:var(--ink-muted);">${String(i + 1).padStart(2, "0")}</span>
+          <span class="col-span-12 sm:col-span-5 font-display font-semibold text-lg">${esc(p.name)}</span>
+          <div class="col-span-12 sm:col-span-6 flex flex-wrap gap-2">
+            ${p.events.length
+              ? p.events.map(ev => { const c = ptColor(ev); return `<span class="pt-badge" style="background:${c}26; border:1px solid ${c}; color:var(--ink);">${esc(ev)}</span>`; }).join("")
+              : `<span class="text-sm" style="color:var(--ink-muted);">-</span>`}
+          </div>
+        </div>`).join("");
+    }
+
+    async function loadParticipants() {
+      const section = document.getElementById("participants-section");
+      try {
+        const snap = await getDoc(doc(db, "site", "upcomingParticipants"));
+        ptData = (snap.exists() && Array.isArray(snap.data().list))
+          ? snap.data().list.filter(p => p && p.name).map(p => ({ name: String(p.name), events: Array.isArray(p.events) ? p.events : [] }))
+          : [];
+      } catch (err) {
+        console.error(err);
+        ptData = [];
+      }
+      if (ptData.length === 0) { section.classList.add("hidden"); return; }
+      const order = [];
+      const seen = new Set();
+      ptData.forEach(p => p.events.forEach(e => { const k = ptSlug(e); if (k && !seen.has(k)) { seen.add(k); order.push(e); } }));
+      ptEventOrder = order;
+      section.classList.remove("hidden");
+      renderPtFilters();
+      renderPtList();
+    }
+    document.getElementById("pt-search").addEventListener("input", renderPtList);
 
     // ---- Referral signup form ----
     const refForm = document.getElementById("referral-form");
