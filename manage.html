@@ -158,6 +158,63 @@
         Changes appear on the homepage automatically — no code editing needed.
       </p>
 
+      <p class="font-mono text-xs tracking-widest uppercase mt-16 mb-2" style="color:var(--ink-muted);">Upcoming Competition</p>
+      <h1 class="font-display text-3xl font-bold mb-2">Participants List</h1>
+      <p class="text-sm mb-8" style="color:var(--ink-muted);">Yahan manually participants add karo. Ye list upcoming competition page par <b style="color:var(--ink);">COMPETITOR &rarr; Registered Events</b> ke roop me dikhegi, aur ek click me Live Results me bhi push ho jayegi (event-wise).</p>
+
+      <div class="surface-card rounded-2xl p-8 shadow-xl space-y-5">
+
+        <div class="rounded-xl p-4 space-y-3" style="background:rgba(47,111,224,0.07); border:1px solid rgba(47,111,224,0.35);">
+          <p class="text-xs font-mono tracking-widest uppercase" style="color:var(--cube-blue);">Quick Add</p>
+          <div class="flex flex-col sm:flex-row gap-2">
+            <input type="text" id="pt-new-name" class="field flex-grow rounded-lg px-4 py-3" placeholder="Competitor name (e.g. Mohith)">
+            <button type="button" id="pt-add-btn" class="btn-primary px-6 py-3 rounded-lg">+ Add</button>
+          </div>
+          <div>
+            <p class="text-xs font-mono mb-2" style="color:var(--ink-muted);">Registered events (tap to select)</p>
+            <div id="pt-new-chips" class="flex flex-wrap gap-2"></div>
+          </div>
+          <p id="pt-add-msg" class="text-xs hidden"></p>
+        </div>
+
+        <div class="flex flex-wrap items-center justify-between gap-3">
+          <p class="text-sm" style="color:var(--ink-muted);">Total Competitors: <b id="pt-total" style="color:var(--ink);">0</b></p>
+          <div class="flex gap-2">
+            <button type="button" id="pt-refresh-events-btn" class="py-2 px-4 rounded-lg border border-white/15 font-mono text-xs" style="color:var(--ink-muted);">🔄 Sync events</button>
+            <button type="button" id="pt-sort-btn" class="py-2 px-4 rounded-lg border border-white/15 font-mono text-xs" style="color:var(--ink-muted);">A–Z Sort</button>
+          </div>
+        </div>
+
+        <div>
+          <div class="hidden sm:grid grid-cols-12 gap-2 mb-1 px-1">
+            <span class="col-span-1 text-xs font-mono" style="color:var(--ink-muted);">#</span>
+            <span class="col-span-4 text-xs font-mono" style="color:var(--ink-muted);">COMPETITOR</span>
+            <span class="col-span-6 text-xs font-mono" style="color:var(--ink-muted);">REGISTERED EVENTS</span>
+            <span class="col-span-1"></span>
+          </div>
+          <div id="pt-rows" class="space-y-2"></div>
+        </div>
+
+        <button id="pt-save-btn" class="btn-primary w-full py-3 rounded-lg">Save Participants</button>
+        <p id="pt-save-msg" class="text-sm hidden"></p>
+
+        <div class="rounded-xl p-4 space-y-3" style="background:rgba(34,163,92,0.07); border:1px solid rgba(34,163,92,0.35);">
+          <p class="text-xs font-mono tracking-widest uppercase" style="color:var(--cube-green);">One-Click Live Push</p>
+          <div class="grid sm:grid-cols-3 gap-2 items-end">
+            <div class="sm:col-span-1">
+              <label class="block text-xs font-mono mb-1" style="color:var(--ink-muted);">Round name</label>
+              <input type="text" id="pt-live-round" class="field w-full rounded-lg px-3 py-2 text-sm" value="Round 1">
+            </div>
+            <button type="button" id="pt-push-live-btn" class="btn-secondary sm:col-span-2 py-3 rounded-lg">🚀 Save &amp; Push to Live Results</button>
+          </div>
+          <p id="pt-push-msg" class="text-sm hidden"></p>
+          <div class="text-xs space-y-1" style="color:var(--ink-muted);">
+            <p>Har participant ka naam us ke registered events ke hisaab se <b>Manage Live Results</b> ke us event ke round me add ho jayega (jaise Mohith ne 3x3 aur 2x2 dono liya hai to dono me aayega).</p>
+            <p>Safe hai: jo naam pehle se live list me hain unka time/result touch nahi hota, sirf missing naam add hote hain. Dubara push karoge to duplicate nahi banega. LIVE badge ON/OFF aap wahi se control karte ho.</p>
+          </div>
+        </div>
+      </div>
+
       <p class="font-mono text-xs tracking-widest uppercase mt-16 mb-2" style="color:var(--ink-muted);">Leaderboard</p>
       <h1 class="font-display text-3xl font-bold mb-8">Manage Results</h1>
 
@@ -176,15 +233,6 @@
         <button id="add-row-btn" type="button" class="w-full py-2 rounded-lg border border-white/15 font-mono text-sm" style="color:var(--ink-muted);">+ Add Event Row</button>
         <button id="save-results-btn" class="btn-primary w-full py-3 rounded-lg mt-2">Save Results</button>
         <p id="results-save-msg" class="text-sm hidden"></p>
-      </div>
-
-      <p class="font-mono text-xs tracking-widest uppercase mt-16 mb-2" style="color:var(--ink-muted);">Archive</p>
-      <h1 class="font-display text-3xl font-bold mb-8">Manage Previous Competitions</h1>
-
-      <div class="surface-card rounded-2xl p-8 shadow-xl space-y-4">
-        <div id="prevcomps-list" class="space-y-4"></div>
-        <button id="add-prevcomp-btn" type="button" class="w-full py-2 rounded-lg border border-white/15 font-mono text-sm" style="color:var(--ink-muted);">+ Add Previous Competition</button>
-        <p class="text-xs mt-2" style="color:var(--ink-muted);">Har competition ka apna card hoga — poster, results (1st/2nd/3rd) aur agar chaho to age category winners (optional) bhar ke us card ka "Save This Competition" dabao. Save hote hi "Previous Competitions" page par uska naam ek list mein aa jayega — uspe click karte hi poster, results aur age category sab dikh jayenge. Delete karne pe wo waha se hamesha ke liye hat jayega.</p>
       </div>
 
       <p class="font-mono text-xs tracking-widest uppercase mt-16 mb-2" style="color:var(--ink-muted);">Right Now</p>
@@ -389,8 +437,8 @@
         panel.classList.remove("hidden");
         loadCurrentData();
         loadResults();
-        loadPrevComps();
         loadLiveResults();
+        loadParticipants();
         loadGeneral();
         loadGallery();
         loadReviews();
@@ -605,6 +653,246 @@
     });
 
     // ============================================
+    // Participants List (upcoming competition) + one-click push to Live Results
+    // Stored in Firestore: site/upcomingParticipants  { list: [{name, events:[...]}] }
+    // ============================================
+    let ptList = [];            // [{ name, events: [] }]
+    let ptNewEvents = [];       // events ticked in Quick Add
+    const ptRowsEl = document.getElementById("pt-rows");
+    const ptNewChipsEl = document.getElementById("pt-new-chips");
+
+    function ptFormEvents() {
+      return Array.from(eventsContainer.children)
+        .map(r => r.querySelector(".event-name").value.trim())
+        .filter(Boolean);
+    }
+
+    // All events we know about: current competition events first, then any extra
+    // ones already used by participants (e.g. event was renamed/removed later).
+    function ptAllEvents() {
+      const out = [];
+      const seen = new Set();
+      const add = n => { const k = slugify(n); if (k && !seen.has(k)) { seen.add(k); out.push(n); } };
+      ptFormEvents().forEach(add);
+      ptList.forEach(p => p.events.forEach(add));
+      return out;
+    }
+
+    const PT_COLORS = ["#E8412B", "#F2B705", "#2F6FE0", "#22A35C"];
+    function ptChip(label, active, idx, onClick) {
+      const c = PT_COLORS[idx % PT_COLORS.length];
+      const b = document.createElement("button");
+      b.type = "button";
+      b.textContent = (active ? "✓ " : "") + label;
+      b.className = "px-3 py-1 rounded-full text-xs font-mono transition";
+      b.style.cssText = active
+        ? `background:${c}; color:#101218; border:1px solid ${c}; font-weight:700;`
+        : `background:transparent; color:var(--ink-muted); border:1px solid rgba(255,255,255,0.18);`;
+      b.addEventListener("click", onClick);
+      return b;
+    }
+
+    function renderNewChips() {
+      ptNewChipsEl.innerHTML = "";
+      const evs = ptAllEvents();
+      if (evs.length === 0) {
+        ptNewChipsEl.innerHTML = '<span class="text-xs" style="color:var(--ink-muted);">Pehle upar "Events" me competition ke events add karo, phir yahan 🔄 Sync events dabao.</span>';
+        return;
+      }
+      evs.forEach((ev, i) => {
+        const active = ptNewEvents.some(e => slugify(e) === slugify(ev));
+        ptNewChipsEl.appendChild(ptChip(ev, active, i, () => {
+          if (active) ptNewEvents = ptNewEvents.filter(e => slugify(e) !== slugify(ev));
+          else ptNewEvents.push(ev);
+          renderNewChips();
+        }));
+      });
+    }
+
+    function renderParticipants() {
+      ptRowsEl.innerHTML = "";
+      document.getElementById("pt-total").textContent = ptList.length;
+      if (ptList.length === 0) {
+        ptRowsEl.innerHTML = '<p class="text-sm py-4 text-center" style="color:var(--ink-muted);">Abhi koi participant nahi hai. Upar Quick Add se add karo.</p>';
+        return;
+      }
+      const evs = ptAllEvents();
+      ptList.forEach((p, pi) => {
+        const row = document.createElement("div");
+        row.className = "grid grid-cols-12 gap-2 items-start rounded-xl p-2";
+        row.style.cssText = "background:rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.06);";
+
+        const num = document.createElement("div");
+        num.className = "col-span-1 text-xs font-mono pt-3 text-center";
+        num.style.color = "var(--ink-muted)";
+        num.textContent = pi + 1;
+
+        const nameInput = document.createElement("input");
+        nameInput.type = "text";
+        nameInput.className = "field col-span-11 sm:col-span-4 rounded-lg px-3 py-2 text-sm";
+        nameInput.value = p.name;
+        nameInput.placeholder = "Name";
+        nameInput.addEventListener("input", () => { p.name = nameInput.value; });
+
+        const chipsWrap = document.createElement("div");
+        chipsWrap.className = "col-span-10 sm:col-span-6 flex flex-wrap gap-2 pt-1";
+        evs.forEach((ev, i) => {
+          const active = p.events.some(e => slugify(e) === slugify(ev));
+          chipsWrap.appendChild(ptChip(ev, active, i, () => {
+            if (active) p.events = p.events.filter(e => slugify(e) !== slugify(ev));
+            else p.events.push(ev);
+            renderParticipants();
+          }));
+        });
+
+        const del = document.createElement("button");
+        del.type = "button";
+        del.textContent = "✕";
+        del.title = "Remove";
+        del.className = "col-span-2 sm:col-span-1 text-sm py-2 rounded-lg";
+        del.style.cssText = "color:var(--cube-red); border:1px solid rgba(255,255,255,0.1);";
+        del.addEventListener("click", () => { ptList.splice(pi, 1); renderParticipants(); });
+
+        row.append(num, nameInput, chipsWrap, del);
+        ptRowsEl.appendChild(row);
+      });
+    }
+
+    function ptShow(el, text, ok) {
+      el.textContent = text;
+      el.style.color = ok ? "var(--cube-green)" : "var(--cube-red)";
+      el.classList.remove("hidden");
+    }
+
+    function ptAdd() {
+      const input = document.getElementById("pt-new-name");
+      const msg = document.getElementById("pt-add-msg");
+      const name = input.value.trim().replace(/\s+/g, " ");
+      msg.classList.add("hidden");
+      if (!name) { ptShow(msg, "Naam likho pehle.", false); return; }
+      if (ptList.some(p => p.name.trim().toLowerCase() === name.toLowerCase())) {
+        ptShow(msg, `"${name}" already list me hai — niche us row me events edit kar lo.`, false);
+        return;
+      }
+      ptList.push({ name, events: [...ptNewEvents] });
+      input.value = "";
+      ptNewEvents = [];
+      renderNewChips();
+      renderParticipants();
+      input.focus();
+    }
+
+    document.getElementById("pt-add-btn").addEventListener("click", ptAdd);
+    document.getElementById("pt-new-name").addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); ptAdd(); } });
+    document.getElementById("pt-refresh-events-btn").addEventListener("click", () => { renderNewChips(); renderParticipants(); });
+    document.getElementById("pt-sort-btn").addEventListener("click", () => {
+      ptList.sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: "base" }));
+      renderParticipants();
+    });
+
+    async function loadParticipants() {
+      try {
+        const snap = await getDoc(doc(db, "site", "upcomingParticipants"));
+        ptList = (snap.exists() && Array.isArray(snap.data().list))
+          ? snap.data().list.map(p => ({ name: p.name || "", events: Array.isArray(p.events) ? [...p.events] : [] }))
+          : [];
+      } catch (err) { console.error(err); ptList = []; }
+      renderNewChips();
+      renderParticipants();
+    }
+
+    function ptClean() {
+      const seen = new Set();
+      const out = [];
+      ptList.forEach(p => {
+        const name = (p.name || "").trim().replace(/\s+/g, " ");
+        const k = name.toLowerCase();
+        if (!name || seen.has(k)) return;
+        seen.add(k);
+        out.push({ name, events: p.events.filter(Boolean) });
+      });
+      return out;
+    }
+
+    async function saveParticipants() {
+      const clean = ptClean();
+      await setDoc(doc(db, "site", "upcomingParticipants"), { list: clean, updatedAt: new Date().toISOString() });
+      ptList = clean;
+      renderParticipants();
+      return clean;
+    }
+
+    document.getElementById("pt-save-btn").addEventListener("click", async () => {
+      const msg = document.getElementById("pt-save-msg");
+      msg.classList.add("hidden");
+      try {
+        const clean = await saveParticipants();
+        ptShow(msg, `Saved! ${clean.length} competitors — upcoming page par dikhne lagenge.`, true);
+      } catch (err) { ptShow(msg, "Error: " + err.message, false); }
+    });
+
+    document.getElementById("pt-push-live-btn").addEventListener("click", async () => {
+      const msg = document.getElementById("pt-push-msg");
+      msg.classList.add("hidden");
+      const roundName = (document.getElementById("pt-live-round").value || "").trim() || "Round 1";
+
+      const preview = ptClean();
+      if (preview.length === 0) { ptShow(msg, "Pehle kuch participants add karo.", false); return; }
+      const withEvents = preview.filter(p => p.events.length > 0);
+      if (withEvents.length === 0) { ptShow(msg, "Kisi participant ka koi event select nahi hai.", false); return; }
+
+      if (!confirm(`${withEvents.length} participants ko "${roundName}" me event-wise Live Results me add karna hai?\n\nPehle se jo naam/time hain wo safe rahenge. (Manage Live Results ke unsaved changes refresh ho jayenge.)`)) return;
+
+      const btn = document.getElementById("pt-push-live-btn");
+      btn.disabled = true;
+      try {
+        const clean = await saveParticipants();
+
+        const snap = await getDoc(doc(db, "site", "liveResults"));
+        const data = snap.exists() ? snap.data() : {};
+        const events = (Array.isArray(data.events) ? data.events : []).map(ev => {
+          const rounds = (ev.rounds && ev.rounds.length > 0)
+            ? ev.rounds.map(r => ({ ...r, rows: [...(r.rows || [])] }))
+            : [{ name: "Round 1", rows: [...(ev.rows || [])] }];
+          return { name: ev.name, rounds };
+        });
+
+        let added = 0, eventsTouched = 0;
+        for (const evName of ptAllEvents()) {
+          const people = clean.filter(p => p.events.some(e => slugify(e) === slugify(evName)));
+          if (people.length === 0) continue;
+
+          let ev = events.find(e => slugify(e.name) === slugify(evName));
+          if (!ev) { ev = { name: evName, rounds: [] }; events.push(ev); }
+          let rd = ev.rounds.find(r => (r.name || "").trim().toLowerCase() === roundName.toLowerCase());
+          if (!rd) { rd = { name: roundName, rows: [] }; ev.rounds.push(rd); }
+
+          const existing = new Set(rd.rows.map(r => (r.name || "").trim().toLowerCase()));
+          let touched = false;
+          people.forEach(p => {
+            if (existing.has(p.name.toLowerCase())) return;
+            rd.rows.push({ name: p.name, timeMs: null, timeDisplay: "—" });
+            existing.add(p.name.toLowerCase());
+            added++; touched = true;
+          });
+          if (touched) eventsTouched++;
+        }
+
+        await setDoc(doc(db, "site", "liveResults"), { events, updatedAt: new Date().toISOString() }, { merge: true });
+        await loadLiveResults();   // refresh the Manage Live Results panel below
+        ptShow(msg, added > 0
+          ? `Done! ${added} entries ${eventsTouched} event(s) me add hui. Manage Live Results me dekh lo (LIVE badge wahin se ON/OFF).`
+          : "Sab naam pehle se live list me the — kuch naya add nahi hua.", true);
+      } catch (err) {
+        ptShow(msg, "Error: " + err.message, false);
+      }
+      btn.disabled = false;
+    });
+
+    // Keep Quick Add chips in sync when the competition's events list changes
+    eventsContainer.addEventListener("input", () => { renderNewChips(); });
+
+    // ============================================
     // Results management
     // ============================================
     const rowsContainer = document.getElementById("results-rows");
@@ -664,220 +952,6 @@
         resultsMsg.classList.remove("hidden");
       }
     });
-
-    // ============================================
-    // Previous Competitions management (archive)
-    // Each competition = its own Firestore doc in "previousCompetitions"
-    // ============================================
-    const prevCompsList = document.getElementById("prevcomps-list");
-    let prevCompCounter = 0;
-
-    function pcMakeSlug(title) {
-      const s = title.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
-      return s || ("comp-" + Date.now());
-    }
-
-    function pcAddResultRow(container, event = "", first = "", second = "", third = "") {
-      const rowDiv = document.createElement("div");
-      rowDiv.className = "grid grid-cols-5 gap-2 items-center";
-      rowDiv.innerHTML = `
-        <input type="text" class="field rounded-lg px-3 py-2 text-sm pc-row-event" placeholder="Event" value="${event}">
-        <input type="text" class="field rounded-lg px-3 py-2 text-sm pc-row-first" placeholder="1st" value="${first}">
-        <input type="text" class="field rounded-lg px-3 py-2 text-sm pc-row-second" placeholder="2nd" value="${second}">
-        <input type="text" class="field rounded-lg px-3 py-2 text-sm pc-row-third" placeholder="3rd" value="${third}">
-        <button type="button" class="pc-remove-row-btn text-sm py-2 rounded-lg" style="color:var(--cube-red); border:1px solid rgba(255,255,255,0.1);">Remove</button>
-      `;
-      rowDiv.querySelector(".pc-remove-row-btn").addEventListener("click", () => rowDiv.remove());
-      container.appendChild(rowDiv);
-    }
-
-    function pcAddAgeRow(container, category = "", first = "", second = "", third = "") {
-      const rowDiv = document.createElement("div");
-      rowDiv.className = "grid grid-cols-5 gap-2 items-center";
-      rowDiv.innerHTML = `
-        <input type="text" class="field rounded-lg px-3 py-2 text-sm pc-age-cat" placeholder="e.g. Under 12" value="${category}">
-        <input type="text" class="field rounded-lg px-3 py-2 text-sm pc-age-first" placeholder="1st" value="${first}">
-        <input type="text" class="field rounded-lg px-3 py-2 text-sm pc-age-second" placeholder="2nd" value="${second}">
-        <input type="text" class="field rounded-lg px-3 py-2 text-sm pc-age-third" placeholder="3rd" value="${third}">
-        <button type="button" class="pc-remove-row-btn text-sm py-2 rounded-lg" style="color:var(--cube-red); border:1px solid rgba(255,255,255,0.1);">Remove</button>
-      `;
-      rowDiv.querySelector(".pc-remove-row-btn").addEventListener("click", () => rowDiv.remove());
-      container.appendChild(rowDiv);
-    }
-
-    function createPrevCompCard(docId, data) {
-      data = data || {};
-      const isNew = !docId;
-
-      const card = document.createElement("details");
-      card.className = "live-event-block";
-      card.open = isNew;
-      card.dataset.docId = docId || "";
-
-      card.innerHTML = `
-        <summary class="cursor-pointer font-display font-bold text-lg flex items-center justify-between gap-3">
-          <span class="pc-summary-title truncate">${data.title || "New Competition"}</span>
-          <span class="pc-status-tag text-xs font-mono shrink-0" style="color:var(--ink-muted);">${isNew ? "unsaved" : "saved"}</span>
-        </summary>
-        <div class="mt-4 space-y-4">
-          <div>
-            <label class="block text-sm font-mono mb-1" style="color:var(--ink-muted);">Competition Title</label>
-            <input type="text" class="field w-full rounded-lg px-4 py-3 pc-title" placeholder="e.g. Twist & Turn S2" value="${data.title || ""}">
-          </div>
-          <div class="grid grid-cols-2 gap-4">
-            <div>
-              <label class="block text-sm font-mono mb-1" style="color:var(--ink-muted);">Date</label>
-              <input type="text" class="field w-full rounded-lg px-4 py-3 pc-date" placeholder="e.g. 4–5 July 2026" value="${data.date || ""}">
-            </div>
-            <div>
-              <label class="block text-sm font-mono mb-1" style="color:var(--ink-muted);">Mode</label>
-              <input type="text" class="field w-full rounded-lg px-4 py-3 pc-mode" placeholder="Online Competition" value="${data.mode || ""}">
-            </div>
-          </div>
-          <div>
-            <label class="block text-sm font-mono mb-1" style="color:var(--ink-muted);">Poster Image</label>
-            <input type="file" accept="image/*" class="field w-full rounded-lg px-4 py-3 pc-poster-file">
-            <div class="pc-poster-preview mt-3">${data.poster ? `<img src="${data.poster}" class="rounded-xl max-h-40">` : ""}</div>
-          </div>
-          <div>
-            <label class="block text-sm font-mono mb-1" style="color:var(--ink-muted);">Results (Event, 1st, 2nd, 3rd)</label>
-            <div class="grid grid-cols-5 gap-2 mb-1">
-              <span class="text-xs font-mono" style="color:var(--ink-muted);">Event</span>
-              <span class="text-xs font-mono" style="color:var(--ink-muted);">1st</span>
-              <span class="text-xs font-mono" style="color:var(--ink-muted);">2nd</span>
-              <span class="text-xs font-mono" style="color:var(--ink-muted);">3rd</span>
-              <span></span>
-            </div>
-            <div class="pc-results-rows space-y-2"></div>
-            <button type="button" class="pc-add-result-btn w-full py-2 rounded-lg border border-white/15 font-mono text-sm mt-2" style="color:var(--ink-muted);">+ Add Event Row</button>
-          </div>
-          <div>
-            <label class="block text-sm font-mono mb-1" style="color:var(--ink-muted);">Age Category Winners (optional)</label>
-            <div class="pc-age-rows space-y-2"></div>
-            <button type="button" class="pc-add-age-btn w-full py-2 rounded-lg border border-white/15 font-mono text-sm mt-2" style="color:var(--ink-muted);">+ Add Age Category</button>
-            <p class="text-xs mt-2" style="color:var(--ink-muted);">Koi bhi add nahi karoge to is competition ke results page par age category wala section bilkul nahi dikhega.</p>
-          </div>
-          <div class="flex gap-3 pt-2">
-            <button type="button" class="pc-save-btn btn-primary flex-1 py-3 rounded-lg">💾 Save This Competition</button>
-            <button type="button" class="pc-delete-btn py-3 px-4 rounded-lg font-mono text-sm" style="color:var(--cube-red); border:1px solid rgba(255,255,255,0.15);">🗑️ Delete</button>
-          </div>
-          <p class="pc-save-msg text-sm hidden"></p>
-        </div>
-      `;
-
-      const resultsRowsEl = card.querySelector(".pc-results-rows");
-      const ageRowsEl = card.querySelector(".pc-age-rows");
-
-      const initialResults = (data.results && data.results.length) ? data.results : [{}];
-      initialResults.forEach(r => pcAddResultRow(resultsRowsEl, r.event, r.first, r.second, r.third));
-      (data.ageCategories || []).forEach(r => pcAddAgeRow(ageRowsEl, r.category, r.first, r.second, r.third));
-
-      card.querySelector(".pc-add-result-btn").addEventListener("click", () => pcAddResultRow(resultsRowsEl));
-      card.querySelector(".pc-add-age-btn").addEventListener("click", () => pcAddAgeRow(ageRowsEl));
-
-      const titleInput = card.querySelector(".pc-title");
-      const summaryTitle = card.querySelector(".pc-summary-title");
-      titleInput.addEventListener("input", () => {
-        summaryTitle.textContent = titleInput.value || "New Competition";
-      });
-
-      const posterFileInput = card.querySelector(".pc-poster-file");
-      const posterPreview = card.querySelector(".pc-poster-preview");
-      let posterBase64 = data.poster || "";
-      posterFileInput.addEventListener("change", async () => {
-        if (posterFileInput.files && posterFileInput.files[0]) {
-          posterBase64 = await fileToCompressedBase64(posterFileInput.files[0]);
-          posterPreview.innerHTML = `<img src="${posterBase64}" class="rounded-xl max-h-40">`;
-        }
-      });
-
-      const saveMsg = card.querySelector(".pc-save-msg");
-      const statusTag = card.querySelector(".pc-status-tag");
-
-      card.querySelector(".pc-save-btn").addEventListener("click", async () => {
-        saveMsg.classList.add("hidden");
-        const title = titleInput.value.trim();
-        if (!title) {
-          saveMsg.textContent = "Title zaroor daalo.";
-          saveMsg.style.color = "var(--cube-red)";
-          saveMsg.classList.remove("hidden");
-          return;
-        }
-
-        const results = Array.from(resultsRowsEl.children).map(rowDiv => ({
-          event: rowDiv.querySelector(".pc-row-event").value.trim(),
-          first: rowDiv.querySelector(".pc-row-first").value.trim(),
-          second: rowDiv.querySelector(".pc-row-second").value.trim(),
-          third: rowDiv.querySelector(".pc-row-third").value.trim()
-        })).filter(r => r.event !== "");
-
-        const ageCategories = Array.from(ageRowsEl.children).map(rowDiv => ({
-          category: rowDiv.querySelector(".pc-age-cat").value.trim(),
-          first: rowDiv.querySelector(".pc-age-first").value.trim(),
-          second: rowDiv.querySelector(".pc-age-second").value.trim(),
-          third: rowDiv.querySelector(".pc-age-third").value.trim()
-        })).filter(r => r.category !== "");
-
-        const id = card.dataset.docId || pcMakeSlug(title);
-        const payload = {
-          title,
-          date: card.querySelector(".pc-date").value.trim(),
-          mode: card.querySelector(".pc-mode").value.trim(),
-          poster: posterBase64 || "",
-          results,
-          ageCategories,
-          order: (typeof data.order === "number") ? data.order : Date.now(),
-          updatedAt: new Date().toISOString()
-        };
-
-        try {
-          await setDoc(doc(db, "previousCompetitions", id), payload);
-          card.dataset.docId = id;
-          data.order = payload.order;
-          statusTag.textContent = "saved";
-          saveMsg.textContent = "Saved! Previous Competitions page pe check karo.";
-          saveMsg.style.color = "var(--cube-green)";
-          saveMsg.classList.remove("hidden");
-        } catch (err) {
-          saveMsg.textContent = "Error: " + err.message;
-          saveMsg.style.color = "var(--cube-red)";
-          saveMsg.classList.remove("hidden");
-        }
-      });
-
-      card.querySelector(".pc-delete-btn").addEventListener("click", async () => {
-        if (!confirm(`"${titleInput.value || "Ye competition"}" delete karna hai? Ye permanent hai.`)) return;
-        if (card.dataset.docId) {
-          try {
-            await deleteDoc(doc(db, "previousCompetitions", card.dataset.docId));
-          } catch (err) {
-            alert("Error deleting: " + err.message);
-            return;
-          }
-        }
-        card.remove();
-      });
-
-      return card;
-    }
-
-    document.getElementById("add-prevcomp-btn").addEventListener("click", () => {
-      prevCompCounter++;
-      prevCompsList.prepend(createPrevCompCard(null, {}));
-    });
-
-    async function loadPrevComps() {
-      try {
-        const snap = await getDocs(collection(db, "previousCompetitions"));
-        const items = [];
-        snap.forEach(d => items.push({ id: d.id, data: d.data() }));
-        items.sort((a, b) => (b.data.order || 0) - (a.data.order || 0));
-        prevCompsList.innerHTML = "";
-        items.forEach(({ id, data }) => prevCompsList.appendChild(createPrevCompCard(id, data)));
-      } catch (err) {
-        console.error("Could not load previous competitions", err);
-      }
-    }
 
     // ============================================
     // Live Results management (events -> rounds -> rows)
