@@ -47,6 +47,22 @@
     </nav>
 
     <main class="max-w-3xl mx-auto px-4 py-16">
+      <p class="font-mono text-xs tracking-widest uppercase mb-2" style="color:var(--ink-muted);">Registered Competitors</p>
+      <h1 class="font-display text-3xl font-bold mb-8">Import Participants</h1>
+
+      <div class="surface-card rounded-2xl p-8 shadow-xl space-y-4 mb-16">
+        <p class="text-sm" style="color:var(--ink-muted);">Main admin panel ki <b style="color:var(--ink);">Participants List</b> me jo naam aur registered events save hain, wo ek click me yahan event-wise add ho jayenge (jaise kisi ne 3x3 aur 2x2 dono liya hai to dono me aayega).</p>
+        <div class="grid sm:grid-cols-3 gap-2 items-end">
+          <div>
+            <label class="block text-xs font-mono mb-1" style="color:var(--ink-muted);">Round name</label>
+            <input type="text" id="import-round" class="field w-full rounded-lg px-3 py-2 text-sm" value="Round 1">
+          </div>
+          <button type="button" id="import-participants-btn" class="btn-secondary sm:col-span-2 py-3 rounded-lg">⬇️ Import Participants → Live Results</button>
+        </div>
+        <p id="import-msg" class="text-sm hidden"></p>
+        <p class="text-xs" style="color:var(--ink-muted);">Safe hai: jo naam pehle se list me hain unka time touch nahi hota, sirf missing naam add hote hain. Dubara dabane pe duplicate nahi banega. LIVE badge neeche wale checkbox se hi ON/OFF hoga.</p>
+      </div>
+
       <p class="font-mono text-xs tracking-widest uppercase mb-2" style="color:var(--ink-muted);">Right Now</p>
       <h1 class="font-display text-3xl font-bold mb-8">Manage Live Results</h1>
 
@@ -275,6 +291,64 @@
         msg.style.color = "var(--cube-red)";
         msg.classList.remove("hidden");
       }
+    });
+
+    // ============================================
+    // Import registered participants (site/upcomingParticipants) -> live rounds
+    // ============================================
+    document.getElementById("import-participants-btn").addEventListener("click", async () => {
+      const msg = document.getElementById("import-msg");
+      const show = (t, ok) => { msg.textContent = t; msg.style.color = ok ? "var(--cube-green)" : "var(--cube-red)"; msg.classList.remove("hidden"); };
+      msg.classList.add("hidden");
+      const roundName = (document.getElementById("import-round").value || "").trim() || "Round 1";
+      const btn = document.getElementById("import-participants-btn");
+      btn.disabled = true;
+      try {
+        const pSnap = await getDoc(doc(db, "site", "upcomingParticipants"));
+        const list = (pSnap.exists() && Array.isArray(pSnap.data().list)) ? pSnap.data().list : [];
+        const people = list.filter(p => p && (p.name || "").trim() && Array.isArray(p.events) && p.events.length > 0);
+        if (people.length === 0) { show("Participants list khaali hai (ya kisi ka event select nahi). Pehle main admin panel me add karo.", false); btn.disabled = false; return; }
+
+        if (!confirm(`${people.length} participants ko "${roundName}" me event-wise add karna hai?\n\nPehle se jo naam/time hain wo safe rahenge. (Neeche ke unsaved changes refresh ho jayenge.)`)) { btn.disabled = false; return; }
+
+        const snap = await getDoc(doc(db, "site", "liveResults"));
+        const data = snap.exists() ? snap.data() : {};
+        const events = (Array.isArray(data.events) ? data.events : []).map(ev => {
+          const rounds = (ev.rounds && ev.rounds.length > 0)
+            ? ev.rounds.map(r => ({ ...r, rows: [...(r.rows || [])] }))
+            : [{ name: "Round 1", rows: [...(ev.rows || [])] }];
+          return { name: ev.name, rounds };
+        });
+
+        // event names in first-seen order
+        const evNames = [];
+        const seen = new Set();
+        people.forEach(p => p.events.forEach(e => { const k = slugify(e); if (k && !seen.has(k)) { seen.add(k); evNames.push(e); } }));
+
+        let added = 0;
+        evNames.forEach(evName => {
+          let ev = events.find(e => slugify(e.name) === slugify(evName));
+          if (!ev) { ev = { name: evName, rounds: [] }; events.push(ev); }
+          let rd = ev.rounds.find(r => (r.name || "").trim().toLowerCase() === roundName.toLowerCase());
+          if (!rd) { rd = { name: roundName, rows: [] }; ev.rounds.push(rd); }
+          const existing = new Set(rd.rows.map(r => (r.name || "").trim().toLowerCase()));
+          people.forEach(p => {
+            const name = p.name.trim().replace(/\s+/g, " ");
+            if (!p.events.some(e => slugify(e) === slugify(evName))) return;
+            if (existing.has(name.toLowerCase())) return;
+            rd.rows.push({ name, timeMs: null, timeDisplay: "—" });
+            existing.add(name.toLowerCase());
+            added++;
+          });
+        });
+
+        await setDoc(doc(db, "site", "liveResults"), { events, updatedAt: new Date().toISOString() }, { merge: true });
+        await loadLiveResults();
+        show(added > 0 ? `Done! ${added} entries add hui. Neeche Manage Live Results me dekh lo.` : "Sab naam pehle se list me the — kuch naya add nahi hua.", true);
+      } catch (err) {
+        show("Error: " + err.message, false);
+      }
+      btn.disabled = false;
     });
 
     // ============================================
