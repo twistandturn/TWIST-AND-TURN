@@ -17,6 +17,7 @@ let deferredInstallPrompt = null;
 window.addEventListener("beforeinstallprompt", (e) => {
   e.preventDefault();
   deferredInstallPrompt = e;
+  if (sessionStorage.getItem('pwaDismissed')) return;
 
   const btn = document.createElement("button");
   btn.id = "pwa-install-btn";
@@ -44,6 +45,11 @@ window.addEventListener("beforeinstallprompt", (e) => {
     deferredInstallPrompt = null;
   });
 
+  const close = document.createElement("span");
+  close.textContent = "  ✕";
+  close.className = "no-ripple";
+  close.addEventListener("click", (ev) => { ev.stopPropagation(); btn.remove(); sessionStorage.setItem('pwaDismissed', '1'); });
+  btn.appendChild(close);
   document.body.appendChild(btn);
 });
 
@@ -51,38 +57,6 @@ window.addEventListener("appinstalled", () => {
   const btn = document.getElementById("pwa-install-btn");
   if (btn) btn.remove();
 });
-
-// ==========================
-// Countdown Timer
-// ==========================
-
-const endDate = new Date("2026-07-31T17:00:00+05:30").getTime();
-
-function updateCountdown(){
-  const now = new Date().getTime();
-  const distance = endDate - now;
-
-  const countdownEl = document.getElementById("countdown");
-  if (!countdownEl) return; // no countdown widget on this page, skip safely
-
-  if(distance <= 0){
-    countdownEl.innerHTML = '<h2>Registration Closed</h2><p>The deadline has passed.</p>';
-    return;
-  }
-
-  const daysEl = document.getElementById("days");
-  const hoursEl = document.getElementById("hours");
-  const minutesEl = document.getElementById("minutes");
-  const secondsEl = document.getElementById("seconds");
-
-  if (daysEl) daysEl.innerHTML = Math.floor(distance / (1000 * 60 * 60 * 24));
-  if (hoursEl) hoursEl.innerHTML = Math.floor((distance / (1000 * 60 * 60)) % 24);
-  if (minutesEl) minutesEl.innerHTML = Math.floor((distance / (1000 * 60)) % 60);
-  if (secondsEl) secondsEl.innerHTML = Math.floor((distance / 1000) % 60);
-}
-
-updateCountdown();
-setInterval(updateCountdown, 1000);
 
 // ==========================
 // Mobile Menu
@@ -102,7 +76,7 @@ if (menuBtn && navLinks) {
     });
 
     // Close menu when a link is clicked
-    const navButtons = navLinks.querySelectorAll("button");
+    const navButtons = navLinks.querySelectorAll("a");
     navButtons.forEach(button => {
         button.addEventListener("click", () => {
             navLinks.classList.add("hidden");
@@ -128,28 +102,6 @@ if (header) {
 }
 
 // ==========================
-// Scroll Animation Observer
-// ==========================
-
-const observerOptions = {
-  threshold: 0.1,
-  rootMargin: '0px 0px -100px 0px'
-};
-
-const observer = new IntersectionObserver((entries) => {
-  entries.forEach(entry => {
-    if (entry.isIntersecting) {
-      entry.target.classList.add('animate-in');
-      observer.unobserve(entry.target);
-    }
-  });
-}, observerOptions);
-
-document.querySelectorAll('section, .interactive-card').forEach(el => {
-  observer.observe(el);
-});
-
-// ==========================
 // Interactive Hover Effects (handled via CSS now, JS not needed for .interactive-card)
 // ==========================
 
@@ -165,8 +117,10 @@ document.querySelectorAll('a, button').forEach(btn => {
       const x = e.clientX - rect.left;
       const y = e.clientY - rect.top;
 
-      ripple.style.left = x + 'px';
-      ripple.style.top = y + 'px';
+      const size = Math.max(rect.width, rect.height);
+      ripple.style.width = ripple.style.height = size + 'px';
+      ripple.style.left = (x - size / 2) + 'px';
+      ripple.style.top = (y - size / 2) + 'px';
       ripple.classList.add('ripple');
 
       this.appendChild(ripple);
@@ -200,26 +154,16 @@ window.goToPage = goToPage;
 // Scroll Progress Bar
 // ==========================
 
-window.addEventListener('scroll', () => {
-  const scrollHeight = document.documentElement.scrollHeight - document.documentElement.clientHeight;
-  const scrolled = scrollHeight > 0 ? (window.scrollY / scrollHeight) * 100 : 0;
-
-  let progressBar = document.getElementById('scroll-progress');
-  if (!progressBar) {
-    progressBar = document.createElement('div');
-    progressBar.id = 'scroll-progress';
-    progressBar.style.position = 'fixed';
-    progressBar.style.top = '0';
-    progressBar.style.left = '0';
-    progressBar.style.height = '3px';
-    progressBar.style.background = 'linear-gradient(90deg, #E8412B, #F2B705)';
-    progressBar.style.zIndex = '9999';
-    progressBar.style.transition = 'width 0.1s ease';
-    document.body.appendChild(progressBar);
-  }
-
-  progressBar.style.width = scrolled + '%';
-});
+(function () {
+  const bar = document.createElement('div');
+  bar.id = 'scroll-progress';
+  bar.style.cssText = 'position:fixed;top:0;left:0;height:3px;width:0;background:linear-gradient(90deg,#E8412B,#F2B705);z-index:9999;transition:width .1s ease;pointer-events:none';
+  document.body.appendChild(bar);
+  window.addEventListener('scroll', () => {
+    const max = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+    bar.style.width = (max > 0 ? (window.scrollY / max) * 100 : 0) + '%';
+  }, { passive: true });
+})();
 
 // ==========================
 // Ripple Effect Style Injection
@@ -238,6 +182,11 @@ rippleStyle.textContent =
   '@keyframes ripple-animation {' +
   '  to { transform: scale(4); opacity: 0; }' +
   '}' +
-  'a, button { position: relative; overflow: hidden; }' +
-  '.animate-in { animation: fadeInUp 0.8s ease-out !important; }';
+  'a, button { position: relative; overflow: hidden; }';
 document.head.appendChild(rippleStyle);
+
+
+// Escape text coming from Firestore before putting it in innerHTML
+window.escapeHtml = function (v) {
+  return String(v == null ? "" : v).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+};

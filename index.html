@@ -3,7 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Twist & Turn : Cubing Battle 2026</title>
+<title>Twist &amp; Turn : Cubing Battle 2026</title>
+<meta name="description" content="Twist &amp; Turn runs online WCA-regulation Rubik's Cube competitions with live results, a timer, average calculator and algorithm trainer.">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Twist &amp; Turn : Online Cubing Competitions">
+<meta property="og:description" content="Compete online, track live results, and practice with free cubing tools.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#E8412B">
 <link rel="icon" href="icon-192.png">
@@ -76,24 +82,27 @@
         <span class="font-display font-bold text-xl tracking-tight">Twist &amp; Turn</span>
       </div>
       <div class="flex items-center gap-2">
-        <button id="menuBtn" class="md:hidden text-3xl leading-none text-[var(--ink)]">☰</button>
+        <button id="menuBtn" aria-label="Menu" class="lg:hidden text-3xl leading-none text-[var(--ink)]">☰</button>
       </div>
-      <div id="navLinks" class="hidden absolute top-full right-0 mt-2 w-full md:static md:mt-0 md:w-auto md:flex md:items-center md:space-x-1 text-right md:text-left font-mono text-sm uppercase tracking-wider" style="background:var(--bg-surface);">
-        <button onclick="window.location.href='competition/'" class="block w-full px-4 py-3 text-left hover:text-[var(--cube-yellow)] transition border-b-2 border-transparent hover:border-[var(--cube-yellow)] md:inline-block md:w-auto md:p-2">Upcoming</button>
-        <button onclick="window.location.href='timer/'" class="block w-full px-4 py-3 text-left hover:text-[var(--cube-red)] transition border-b-2 border-transparent hover:border-[var(--cube-red)] md:inline-block md:w-auto md:p-2">⏱️ Timer</button>
-        <button onclick="window.location.href='avgcalculator/'" class="block w-full px-4 py-3 text-left hover:text-[var(--cube-blue)] transition border-b-2 border-transparent hover:border-[var(--cube-blue)] md:inline-block md:w-auto md:p-2">🧮 Avg Calc</button>
-        <button onclick="window.location.href='records.html'" class="block w-full px-4 py-3 text-left hover:text-[var(--cube-yellow)] transition border-b-2 border-transparent hover:border-[var(--cube-yellow)] md:inline-block md:w-auto md:p-2">🏆 Records</button>
-        <button onclick="scrollToSection('practice')" class="block w-full px-4 py-3 text-left hover:text-[var(--cube-green)] transition border-b-2 border-transparent hover:border-[var(--cube-green)] md:inline-block md:w-auto md:p-2">🔀 Practice</button>
-        <button onclick="window.location.href='/learnalgs/'" class="block w-full px-4 py-3 text-left hover:text-[var(--cube-green)] transition border-b-2 border-transparent hover:border-[var(--cube-green)] md:inline-block md:w-auto md:p-2">📖 Learn Algs</button>
-        <button onclick="window.location.href='previous-competitions.html'" class="block w-full px-4 py-3 text-left hover:text-[var(--cube-blue)] transition border-b-2 border-transparent hover:border-[var(--cube-blue)] md:inline-block md:w-auto md:p-2">Previous</button>
-        <button onclick="scrollToSection('rules')" class="block w-full px-4 py-3 text-left hover:text-[var(--cube-red)] transition border-b-2 border-transparent hover:border-[var(--cube-red)] md:inline-block md:w-auto md:p-2">Rules</button>
-        <button onclick="scrollToSection('results')" class="block w-full px-4 py-3 text-left hover:text-[var(--cube-green)] transition border-b-2 border-transparent hover:border-[var(--cube-green)] md:inline-block md:w-auto md:p-2">Results</button>
-        <button onclick="window.location.href='live/'" class="block w-full px-4 py-3 text-left hover:text-[var(--cube-red)] transition border-b-2 border-transparent hover:border-[var(--cube-red)] md:inline-block md:w-auto md:p-2">Live</button>
-        <button onclick="scrollToSection('gallery')" class="block w-full px-4 py-3 text-left hover:text-[var(--cube-yellow)] transition border-b-2 border-transparent hover:border-[var(--cube-yellow)] md:inline-block md:w-auto md:p-2">Gallery</button>
-        <button onclick="scrollToSection('hall-of-fame')" class="block w-full px-4 py-3 text-left hover:text-[var(--cube-blue)] transition border-b-2 border-transparent hover:border-[var(--cube-blue)] md:inline-block md:w-auto md:p-2">Hall of Fame</button>
-        <button onclick="scrollToSection('faq')" class="block w-full px-4 py-3 text-left hover:text-[var(--cube-green)] transition border-b-2 border-transparent hover:border-[var(--cube-green)] md:inline-block md:w-auto md:p-2">FAQ</button>
-        <button onclick="scrollToSection('organizer')" class="block w-full px-4 py-3 text-left hover:text-[var(--cube-blue)] transition border-b-2 border-transparent hover:border-[var(--cube-blue)] md:inline-block md:w-auto md:p-2">Organizer</button>
-        <button onclick="scrollToSection('contact')" class="block w-full px-4 py-3 text-left hover:text-[var(--cube-yellow)] transition border-b-2 border-transparent hover:border-[var(--cube-yellow)] md:inline-block md:w-auto md:p-2">Contact</button>
+      <div id="navLinks" class="hidden absolute top-full right-0 mt-2 w-full max-h-[80vh] overflow-y-auto lg:overflow-visible lg:max-h-none lg:static lg:mt-0 lg:w-auto lg:flex lg:items-center lg:space-x-1 text-right lg:text-left font-mono text-sm uppercase tracking-wider" style="background:var(--bg-surface);">
+        <a href="upcoming.html" class="block w-full px-4 py-3 text-left lg:inline-block lg:w-auto lg:p-2 hover:text-[var(--cube-yellow)] transition border-b-2 border-transparent hover:border-[var(--cube-yellow)]">Upcoming</a>
+        <a href="timer/" class="block w-full px-4 py-3 text-left lg:inline-block lg:w-auto lg:p-2 hover:text-[var(--cube-red)] transition border-b-2 border-transparent hover:border-[var(--cube-red)]">⏱️ Timer</a>
+        <a href="records.html" class="block w-full px-4 py-3 text-left lg:inline-block lg:w-auto lg:p-2 hover:text-[var(--cube-yellow)] transition border-b-2 border-transparent hover:border-[var(--cube-yellow)]">🏆 Records</a>
+        <a href="#rules" class="block w-full px-4 py-3 text-left lg:inline-block lg:w-auto lg:p-2 hover:text-[var(--cube-red)] transition border-b-2 border-transparent hover:border-[var(--cube-red)]">Rules</a>
+        <a href="live/" class="block w-full px-4 py-3 text-left lg:inline-block lg:w-auto lg:p-2 hover:text-[var(--cube-red)] transition border-b-2 border-transparent hover:border-[var(--cube-red)]">🔴 Live</a>
+        <a href="#contact" class="block w-full px-4 py-3 text-left lg:inline-block lg:w-auto lg:p-2 hover:text-[var(--cube-yellow)] transition border-b-2 border-transparent hover:border-[var(--cube-yellow)]">Contact</a>
+        <details class="lg:relative"><summary class="block px-4 py-3 lg:p-2 cursor-pointer list-none hover:text-[var(--cube-blue)] [&::-webkit-details-marker]:hidden">More ▾</summary>
+          <div class="lg:absolute lg:right-0 lg:top-full lg:mt-2 lg:w-52 lg:rounded-xl lg:shadow-2xl lg:border lg:border-white/10" style="background:var(--bg-surface);">
+        <a href="avgcalculator/" class="block w-full px-4 py-3 lg:py-2 text-left hover:text-[var(--cube-blue)] transition border-b-2 border-transparent hover:border-[var(--cube-blue)]">🧮 Avg Calc</a>
+        <a href="learnalgs/" class="block w-full px-4 py-3 lg:py-2 text-left hover:text-[var(--cube-green)] transition border-b-2 border-transparent hover:border-[var(--cube-green)]">📖 Learn Algs</a>
+        <a href="previous-competitions.html" class="block w-full px-4 py-3 lg:py-2 text-left hover:text-[var(--cube-blue)] transition border-b-2 border-transparent hover:border-[var(--cube-blue)]">Previous</a>
+        <a href="#results" class="block w-full px-4 py-3 lg:py-2 text-left hover:text-[var(--cube-green)] transition border-b-2 border-transparent hover:border-[var(--cube-green)]">Winners</a>
+        <a href="#gallery" class="block w-full px-4 py-3 lg:py-2 text-left hover:text-[var(--cube-yellow)] transition border-b-2 border-transparent hover:border-[var(--cube-yellow)]">Gallery</a>
+        <a href="#hall-of-fame" class="block w-full px-4 py-3 lg:py-2 text-left hover:text-[var(--cube-blue)] transition border-b-2 border-transparent hover:border-[var(--cube-blue)]">Hall of Fame</a>
+        <a href="#faq" class="block w-full px-4 py-3 lg:py-2 text-left hover:text-[var(--cube-green)] transition border-b-2 border-transparent hover:border-[var(--cube-green)]">FAQ</a>
+        <a href="#organizer" class="block w-full px-4 py-3 lg:py-2 text-left hover:text-[var(--cube-blue)] transition border-b-2 border-transparent hover:border-[var(--cube-blue)]">Organizers</a>
+          </div>
+        </details>
       </div>
     </div>
   </div>
@@ -105,34 +114,32 @@
     <div class="scramble-row r1"><span>R U R' U'</span><span>F2 D' B L2</span><span>U' R2 F' D</span><span>B2 L R' U2</span><span>R U R' U'</span><span>F2 D' B L2</span><span>U' R2 F' D</span><span>B2 L R' U2</span></div>
     <div class="scramble-row r2"><span>D2 R' F U2</span><span>L' B2 R U'</span><span>F R2 D' L</span><span>U B' R2 F'</span><span>D2 R' F U2</span><span>L' B2 R U'</span><span>F R2 D' L</span><span>U B' R2 F'</span></div>
     <div class="hero-content max-w-7xl mx-auto px-4 text-center">
+      <a id="live-banner" href="live/" class="hidden inline-flex items-center gap-2 mb-6 px-4 py-2 rounded-full font-mono text-sm" style="background:rgba(232,65,43,.15); color:var(--cube-red); border:1px solid var(--cube-red);">🔴 Live now — follow the results</a>
       <div class="flex justify-center mb-6">
         <div class="cube-mark"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
       </div>
       <div id="hero-dynamic">
         <h1 class="font-display text-4xl md:text-6xl font-bold tracking-tight mb-6">Welcome to Twist &amp; Turn</h1>
         <p class="text-lg md:text-xl max-w-2xl mx-auto" style="color:var(--ink-muted)">Your platform for high-stakes online Rubik's Cube competitions.</p>
+        <div id="hero-next" class="hidden mt-8 max-w-xl mx-auto surface-card rounded-2xl p-6" style="background:rgba(24,27,36,.8)">
+          <p class="eyebrow mb-1">Next competition</p>
+          <h2 id="hero-next-name" class="font-display text-2xl font-bold"></h2>
+          <p id="hero-next-date" class="mt-1" style="color:var(--ink-muted)"></p>
+          <p id="hero-next-status" class="mt-2 font-mono text-sm"></p>
+          <p id="hero-next-timer-label" class="hidden eyebrow mt-5 mb-2">Registration closes in</p>
+          <div id="hero-next-timer" class="hidden grid grid-cols-4 gap-3 font-mono text-center"></div>
+          <div class="mt-5 flex flex-wrap justify-center gap-3">
+            <a id="hero-next-reg" href="#" target="_blank" rel="noopener" class="hidden btn-primary inline-block px-6 py-3 rounded-lg">Register now</a>
+            <button id="hero-share" type="button" class="inline-block font-display font-semibold px-6 py-3 rounded-lg" style="background:var(--cube-blue); color:#fff;">📤 Share</button>
+          </div>
+        </div>
         <div class="mt-10 flex flex-wrap justify-center gap-4">
-          <button onclick="window.location.href='competition/'" class="btn-primary px-8 py-4 rounded-xl shadow-xl">See Upcoming Competition 🏆</button>
+          <a href="upcoming.html" class="btn-primary inline-block px-8 py-4 rounded-xl shadow-xl">See Upcoming Competition 🏆</a>
         </div>
       </div>
     </div>
   </section>
 
-  <section id="practice" class="py-16" style="background:var(--bg-surface);">
-    <div class="max-w-3xl mx-auto px-4 text-center">
-      <p class="eyebrow mb-2">Warm Up</p>
-      <h2 class="font-display text-3xl font-bold mb-6">Practice Scramble</h2>
-      <div class="interactive-card surface-card accent-border-yellow rounded-2xl p-8 shadow-md" style="background:var(--bg-base);">
-        <p id="scramble-display" class="font-mono text-lg md:text-2xl tracking-wider break-words leading-relaxed">Loading…</p>
-        <div class="mt-6 flex flex-wrap justify-center gap-4">
-          <button id="new-scramble-btn" type="button" class="btn-primary py-3 px-6 rounded-lg shadow-md transition transform hover:-translate-y-1">🔄 New Scramble</button>
-          <button id="copy-scramble-btn" type="button" class="inline-block font-display font-semibold py-3 px-6 rounded-lg shadow-md transition transform hover:-translate-y-1" style="background:var(--cube-blue); color:#fff;">📋 Copy</button>
-        </div>
-        <p id="copy-feedback" class="mt-3 text-sm hidden font-mono" style="color:var(--cube-green);">Copied to clipboard!</p>
-      </div>
-      <p class="mt-4 text-sm" style="color:var(--ink-muted);">A quick 3x3 scramble to warm up before your solves — not for official records.</p>
-    </div>
-  </section>
 
   <section id="rules" class="py-16">
     <div class="max-w-7xl mx-auto px-4">
@@ -198,7 +205,7 @@
         <h3 class="font-display font-bold text-xl mb-4">💰 Registration &amp; Refunds</h3>
         <ul class="space-y-3" style="color:#D6D8DF;">
           <li>• The registration fee is non-refundable once a participant has completed registration.</li>
-          <li>• If a participant is unable to attend the competition for any reason and cannot attend, the registration fee will not be refunded.</li>
+          <li>• If a participant cannot attend for any reason, the registration fee will not be refunded.</li>
         </ul>
       </div>
 
@@ -247,10 +254,10 @@
 
       const rowsHtml = d.rows.map(r => `
         <tr class="hover:bg-white/5 transition-colors">
-          <td class="px-6 py-4 font-semibold">${r.event || ""}</td>
-          <td class="px-6 py-4" style="color:#D6D8DF;">${r.first || ""}</td>
-          <td class="px-6 py-4" style="color:#D6D8DF;">${r.second || ""}</td>
-          <td class="px-6 py-4" style="color:#D6D8DF;">${r.third || ""}</td>
+          <td class="px-6 py-4 font-semibold">${escapeHtml(r.event)}</td>
+          <td class="px-6 py-4" style="color:#D6D8DF;">${escapeHtml(r.first)}</td>
+          <td class="px-6 py-4" style="color:#D6D8DF;">${escapeHtml(r.second)}</td>
+          <td class="px-6 py-4" style="color:#D6D8DF;">${escapeHtml(r.third)}</td>
         </tr>`).join("");
 
       wrap.innerHTML = `
@@ -268,91 +275,6 @@
     });
   </script>
 
-  <section id="live-results" class="py-16">
-    <div class="max-w-4xl mx-auto px-4">
-      <p class="eyebrow mb-2">Right Now</p>
-      <div class="flex items-center gap-3 mb-2 flex-wrap">
-        <h2 class="font-display text-3xl font-bold">Live Results</h2>
-        <span id="live-results-badge" class="hidden inline-block font-mono text-xs px-3 py-1 rounded-full" style="background:rgba(232,65,43,0.15); color:var(--cube-red);">🔴 LIVE</span>
-      </div>
-
-      <div id="live-event-tabs" class="flex flex-wrap gap-2 mt-4 mb-2"></div>
-
-      <div id="live-results-wrap" class="rounded-2xl shadow-xl surface-card mt-4 overflow-hidden">
-        <p class="p-8 text-center" style="color:var(--ink-muted)">Waiting for results…</p>
-      </div>
-    </div>
-  </section>
-
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-    import { getFirestore, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-    import { firebaseConfig } from "./firebase-config.js";
-
-    const liveApp = initializeApp(firebaseConfig, "liveResultsApp");
-    const liveDb = getFirestore(liveApp);
-    const tabsEl = document.getElementById("live-event-tabs");
-    const liveWrap = document.getElementById("live-results-wrap");
-    const liveBadgeEl = document.getElementById("live-results-badge");
-
-    let activeEventIdx = 0;
-
-    function renderEvent(events) {
-      if (activeEventIdx >= events.length) activeEventIdx = 0;
-      const ev = events[activeEventIdx];
-      const sorted = [...(ev.rows || [])].sort((a, b) => (a.timeMs ?? Infinity) - (b.timeMs ?? Infinity));
-      const medals = ["🥇", "🥈", "🥉"];
-
-      if (sorted.length === 0) {
-        liveWrap.innerHTML = `<p class="p-8 text-center" style="color:var(--ink-muted)">Waiting for results…</p>`;
-        return;
-      }
-
-      liveWrap.innerHTML = `
-        <div class="divide-y divide-white/5">
-          ${sorted.map((r, i) => `
-            <div class="flex items-center justify-between px-6 py-4 ${i < 3 ? 'bg-white/[0.03]' : ''} transition-colors">
-              <div class="flex items-center gap-4">
-                <span class="font-mono w-8 text-center ${i < 3 ? 'text-xl' : ''}" style="color:var(--ink-muted);">${medals[i] || (i + 1)}</span>
-                <span class="font-semibold">${r.name || ""}</span>
-              </div>
-              <span class="font-mono font-bold text-lg" style="color:var(--cube-yellow);">${r.timeDisplay || ""}</span>
-            </div>
-          `).join("")}
-        </div>`;
-    }
-
-    function renderTabs(events) {
-      tabsEl.innerHTML = events.map((ev, i) => `
-        <button type="button" data-idx="${i}" class="live-tab-btn font-mono text-sm px-4 py-2 rounded-full transition-colors"
-          style="${i === activeEventIdx
-            ? 'background:var(--cube-red); color:#fff;'
-            : 'background:var(--bg-surface); color:var(--ink-muted); border:1px solid rgba(255,255,255,0.1);'}">
-          ${ev.name || "Event"}
-        </button>`).join("");
-
-      tabsEl.querySelectorAll(".live-tab-btn").forEach(btn => {
-        btn.addEventListener("click", () => {
-          activeEventIdx = parseInt(btn.dataset.idx, 10);
-          renderTabs(events);
-          renderEvent(events);
-        });
-      });
-    }
-
-    onSnapshot(doc(liveDb, "site", "liveResults"), (snap) => {
-      if (!snap.exists() || !snap.data().events || snap.data().events.length === 0) {
-        tabsEl.innerHTML = "";
-        liveWrap.innerHTML = `<p class="p-8 text-center" style="color:var(--ink-muted)">Waiting for results…</p>`;
-        liveBadgeEl.classList.add("hidden");
-        return;
-      }
-      const d = snap.data();
-      liveBadgeEl.classList.toggle("hidden", !d.isLive);
-      renderTabs(d.events);
-      renderEvent(d.events);
-    });
-  </script>
 
   <section id="gallery" class="py-16">
     <div class="max-w-7xl mx-auto px-4">
@@ -396,11 +318,13 @@
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-    import { getFirestore, doc, getDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    import { getFirestore, doc, getDoc, collection, getDocs, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
     import { firebaseConfig } from "./firebase-config.js";
 
     const extrasApp = initializeApp(firebaseConfig, "extrasApp");
     const db = getFirestore(extrasApp);
+
+    const fail = id => () => { const el = document.getElementById(id); if (el) el.innerHTML = '<p style="color:var(--ink-muted)">Could not load this section. Please refresh.</p>'; };
 
     // ---- WhatsApp community link ----
     getDoc(doc(db, "site", "general")).then(snap => {
@@ -420,9 +344,9 @@
       }
       grid.innerHTML = snap.docs.map(d => `
         <div class="interactive-card surface-card rounded-xl overflow-hidden">
-          <img src="${d.data().image}" class="w-full h-40 object-cover">
+          <img src="${escapeHtml(d.data().image)}" alt="Competition photo" loading="lazy" class="w-full h-40 object-cover">
         </div>`).join("");
-    });
+    }).catch(fail("gallery-grid"));
 
     // ---- Reviews ----
     getDoc(doc(db, "site", "reviews")).then(snap => {
@@ -434,10 +358,10 @@
       }
       grid.innerHTML = items.map(r => `
         <div class="interactive-card surface-card accent-border-yellow rounded-2xl p-6">
-          <p class="mb-4" style="color:#D6D8DF;">"${r.text || ""}"</p>
-          <p class="font-display font-bold" style="color:var(--cube-yellow);">— ${r.name || "Anonymous"}</p>
+          <p class="mb-4" style="color:#D6D8DF;">"${escapeHtml(r.text)}"</p>
+          <p class="font-display font-bold" style="color:var(--cube-yellow);">— ${escapeHtml(r.name || "Anonymous")}</p>
         </div>`).join("");
-    });
+    }).catch(fail("reviews-grid"));
 
     // ---- Hall of Fame ----
     const hofReady = getDoc(doc(db, "site", "hallOfFame")).then(snap => {
@@ -449,13 +373,13 @@
       }
       grid.innerHTML = items.map(h => `
         <div class="interactive-card surface-card accent-border-yellow rounded-2xl p-6 text-center">
-          ${h.photo ? `<img src="${h.photo}" class="w-20 h-20 rounded-full object-cover mx-auto mb-4 border-2" style="border-color:var(--cube-yellow);">` : `<div class="w-20 h-20 rounded-full mx-auto mb-4 flex items-center justify-center text-2xl font-display font-bold" style="background:var(--bg-base); color:var(--cube-yellow);">🏆</div>`}
-          <h3 class="font-display font-bold text-lg">${h.name || ""}</h3>
-          <p class="font-mono text-sm mt-1" style="color:var(--cube-yellow);">${h.achievement || ""}</p>
-          ${h.event ? `<p class="text-sm mt-1" style="color:var(--ink-muted);">${h.event}</p>` : ""}
+          ${h.photo ? `<img src="${escapeHtml(h.photo)}" alt="" loading="lazy" class="w-20 h-20 rounded-full object-cover mx-auto mb-4 border-2" style="border-color:var(--cube-yellow);">` : `<div class="w-20 h-20 rounded-full mx-auto mb-4 flex items-center justify-center text-2xl font-display font-bold" style="background:var(--bg-base); color:var(--cube-yellow);">🏆</div>`}
+          <h3 class="font-display font-bold text-lg">${escapeHtml(h.name)}</h3>
+          <p class="font-mono text-sm mt-1" style="color:var(--cube-yellow);">${escapeHtml(h.achievement)}</p>
+          ${h.event ? `<p class="text-sm mt-1" style="color:var(--ink-muted);">${escapeHtml(h.event)}</p>` : ""}
         </div>`).join("");
       return items;
-    });
+    }).catch(() => { fail("hof-grid")(); return []; });
 
     // ---- FAQ (also feeds the chatbot's knowledge base below) ----
     let faqItemsCache = [];
@@ -469,10 +393,10 @@
       }
       list.innerHTML = items.map(f => `
         <details class="surface-card rounded-xl p-5">
-          <summary class="font-display font-semibold cursor-pointer">${f.q || ""}</summary>
-          <p class="mt-3" style="color:var(--ink-muted);">${f.a || ""}</p>
+          <summary class="font-display font-semibold cursor-pointer">${escapeHtml(f.q)}</summary>
+          <p class="mt-3" style="color:var(--ink-muted);">${escapeHtml(f.a)}</p>
         </details>`).join("");
-    });
+    }).catch(fail("faq-list"));
 
     // ============================================
     // Cubing Assistant — smart on-site search chatbot
@@ -482,12 +406,56 @@
     const upcomingReady = getDoc(doc(db, "site", "upcomingCompetition"));
     const generalReady = getDoc(doc(db, "site", "general"));
 
+    // ---- Live-now banner ----
+    onSnapshot(doc(db, "site", "liveResults"), s => {
+      document.getElementById("live-banner").classList.toggle("hidden", !(s.exists() && s.data().isLive));
+    }, () => {});
+
+    // ---- Hero: next competition card ----
+    upcomingReady.then(snap => {
+      if (!snap.exists()) return;
+      const d = snap.data();
+      if (!d.status || d.status === "none") return;
+      const open = d.status === "open";
+      const title = d.title || d.name || "Upcoming Competition";
+      document.getElementById("hero-next-name").textContent = title;
+      document.getElementById("hero-next-date").textContent = d.date ? "📅 " + d.date : "";
+      const st = document.getElementById("hero-next-status");
+      st.textContent = open ? "🟢 Registration open" : "🔴 Registration closed";
+      st.style.color = open ? "var(--cube-green)" : "var(--cube-red)";
+      const reg = document.getElementById("hero-next-reg");
+      if (open && /^https?:\/\//.test(d.regLink || "")) { reg.href = d.regLink; reg.classList.remove("hidden"); }
+      document.getElementById("hero-share").addEventListener("click", async () => {
+        const data = { title, text: title + (d.date ? " — " + d.date : "") + " | Twist & Turn", url: location.href };
+        if (navigator.share) { try { await navigator.share(data); } catch (e) {} }
+        else window.open("https://wa.me/?text=" + encodeURIComponent(data.text + " " + data.url), "_blank", "noopener");
+      });
+      document.getElementById("hero-next").classList.remove("hidden");
+
+      // Countdown uses the same optional regCloseISO field as the Upcoming page
+      const close = d.regCloseISO ? new Date(d.regCloseISO).getTime() : NaN;
+      if (!open || isNaN(close) || close <= Date.now()) return;
+      const t = document.getElementById("hero-next-timer");
+      const label = document.getElementById("hero-next-timer-label");
+      const cell = (n, l) => `<div class="rounded-xl py-3" style="background:var(--bg-base)"><div class="text-2xl font-bold" style="color:var(--cube-yellow)">${n}</div><div class="text-xs" style="color:var(--ink-muted)">${l}</div></div>`;
+      const tick = () => {
+        const s = Math.floor((close - Date.now()) / 1000);
+        if (s <= 0) { t.classList.add("hidden"); label.classList.add("hidden"); clearInterval(iv); return; }
+        t.innerHTML = cell(Math.floor(s / 86400), "days") + cell(Math.floor(s % 86400 / 3600), "hrs") + cell(Math.floor(s % 3600 / 60), "min") + cell(s % 60, "sec");
+        t.classList.remove("hidden"); label.classList.remove("hidden");
+      };
+      const iv = setInterval(tick, 1000); tick();
+    }).catch(() => {});
+
     function tokenize(str) {
       const stop = new Set(["the","is","are","a","an","to","of","for","in","on","and","or","what","how","when","where","do","does","i","my","me","can","kya","ka","ki","ke","hai","hain","mai","main","kaise"]);
       return (str || "").toLowerCase().replace(/[^a-z0-9\s]/g, " ").split(/\s+/).filter(w => w.length > 1 && !stop.has(w));
     }
 
-    Promise.all([faqReady, upcomingReady, generalReady, hofReady]).then(([, upcomingSnap, generalSnap, hofItems]) => {
+    Promise.allSettled([faqReady, upcomingReady, generalReady]).then((res) => {
+      const none = { exists: () => false, data: () => ({}) };
+      const upcomingSnap = res[1].status === "fulfilled" ? res[1].value : none;
+      const generalSnap = res[2].status === "fulfilled" ? res[2].value : none;
       const kb = [];
 
       // FAQ entries
@@ -525,7 +493,7 @@
       }
 
       // A few evergreen ones
-      kb.push({ tokens: tokenize("live results counter timing"), answer: "Check the 'Live' section on the homepage — times update automatically as each solve is submitted, tab-wise per event." });
+      kb.push({ tokens: tokenize("live results counter timing"), answer: "Open the 🔴 Live page from the menu — times update automatically as each solve is submitted, event by event and round by round." });
       kb.push({ tokens: tokenize("hall of fame past winners champions"), answer: "Our past champions and record holders are listed in the Hall of Fame section." });
       kb.push({ tokens: tokenize("hello hi hey namaste"), answer: "Hey! 👋 Ask me about registration, dates, entry fee, rules, or results." });
       kb.push({ tokens: tokenize("thanks thank you shukriya"), answer: "You're welcome! Good luck cubing 🎲" });
@@ -589,10 +557,10 @@
   </a>
 
   <div id="chat-widget" class="fixed bottom-6 right-6 z-50">
-    <button id="chat-toggle" class="btn-primary p-4 rounded-full shadow-2xl transition">
+    <button id="chat-toggle" aria-label="Open chat assistant" class="btn-primary p-4 rounded-full shadow-2xl transition">
       <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"></path></svg>
     </button>
-    <div id="chat-window" class="hidden absolute bottom-16 right-0 w-80 rounded-2xl shadow-2xl border border-white/10 overflow-hidden flex flex-col h-96 surface-card">
+    <div id="chat-window" class="hidden absolute bottom-16 right-0 w-[calc(100vw-3rem)] max-w-sm rounded-2xl shadow-2xl border border-white/10 overflow-hidden flex flex-col h-96 surface-card">
       <div class="p-4 font-bold flex justify-between items-center font-display" style="background:var(--cube-red); color:#fff;">
         <span>Cubing Assistant</span>
         <button id="close-chat" class="hover:text-white/70">✕</button>
@@ -670,53 +638,6 @@
 </footer>
 
   <script>
-    // ---- Practice Scramble Generator (pure client-side, no dependencies) ----
-    (function () {
-      const FACES = [
-        { face: "U", axis: "y" }, { face: "D", axis: "y" },
-        { face: "L", axis: "x" }, { face: "R", axis: "x" },
-        { face: "F", axis: "z" }, { face: "B", axis: "z" }
-      ];
-      const MODS = ["", "'", "2"];
-
-      function generateScramble(len) {
-        len = len || 20;
-        const seq = [];
-        let lastAxis = null;
-        for (let i = 0; i < len; i++) {
-          const pool = FACES.filter(m => m.axis !== lastAxis);
-          const m = pool[Math.floor(Math.random() * pool.length)];
-          const mod = MODS[Math.floor(Math.random() * MODS.length)];
-          seq.push(m.face + mod);
-          lastAxis = m.axis;
-        }
-        return seq.join("  ");
-      }
-
-      const display = document.getElementById("scramble-display");
-      const newBtn = document.getElementById("new-scramble-btn");
-      const copyBtn = document.getElementById("copy-scramble-btn");
-      const feedback = document.getElementById("copy-feedback");
-      if (!display || !newBtn || !copyBtn) return;
-
-      function render() { display.textContent = generateScramble(20); }
-
-      newBtn.addEventListener("click", render);
-      copyBtn.addEventListener("click", () => {
-        const text = display.textContent;
-        if (navigator.clipboard && navigator.clipboard.writeText) {
-          navigator.clipboard.writeText(text).then(showCopied).catch(() => {});
-        }
-        function showCopied() {
-          if (!feedback) return;
-          feedback.classList.remove("hidden");
-          setTimeout(() => feedback.classList.add("hidden"), 1500);
-        }
-      });
-
-      render();
-    })();
-
     // ---- Scroll-to-top button ----
     (function () {
       const btn = document.getElementById("scroll-top-btn");
