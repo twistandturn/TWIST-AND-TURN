@@ -215,6 +215,38 @@
         </div>
       </div>
 
+      <p class="font-mono text-xs tracking-widest uppercase mt-16 mb-2" style="color:var(--ink-muted);">Upcoming Competition</p>
+      <h1 class="font-display text-3xl font-bold mb-2">Schedule &amp; Groups</h1>
+      <p class="text-sm mb-8" style="color:var(--ink-muted);">Schedule aur group timings upcoming page par dikhenge. Kaun kis group me hai, wo sirf Status <b style="color:var(--ink);">"Registrations Closed"</b> hone par dikhega. "No Upcoming Competition" par kuch nahi dikhega.</p>
+
+      <div class="surface-card rounded-2xl p-8 shadow-xl space-y-6">
+        <div>
+          <label class="block text-sm font-mono mb-2" style="color:var(--ink-muted);">Schedule (date, start, end, activity)</label>
+          <div id="sch-rows" class="space-y-3"></div>
+          <button id="sch-add-btn" type="button" class="w-full py-2 rounded-lg border border-white/15 font-mono text-sm mt-2" style="color:var(--ink-muted);">+ Add Schedule Item</button>
+        </div>
+
+        <div>
+          <label class="block text-sm font-mono mb-2" style="color:var(--ink-muted);">Groups (event, round, group name, date, start, end)</label>
+          <div id="grp-rows" class="space-y-3"></div>
+          <datalist id="grp-event-options"></datalist>
+          <button id="grp-add-btn" type="button" class="w-full py-2 rounded-lg border border-white/15 font-mono text-sm mt-2" style="color:var(--ink-muted);">+ Add Group</button>
+        </div>
+
+        <div>
+          <div class="flex items-center justify-between gap-3 mb-2">
+            <label class="block text-sm font-mono" style="color:var(--ink-muted);">Kaun kis group me</label>
+            <button type="button" id="grp-refresh-btn" class="py-2 px-4 rounded-lg border border-white/15 font-mono text-xs" style="color:var(--ink-muted);">🔄 Refresh names</button>
+          </div>
+          <p class="text-xs mb-3" style="color:var(--ink-muted);">Names upar wali Participants List se aate hain. "Auto Divide" unhe barabar baant deta hai, phir dropdown se badal sakte ho.</p>
+          <div id="grp-assign" class="space-y-4"></div>
+        </div>
+
+        <button id="sch-save-btn" class="btn-primary w-full py-3 rounded-lg">Save Schedule &amp; Groups</button>
+        <button id="sch-clear-btn" type="button" class="w-full py-2 rounded-lg text-sm" style="color:var(--cube-red); border:1px solid rgba(255,255,255,0.1);">Clear All (naye competition ke liye)</button>
+        <p id="sch-save-msg" class="text-sm hidden"></p>
+      </div>
+
       <p class="font-mono text-xs tracking-widest uppercase mt-16 mb-2" style="color:var(--ink-muted);">Leaderboard</p>
       <h1 class="font-display text-3xl font-bold mb-8">Manage Results</h1>
 
@@ -439,6 +471,7 @@
         loadResults();
         loadLiveResults();
         loadParticipants();
+        loadSchedule();
         loadGeneral();
         loadGallery();
         loadReviews();
@@ -658,6 +691,10 @@
     // ============================================
     let ptList = [];            // [{ name, events: [] }]
     let ptNewEvents = [];       // events ticked in Quick Add
+    let ptLoaded = false;
+    let schList = [];           // [{ date, start, end, title }]
+    let grpList = [];           // [{ event, round, name, date, start, end, members: [] }]
+    let schLoaded = false;
     const ptRowsEl = document.getElementById("pt-rows");
     const ptNewChipsEl = document.getElementById("pt-new-chips");
 
@@ -710,6 +747,7 @@
     }
 
     function renderParticipants() {
+      grpRenderAssign();
       ptRowsEl.innerHTML = "";
       document.getElementById("pt-total").textContent = ptList.length;
       if (ptList.length === 0) {
@@ -796,6 +834,7 @@
         ptList = (snap.exists() && Array.isArray(snap.data().list))
           ? snap.data().list.map(p => ({ name: p.name || "", events: Array.isArray(p.events) ? [...p.events] : [] }))
           : [];
+        ptLoaded = true;
       } catch (err) { console.error(err); ptList = []; }
       renderNewChips();
       renderParticipants();
@@ -891,6 +930,241 @@
 
     // Keep Quick Add chips in sync when the competition's events list changes
     eventsContainer.addEventListener("input", () => { renderNewChips(); });
+
+    // ============================================
+    // Schedule & Groups (upcoming competition)
+    // Firestore: site/upcomingSchedule { schedule: [...], groups: [...] }
+    // ============================================
+    const schRowsEl = document.getElementById("sch-rows");
+    const grpRowsEl = document.getElementById("grp-rows");
+    const grpAssignEl = document.getElementById("grp-assign");
+
+    const nameKey = n => (n || "").trim().replace(/\s+/g, " ").toLowerCase();
+    const grpKey = g => slugify(g.event) + "|" + nameKey(g.round);
+
+    function mkInput(obj, key, type, placeholder, cls) {
+      const el = document.createElement("input");
+      el.type = type;
+      el.className = "field rounded-lg px-3 py-2 text-sm min-w-0 " + cls;
+      el.placeholder = placeholder;
+      el.title = placeholder;
+      el.setAttribute("aria-label", placeholder);
+      el.value = obj[key] || "";
+      el.addEventListener("input", () => { obj[key] = el.value; });
+      return el;
+    }
+
+    function mkRemove(onClick) {
+      const b = document.createElement("button");
+      b.type = "button";
+      b.textContent = "Remove";
+      b.className = "text-sm py-2 rounded-lg col-span-6 sm:col-span-2";
+      b.style.cssText = "color:var(--cube-red); border:1px solid rgba(255,255,255,0.1);";
+      b.addEventListener("click", onClick);
+      return b;
+    }
+
+    function mkBlock() {
+      const d = document.createElement("div");
+      d.className = "grid grid-cols-6 gap-2 rounded-xl p-3";
+      d.style.cssText = "background:rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.08);";
+      return d;
+    }
+
+    function schRender() {
+      schRowsEl.innerHTML = "";
+      schList.forEach((s, i) => {
+        const row = mkBlock();
+        row.append(
+          mkInput(s, "date", "date", "Date", "col-span-6 sm:col-span-2"),
+          mkInput(s, "start", "time", "Start time", "col-span-3 sm:col-span-2"),
+          mkInput(s, "end", "time", "End time", "col-span-3 sm:col-span-2"),
+          mkInput(s, "title", "text", "Activity e.g. 3x3 Round 1, Break, Prize Distribution", "col-span-6 sm:col-span-4"),
+          mkRemove(() => { schList.splice(i, 1); schRender(); })
+        );
+        schRowsEl.appendChild(row);
+      });
+    }
+
+    function grpRender() {
+      grpRowsEl.innerHTML = "";
+      grpList.forEach((g, i) => {
+        const row = mkBlock();
+        const ev = mkInput(g, "event", "text", "Event e.g. 3x3", "col-span-2");
+        ev.setAttribute("list", "grp-event-options");
+        const round = mkInput(g, "round", "text", "Round", "col-span-2");
+        const name = mkInput(g, "name", "text", "Group e.g. Group A", "col-span-2");
+        [ev, round, name].forEach(el => el.addEventListener("change", grpRenderAssign));
+        row.append(
+          ev, round, name,
+          mkInput(g, "date", "date", "Date", "col-span-6 sm:col-span-2"),
+          mkInput(g, "start", "time", "Start time", "col-span-3 sm:col-span-1"),
+          mkInput(g, "end", "time", "End time", "col-span-3 sm:col-span-1"),
+          mkRemove(() => { grpList.splice(i, 1); grpRender(); })
+        );
+        grpRowsEl.appendChild(row);
+      });
+      grpRenderAssign();
+    }
+
+    function grpPeople(eventName) {
+      const k = slugify(eventName);
+      return ptClean().filter(p => p.events.some(e => slugify(e) === k));
+    }
+
+    function grpSetMember(groups, name, target) {
+      groups.forEach(g => { g.members = g.members.filter(m => nameKey(m) !== nameKey(name)); });
+      if (target) target.members.push(name);
+    }
+
+    function grpRenderAssign() {
+      document.getElementById("grp-event-options").replaceChildren(...ptAllEvents().map(e => new Option(e, e)));
+      grpAssignEl.innerHTML = "";
+
+      const sections = new Map();
+      grpList.forEach(g => {
+        if (!slugify(g.event) || !(g.name || "").trim()) return;
+        if (!sections.has(grpKey(g))) sections.set(grpKey(g), []);
+        sections.get(grpKey(g)).push(g);
+      });
+
+      if (sections.size === 0) {
+        grpAssignEl.innerHTML = '<p class="text-sm" style="color:var(--ink-muted);">Pehle upar group add karo (event aur group name zaroori hai).</p>';
+        return;
+      }
+
+      sections.forEach(groups => {
+        const people = grpPeople(groups[0].event);
+        const find = n => groups.find(g => g.members.some(m => nameKey(m) === nameKey(n)));
+        const left = people.filter(p => !find(p.name)).length;
+
+        const box = document.createElement("div");
+        box.className = "live-round-block space-y-2";
+
+        const head = document.createElement("div");
+        head.className = "flex flex-wrap items-center justify-between gap-2";
+        const title = document.createElement("b");
+        title.className = "text-sm";
+        title.textContent = `${groups[0].event} ${groups[0].round || ""} · ${people.length} names, ${left} baaki`;
+        const auto = document.createElement("button");
+        auto.type = "button";
+        auto.textContent = "🔀 Auto Divide";
+        auto.className = "btn-secondary px-4 py-2 rounded-lg text-xs";
+        auto.addEventListener("click", () => {
+          if (people.length === 0) { alert("Is event me koi participant nahi hai."); return; }
+          if (groups.some(g => g.members.length) && !confirm("Is event/round ke purane groups badal jayenge. Continue?")) return;
+          const mixed = [...people];
+          for (let i = mixed.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [mixed[i], mixed[j]] = [mixed[j], mixed[i]];
+          }
+          groups.forEach(g => { g.members = []; });
+          mixed.forEach((p, i) => groups[i % groups.length].members.push(p.name));
+          grpRenderAssign();
+        });
+        head.append(title, auto);
+        box.appendChild(head);
+
+        people.forEach(p => {
+          const line = document.createElement("div");
+          line.className = "grid grid-cols-2 gap-2 items-center";
+          const label = document.createElement("span");
+          label.className = "text-sm";
+          label.textContent = p.name;
+          const sel = document.createElement("select");
+          sel.className = "field rounded-lg px-3 py-2 text-sm";
+          sel.setAttribute("aria-label", "Group for " + p.name);
+          sel.add(new Option("— No group —", ""));
+          groups.forEach((g, i) => sel.add(new Option(g.name, String(i))));
+          const cur = find(p.name);
+          sel.value = cur ? String(groups.indexOf(cur)) : "";
+          sel.addEventListener("change", () => {
+            grpSetMember(groups, p.name, sel.value === "" ? null : groups[Number(sel.value)]);
+            grpRenderAssign();
+          });
+          line.append(label, sel);
+          box.appendChild(line);
+        });
+
+        grpAssignEl.appendChild(box);
+      });
+    }
+
+    async function loadSchedule() {
+      try {
+        const snap = await getDoc(doc(db, "site", "upcomingSchedule"));
+        const d = snap.exists() ? snap.data() : {};
+        schList = (d.schedule || []).map(s => ({ ...s }));
+        grpList = (d.groups || []).map(g => ({ ...g, members: [...(g.members || [])] }));
+        schLoaded = true;
+        schRender();
+        grpRender();
+      } catch (err) {
+        ptShow(document.getElementById("sch-save-msg"), "Schedule load nahi hua, page refresh karo: " + err.message, false);
+      }
+    }
+
+    document.getElementById("sch-add-btn").addEventListener("click", () => {
+      const last = schList[schList.length - 1];
+      schList.push({ date: last ? last.date : "", start: last ? last.end : "", end: "", title: "" });
+      schRender();
+    });
+
+    document.getElementById("grp-add-btn").addEventListener("click", () => {
+      const last = grpList[grpList.length - 1];
+      grpList.push({ event: last ? last.event : "", round: last ? last.round : "Round 1", name: "", date: last ? last.date : "", start: "", end: "", members: [] });
+      grpRender();
+    });
+
+    document.getElementById("grp-refresh-btn").addEventListener("click", grpRenderAssign);
+
+    document.getElementById("sch-save-btn").addEventListener("click", async () => {
+      const msg = document.getElementById("sch-save-msg");
+      msg.classList.add("hidden");
+      if (!schLoaded) { ptShow(msg, "Purana data load nahi hua. Refresh karke phir save karo.", false); return; }
+      if (schList.some(s => !(s.title || "").trim())) { ptShow(msg, "Har schedule item me Activity likho (ya Remove karo).", false); return; }
+      if (grpList.some(g => !slugify(g.event) || !(g.name || "").trim())) { ptShow(msg, "Har group me Event aur Group name likho (ya Remove karo).", false); return; }
+      const ids = grpList.map(g => grpKey(g) + "|" + nameKey(g.name));
+      if (new Set(ids).size !== ids.length) { ptShow(msg, "Ek event/round me do groups ka naam same hai.", false); return; }
+
+      const seen = new Set();   // one group per person per event + round
+      const groups = grpList.map(g => {
+        let members = g.members;
+        if (ptLoaded) {
+          const people = grpPeople(g.event);
+          members = members.map(m => people.find(p => nameKey(p.name) === nameKey(m))?.name).filter(Boolean);
+        }
+        members = members.filter(m => {
+          const k = grpKey(g) + "|" + nameKey(m);
+          if (seen.has(k)) return false;
+          seen.add(k);
+          return true;
+        });
+        return { event: g.event.trim(), round: (g.round || "").trim(), name: g.name.trim(), date: g.date || "", start: g.start || "", end: g.end || "", members };
+      });
+      const schedule = schList.map(s => ({ date: s.date || "", start: s.start || "", end: s.end || "", title: s.title.trim() }));
+
+      try {
+        await setDoc(doc(db, "site", "upcomingSchedule"), { schedule, groups, updatedAt: new Date().toISOString() });
+        schList = schedule.map(s => ({ ...s }));
+        grpList = groups.map(g => ({ ...g, members: [...g.members] }));
+        schRender();
+        grpRender();
+        ptShow(msg, "Saved! Upcoming page par dikhega.", true);
+      } catch (err) { ptShow(msg, "Error: " + err.message, false); }
+    });
+
+    document.getElementById("sch-clear-btn").addEventListener("click", async () => {
+      const msg = document.getElementById("sch-save-msg");
+      if (!confirm("Poora schedule aur saare groups delete ho jayenge. Pakka?")) return;
+      try {
+        await setDoc(doc(db, "site", "upcomingSchedule"), { schedule: [], groups: [], updatedAt: new Date().toISOString() });
+        schList = []; grpList = []; schLoaded = true;
+        schRender();
+        grpRender();
+        ptShow(msg, "Clear ho gaya.", true);
+      } catch (err) { ptShow(msg, "Error: " + err.message, false); }
+    });
 
     // ============================================
     // Results management
